@@ -1,0 +1,67 @@
+* How it works 
+:PROPERTIES:
+:SAVE-TO-FILE:  README.org
+:END:
+This section is the ~README.org~. It's saved automatically on each save.
+** stow
+** tangling in folders
+** conditional tangling
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./test.conf
+:END:
+
+Define a function that disables export of a code block if the conftype property
+does not match a certain  value. the idea is that the ~conftype~ property is set
+at top level (after pulling to a new device) and it is then respected by the
+tangle process.
+#+name:check-conftype
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun my-tangle-if-property-in-tags (property-name)
+  "Create :tangle argument based on a local property value.
+Check if the conftype property matches a tag at the current postition.
+The tags are searched recursively, so it's recommended to tag
+the last subheading level. If it matches return the property
+ value of the TANGLE_FILE_NAME or ('yes' by default)
+if not return 'no'."
+  (if (member (+org-get-global-property property-name) (org-get-tags))
+        (let ((positive-return (org-entry-get nil "TANGLE_FILE_NAME" t)))
+             (if positive-return positive-return "yes"))
+    "no")
+  )
+#+END_SRC
+
+#+RESULTS: check-conftype
+: my-tangle-if-property-in-tags
+
+#+BEGIN_SRC emacs-lisp
+(my-tangle-if-property-in-tags "conftype")
+#+END_SRC
+
+#+RESULTS:
+: ./test.conf
+
+#+BEGIN_SRC emacs-lisp 
+(my-is-conftype "halg")
+#+END_SRC
+
+#+RESULTS:
+: no
+
+#+begin_src conf :tangle (my-is-conftype "full") 
+it works
+#+end_src
+
+#+begin_src conf :tangle (my-is-conftype "half") 
+it does not work
+#+end_src
+
+** encryped private data
+this is important for sharing!!! 
+
+~Org-crypt~ allows to in document encrypt the content of headings. These headings
+can just be tagged with ~:crypt:~ and they will be encrypted on every safe.
+Unfortunately one of the ~pre-tangle-hooks~ save the buffer before tangling. Thus
+org will miss code blocks in encrypted headings. Luckily I am not the first one
+who got to this problem and there is a solution: [[https://ag91.github.io/blog/2020/10/30/org-crypt-and-tangling-source-blocks/][Org crypt and tangling source blocks - Where parallels cross]]
+I now just need to call ~org-decrypt-entries~ and then tangle the file.
+
