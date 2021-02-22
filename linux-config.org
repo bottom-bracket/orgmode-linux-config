@@ -1,0 +1,6349 @@
+#+TITLE: Linux Config
+#+TAGS: full(f) essential(e) crypt(c)
+#+PROPERTY: header-args :mkdirp yes :tangle (my-tangle-if-property-in-tags "conftype")
+#+conftype: full
+#+STARTUP: overview
+
+My linux configuration files tangled from a single org file. How spunky.
+
+The goal is to just track a single org file for all my configurations. Even for
+different systems.
+* How it works 
+:PROPERTIES:
+:SAVE-TO-FILE:  README.org
+:END:
+** stow
+** tangling in folders
+** conditional tangling
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./test.conf
+:END:
+
+Define a function that disables export of a code block if the conftype property
+does not match a certain  value. the idea is that the ~conftype~ property is set
+at top level (after pulling to a new device) and it is then respected by the
+tangle process.
+#+name:check-conftype
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun my-tangle-if-property-in-tags (property-name)
+  "Create :tangle argument based on a local property value.
+Check if the conftype property matches a tag at the current postition.
+The tags are searched recursively, so it's recommended to tag
+the last subheading level. If it matches return the property
+ value of the TANGLE_FILE_NAME or ('yes' by default)
+if not return 'no'."
+  (if (member (+org-get-global-property property-name) (org-get-tags))
+        (let ((positive-return (org-entry-get nil "TANGLE_FILE_NAME" t)))
+             (if positive-return positive-return "yes"))
+    "no")
+  )
+#+END_SRC
+
+#+RESULTS: check-conftype
+: my-tangle-if-property-in-tags
+
+#+BEGIN_SRC emacs-lisp
+(my-tangle-if-property-in-tags "conftype")
+#+END_SRC
+
+#+RESULTS:
+: ./test.conf
+
+#+BEGIN_SRC emacs-lisp 
+(my-is-conftype "halg")
+#+END_SRC
+
+#+RESULTS:
+: no
+
+#+begin_src conf :tangle (my-is-conftype "full") 
+it works
+#+end_src
+
+#+begin_src conf :tangle (my-is-conftype "half") 
+it does not work
+#+end_src
+
+** encryped private data
+this is important for sharing!!! 
+
+~Org-crypt~ allows to in document encrypt the content of headings. These headings
+can just be tagged with ~:crypt:~ and they will be encrypted on every safe.
+Unfortunately one of the ~pre-tangle-hooks~ save the buffer before tangling. Thus
+org will miss code blocks in encrypted headings. Luckily I am not the first one
+who got to this problem and there is a solution: [[https://ag91.github.io/blog/2020/10/30/org-crypt-and-tangling-source-blocks/][Org crypt and tangling source blocks - Where parallels cross]]
+I now just need to call ~org-decrypt-entries~ and then tangle the file.
+
+* Setup :full:
+The ~setup.sh~ that uses stow to create symlinks in my home folder.
+** Head and essential modules :essential:
+#+begin_src bash :tangle setup.sh
+#!/usr/bin/env bash
+set -euo pipefail
+
+# make sure we have pulled in and updated any submodules
+git submodule init
+git submodule update
+
+# what directories should be installable by all users including the root user
+base=(
+    bash
+    tmux
+    nvim
+    screen
+    ranger
+)
+# only basic packages in useronly if only essentials are needed
+useronly=(
+    bin         
+    compton     
+    git         
+    ssh          
+    gpg         
+    i3          
+    latexmk     
+    scripts     
+    picom
+    conky
+)
+#+end_src
+** Useronly for full configuration :full:
+#+begin_src bash
+
+# folders that should, or only need to be installed for a local user
+useronly=(
+    chemacs      
+    bin         
+    compton     
+    git         
+    digikam      
+    doom-emacs   
+    gmsh         
+    mbsync       
+    mail
+    ssh          
+    x
+    gpg         
+    gtk         
+    i3          
+    latexmk     
+    scripts     
+    picom
+    conky
+)
+
+#+end_src
+** Useronly for full configuration :essential:
+Part that runs stow for each folder in the ~base~ and ~useronly~ lists.
+#+begin_src bash
+# run the stow command for the passed in directory ($2) in location $1
+stowit() {
+    usr=$1
+    app=$2
+    # -v verbose
+    # -R recursive
+    # -t target
+    stow -v -R -t ${usr} ${app}
+}
+
+echo ""
+echo "Stowing apps for user: $(whoami)"
+
+# install apps available to local users and root
+for app in ${base[@]}; do
+    stowit "${HOME}" $app
+done
+
+# install only user space folders
+for app in ${useronly[@]}; do
+    if [[ $(id -u) -ne 0 ]] ; # if not root
+    then
+        stowit "${HOME}" $app
+    fi
+done
+
+echo ""
+echo "##### ALL DONE"
+#+end_src
+* Terminal :full:
+** Bash
+Bash setup
+Each file is under a different header that has a property defining the filename.
+Note that the ~header-args~ property needs to be set with ~:+:~ in order to add the
+argument to the globally set header argument. (see [[https://emacs.stackexchange.com/questions/60219/how-to-set-org-mode-header-properties-globally][How to set org-mode header properties globally? - Emacs Stack Exchange]])
+*** Bashrc
+:PROPERTIES:
+ :TANGLE_FILE_NAME: ./bash/.bashrc
+:END:
+**** Layout :essential:
+#+begin_src bash 
+# ~/.bashrc
+#
+[[ $- != *i* ]] && return
+
+colors() {
+	local fgc bgc vals seq0
+
+	printf "Color escapes are %s\n" '\e[${value};...;${value}m'
+	printf "Values 30..37 are \e[33mforeground colors\e[m\n"
+	printf "Values 40..47 are \e[43mbackground colors\e[m\n"
+	printf "Value  1 gives a  \e[1mbold-faced look\e[m\n\n"
+
+	# foreground colors
+	for fgc in {30..37}; do
+		# background colors
+		for bgc in {40..47}; do
+			fgc=${fgc#37} # white
+			bgc=${bgc#40} # black
+
+			vals="${fgc:+$fgc;}${bgc}"
+			vals=${vals%%;}
+
+			seq0="${vals:+\e[${vals}m}"
+			printf "  %-9s" "${seq0:-(default)}"
+			printf " ${seq0}TEXT\e[m"
+			printf " \e[${vals:+${vals+$vals;}}1mBOLD\e[m"
+		done
+		echo; echo
+	done
+}
+#+end_src
+
+#+begin_src bash
+[ -r /usr/share/bash-completion/bash_completion ] && . /usr/share/bash-completion/bash_completion
+
+# Change the window title of X terminals
+case ${TERM} in
+	xterm*|rxvt*|Eterm*|aterm|kterm|gnome*|interix|konsole*)
+		PROMPT_COMMAND='echo -ne "\033]0;${USER}@${HOSTNAME%%.*}:${PWD/#$HOME/\~}\007"'
+		;;
+	screen*)
+		PROMPT_COMMAND='echo -ne "\033_${USER}@${HOSTNAME%%.*}:${PWD/#$HOME/\~}\033\\"'
+		;;
+esac
+
+use_color=true
+
+# Set colorful PS1 only on colorful terminals.
+# dircolors --print-database uses its own built-in database
+# instead of using /etc/DIR_COLORS.  Try to use the external file
+# first to take advantage of user additions.  Use internal bash
+# globbing instead of external grep binary.
+safe_term=${TERM//[^[:alnum:]]/?}   # sanitize TERM
+match_lhs=""
+[[ -f ~/.dir_colors   ]] && match_lhs="${match_lhs}$(<~/.dir_colors)"
+[[ -f /etc/DIR_COLORS ]] && match_lhs="${match_lhs}$(</etc/DIR_COLORS)"
+[[ -z ${match_lhs}    ]] \
+	&& type -P dircolors >/dev/null \
+	&& match_lhs=$(dircolors --print-database)
+[[ $'\n'${match_lhs} == *$'\n'"TERM "${safe_term}* ]] && use_color=true
+
+if ${use_color} ; then
+	# Enable colors for ls, etc.  Prefer ~/.dir_colors #64489
+	if type -P dircolors >/dev/null ; then
+		if [[ -f ~/.dir_colors ]] ; then
+			eval $(dircolors -b ~/.dir_colors)
+		elif [[ -f /etc/DIR_COLORS ]] ; then
+			eval $(dircolors -b /etc/DIR_COLORS)
+		fi
+	fi
+
+	if [[ ${EUID} == 0 ]] ; then
+		PS1='\[\033[01;31m\][\h\[\033[01;36m\] \W\[\033[01;31m\]]\$\[\033[00m\] '
+	else
+		PS1='\[\033[01;32m\][\u@\h\[\033[01;37m\] \W\[\033[01;32m\]]\$\[\033[00m\] '
+	fi
+
+	alias ls='ls --color=auto'
+	alias grep='grep --colour=auto'
+	alias egrep='egrep --colour=auto'
+	alias fgrep='fgrep --colour=auto'
+else
+	if [[ ${EUID} == 0 ]] ; then
+		# show root@ when we don't have colors
+		PS1='\u@\h \W \$ '
+	else
+		PS1='\u@\h \w \$ '
+	fi
+fi
+
+unset use_color safe_term match_lhs sh
+#+end_src
+
+**** Aliases :essential:
+#+begin_src bash
+alias cp="cp -i"                          # confirm before overwriting something
+alias df='df -h'                          # human-readable sizes
+alias free='free -m'                      # show sizes in MB
+alias np='nano -w PKGBUILD'
+alias more=less
+### other
+alias rsync="rsync -rP"                 # Always run rsync with progress and recursive
+alias gmsh="gmsh -fontsize 12"
+alias pwp="pyenv which python"          # Quick access to current python executable
+#+end_src
+
+??
+#+begin_src bash
+
+xhost +local:root > /dev/null 2>&1
+
+complete -cf sudo
+
+# Bash won't get SIGWINCH if another process is in the foreground.
+# Enable checkwinsize so that bash will check the terminal size when
+# it regains control.  #65623
+# http://cnswww.cns.cwru.edu/~chet/bash/FAQ (E11)
+shopt -s checkwinsize
+
+shopt -s expand_aliases
+
+# export QT_SELECT=4
+
+# Enable history appending instead of overwriting.  #139609
+shopt -s histappend
+
+#
+# # ex - archive extractor
+# # usage: ex <file>
+ex ()
+{
+  if [ -f $1 ] ; then
+    case $1 in
+      *.tar.bz2)   tar xjf $1   ;;
+      *.tar.gz)    tar xzf $1   ;;
+      *.bz2)       bunzip2 $1   ;;
+      *.rar)       unrar x $1     ;;
+      *.gz)        gunzip $1    ;;
+      *.tar)       tar xf $1    ;;
+      *.tbz2)      tar xjf $1   ;;
+      *.tgz)       tar xzf $1   ;;
+      *.zip)       unzip $1     ;;
+      *.Z)         uncompress $1;;
+      *.7z)        7z x $1      ;;
+      *)           echo "'$1' cannot be extracted via ex()" ;;
+    esac
+  else
+    echo "'$1' is not a valid file"
+  fi
+}
+
+# better yaourt colors
+export YAOURT_COLORS="nb=1:pkg=1:ver=1;32:lver=1;45:installed=1;42:grp=1;34:od=1;41;5:votes=1;44:dsc=0:other=1;35"
+#+end_src
+**** Jupyter lab 
+#+begin_src bash
+# open jupyter lab in neel and connect remotely
+function jllocal {
+  cmd="ssh -Y -fN -L localhost:8887:localhost:8888 philiph@147.173.65.220"
+  running_cmds=$(ps aux | grep -v grep | grep "$cmd")
+  if [[ "$1" == 'kill' ]]; then
+    if [ ! -z $running_cmds ]; then
+      for pid in $(echo $running_cmds | awk '{print $2}'); do
+        echo "killing pid $pid"
+        kill -9 $pid
+      done
+    else
+      echo "No jllocal commands to kill."
+    fi
+  else
+    if [ ! -z $n_running_cmds ]; then
+      echo "jllocal command is still running. Kill with 'jllocal kill' next time."
+    else
+      echo "Running command '$cmd'"
+      eval "$cmd"
+    fi
+    url=$(ssh philiph@147.173.65.220\
+            '/home/philiph/.miniconda3/bin/jupyter notebook list' \
+            | grep http | awk '{print $1}')
+    echo "URL that will open in your browser:"
+    echo "$url"
+    open "$url"
+  fi
+}
+
+#+end_src
+**** ranger
+#+begin_src bash
+ranger() {
+    if [ -z "$RANGER_LEVEL" ]; then
+        /usr/bin/ranger "$@"
+    else
+        exit
+    fi
+}
+
+#+end_src
+**** defaults
+#+begin_src bash
+#### Editor
+export EDITOR="/usr/bin/nvim"
+
+#### QT5 Theming
+export QT_QPA_PLATFORMTHEME=qt5ct
+#### Terminal
+export TERMINAL="konsole"
+#### Emacs
+# PATH=$HOME/git/emacs28/src:$PATH
+alias emacs-restart="systemctl restart --user emacs"
+
+#####   pyenv
+export PATH="/home/philip/.pyenv/bin:$PATH"
+eval "$(pyenv init --no-rehash -)"
+eval "$(pyenv virtualenv-init --no-rehash -)"
+
+### scuff-em
+export SCUFF_MATPROPFILE='/home/philip/Documents/Research/Simulations/Scuff-em/matprop.dat'
+
+### gmsh
+export PYTHONPATH=${PYTHONPATH}:/home/philip/programs/gmsh/api
+export PATH="/home/philip/programs/julia:$PATH"
+
+### mu
+export MAILDIR=/home/philip/.mail
+# alias yay="yay -Syu --sudoloop"
+export BROWSER="firefox"
+
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
+#+end_src
+*** bash profile :essential:
+:PROPERTIES:
+ :TANGLE_FILE_NAME: ./bash/.bash_profile 
+:END:
+#+begin_src bash
+#
+# ~/.bash_profile
+#
+
+[[ -f ~/.bashrc ]] && . ~/.bashrc
+
+#### Terminal
+export TERMINAL=konsole
+#### QT5 Theming
+export QT_QPA_PLATFORMTHEME=qt5ct
+#####   pyenv
+export PATH="/home/philip/.pyenv/bin:$PATH"
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
+export BROWSER=firefox
+
+#### biber
+export PATH="$PATH:/usr/bin/vendor_perl"
+
+### SSH agent (needed for i3)
+export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
+
+#+end_src
+*** profile
+:PROPERTIES:
+ :TANGLE_FILE_NAME: ./bash/.profile 
+:END:
+#+begin_src bash
+export EDITOR=/bin/nvim
+export QT_QPA_PLATFORMTHEME="qt5ct"
+export QT_AUTO_SCREEN_SCALE_FACTOR=0
+export GTK2_RC_FILES="$HOME/.gtkrc-2.0"
+export BROWSER="/bin/firefox"
+#+end_src
+** Zsh
+*** zshenv
+:PROPERTIES:
+ :TANGLE_FILE_NAME: ./bash/.zshenv 
+:END:
+#+begin_src bash
+#### Terminal
+export TERMINAL=konsole
+#### QT5 Theming
+export QT_QPA_PLATFORMTHEME=qt5ct
+#####   pyenv
+export PATH="/home/philip/.pyenv/bin:$PATH"
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
+export BROWSER=firefox
+
+#### biber
+export PATH="$PATH:/usr/bin/vendor_perl"
+
+### SSH agent 
+export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
+#+end_src
+*** zshrc
+:PROPERTIES:
+ :TANGLE_FILE_NAME: ./bash/.zshrc 
+:END:
+**** Default file
+Default ~.zshrc~
+#+begin_src bash
+# If you come from bash you might have to change your $PATH.
+# export PATH=$HOME/bin:/usr/local/bin:$PATH
+
+# Path to your oh-my-zsh installation.
+export ZSH="/home/philip/.oh-my-zsh"
+
+# Set name of the theme to load --- if set to "random", it will
+# load a random theme each time oh-my-zsh is loaded, in which case,
+# to know which specific one was loaded, run: echo $RANDOM_THEME
+# See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
+ZSH_THEME="robbyrussell"
+
+# Set list of themes to pick from when loading at random
+# Setting this variable when ZSH_THEME=random will cause zsh to load
+# a theme from this variable instead of looking in $ZSH/themes/
+# If set to an empty array, this variable will have no effect.
+# ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
+
+# Uncomment the following line to use case-sensitive completion.
+# CASE_SENSITIVE="true"
+
+# Uncomment the following line to use hyphen-insensitive completion.
+# Case-sensitive completion must be off. _ and - will be interchangeable.
+# HYPHEN_INSENSITIVE="true"
+
+# Uncomment the following line to disable bi-weekly auto-update checks.
+# DISABLE_AUTO_UPDATE="true"
+
+# Uncomment the following line to automatically update without prompting.
+# DISABLE_UPDATE_PROMPT="true"
+
+# Uncomment the following line to change how often to auto-update (in days).
+# export UPDATE_ZSH_DAYS=13
+
+# Uncomment the following line if pasting URLs and other text is messed up.
+# DISABLE_MAGIC_FUNCTIONS="true"
+
+# Uncomment the following line to disable colors in ls.
+# DISABLE_LS_COLORS="true"
+
+# Uncomment the following line to disable auto-setting terminal title.
+# DISABLE_AUTO_TITLE="true"
+
+# Uncomment the following line to enable command auto-correction.
+# ENABLE_CORRECTION="true"
+
+# Uncomment the following line to display red dots whilst waiting for completion.
+# COMPLETION_WAITING_DOTS="true"
+
+# Uncomment the following line if you want to disable marking untracked files
+# under VCS as dirty. This makes repository status check for large repositories
+# much, much faster.
+# DISABLE_UNTRACKED_FILES_DIRTY="true"
+
+# Uncomment the following line if you want to change the command execution time
+# stamp shown in the history command output.
+# You can set one of the optional three formats:
+# "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
+# or set a custom format using the strftime function format specifications,
+# see 'man strftime' for details.
+# HIST_STAMPS="mm/dd/yyyy"
+
+# Would you like to use another custom folder than $ZSH/custom?
+# ZSH_CUSTOM=/path/to/new-custom-folder
+
+# Which plugins would you like to load?
+# Standard plugins can be found in $ZSH/plugins/
+# Custom plugins may be added to $ZSH_CUSTOM/plugins/
+# Example format: plugins=(rails git textmate ruby lighthouse)
+# Add wisely, as too many plugins slow down shell startup.
+plugins=(git
+         archlinux
+         colorize
+         pyenv
+         tmux
+         history-substring-search
+         colored-man-pages
+         zsh-autosuggestions
+         zsh-syntax-highlighting
+         zsh-z        )
+
+
+source $ZSH/oh-my-zsh.sh
+#+end_src
+**** My personal additions
+#+begin_src bash
+##### STUFF I ADDED
+export FZF_DEFAULT_COMMAND='fd --type f'
+export FZF_DEFAULT_OPTS="--layout=reverse --inline-info --height=80%"
+
+# ### mu
+export MAILDIR=/home/philip/.mail
+# ### other
+alias rsync="rsync -rP"                 # Always run rsync with progress and recursive
+neofetch
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+#+end_src
+** Tmux :essential:
+:PROPERTIES:
+ :TANGLE_FILE_NAME: ./tmux/.tmux.conf
+:END:
+#+begin_src conf
+#Prefix is Ctrl-a
+unbind C-b
+set -g prefix C-a
+bind C-a send-prefix
+
+set -sg escape-time 1
+set -g base-index 1
+setw -g pane-base-index 1
+
+#Mouse works as expected
+set -g mouse on
+
+setw -g monitor-activity on
+set -g visual-activity on
+
+set -g mode-keys vi
+set -g history-limit 10000
+
+# y and p as in vim
+bind Escape copy-mode
+unbind p
+bind p paste-buffer
+bind-key -T copy-mode-vi 'v' send -X begin-selection
+bind-key -T copy-mode-vi 'y' send -X copy-selection
+bind-key -T copy-mode-vi 'Space' send -X halfpage-down
+bind-key -T copy-mode-vi 'Bspace' send -X halfpage-up
+
+# extra commands for interacting with the ICCCM clipboard
+bind C-c run "tmux save-buffer - | xclip -i -sel clipboard"
+bind C-v run "tmux set-buffer \"$(xclip -o -sel clipboard)\"; tmux paste-buffer"
+
+# easy-to-remember split pane commands
+bind | split-window -h
+bind - split-window -v
+unbind '"'
+unbind %
+
+# moving between panes with vim movement keys
+bind h select-pane -L
+bind j select-pane -D
+bind k select-pane -U
+bind l select-pane -R
+
+# moving between windows with vim movement keys
+bind -r C-h select-window -t :-
+bind -r C-l select-window -t :+
+
+# resize panes with vim movement keys
+bind -r H resize-pane -L 5
+bind -r J resize-pane -D 5
+bind -r K resize-pane -U 5
+bind -r L resize-pane -R 5
+
+set -g default-terminal "screen-256color"
+set-option -g default-command '/bin/zsh'
+
+# copy to system clipboard
+set -g @plugin 'tmux-plugins/tmux-yank'
+# List of plugins
+set -g @plugin 'tmux-plugins/tpm'
+set -g @plugin 'tmux-plugins/tmux-sensible'
+
+# Other examples:
+# set -g @plugin 'github_username/plugin_name'
+# set -g @plugin 'git@github.com:user/plugin'
+# set -g @plugin 'git@bitbucket.com:user/plugin'
+
+# Initialize TMUX plugin manager (keep this line at the very bottom of tmux.conf)
+run '~/.tmux/plugins/tpm/tpm'
+#+end_src
+** screen :essential:
+:PROPERTIES:
+ :TANGLE_FILE_NAME: ./screen/.screenrc
+:END:
+#+begin_src conf
+#
+# Example of a user's .screenrc file
+#
+
+# This is how one can set a reattach password:
+# password ODSJQf.4IJN7E    # "1234"
+
+# no annoying audible bell, please
+vbell on
+
+# detach on hangup
+autodetach on
+
+# don't display the copyright page
+startup_message off
+
+# emulate .logout message
+pow_detach_msg "Screen session of \$LOGNAME \$:cr:\$:nl:ended."
+
+# advertise hardstatus support to $TERMCAP
+# termcapinfo  * '' 'hs:ts=\E_:fs=\E\\:ds=\E_\E\\'
+
+# make the shell in every window a login shell
+#shell -$SHELL
+
+# autoaka testing
+# shellaka '> |tcsh'
+# shellaka '$ |sh'
+
+# set every new windows hardstatus line to somenthing descriptive
+# defhstatus "screen: ^En (^Et)"
+
+defscrollback 1000
+
+# don't kill window after the process died
+# zombie "^["
+
+# enable support for the "alternate screen" capability in all windows
+# altscreen on
+
+################
+#
+# xterm tweaks
+#
+
+#xterm understands both im/ic and doesn't have a status line.
+#Note: Do not specify im and ic in the real termcap/info file as
+#some programs (e.g. vi) will not work anymore.
+termcap  xterm hs@:cs=\E[%i%d;%dr:im=\E[4h:ei=\E[4l
+terminfo xterm hs@:cs=\E[%i%p1%d;%p2%dr:im=\E[4h:ei=\E[4l
+
+#80/132 column switching must be enabled for ^AW to work
+#change init sequence to not switch width
+termcapinfo  xterm Z0=\E[?3h:Z1=\E[?3l:is=\E[r\E[m\E[2J\E[H\E[?7h\E[?1;4;6l
+
+# Make the output buffer large for (fast) xterms.
+#termcapinfo xterm* OL=10000
+termcapinfo xterm* OL=100
+
+# tell screen that xterm can switch to dark background and has function
+# keys.
+termcapinfo xterm 'VR=\E[?5h:VN=\E[?5l'
+termcapinfo xterm 'k1=\E[11~:k2=\E[12~:k3=\E[13~:k4=\E[14~'
+termcapinfo xterm 'kh=\EOH:kI=\E[2~:kD=\E[3~:kH=\EOF:kP=\E[5~:kN=\E[6~'
+
+# special xterm hardstatus: use the window title.
+termcapinfo xterm 'hs:ts=\E]2;:fs=\007:ds=\E]2;screen\007'
+
+#terminfo xterm 'vb=\E[?5h$<200/>\E[?5l'
+termcapinfo xterm 'vi=\E[?25l:ve=\E[34h\E[?25h:vs=\E[34l'
+
+# emulate part of the 'K' charset
+termcapinfo   xterm 'XC=K%,%\E(B,[\304,\\\\\326,]\334,{\344,|\366,}\374,~\337'
+
+# xterm-52 tweaks:
+# - uses background color for delete operations
+termcapinfo xterm* be
+
+################
+#
+# wyse terminals
+#
+
+#wyse-75-42 must have flow control (xo = "terminal uses xon/xoff")
+#essential to have it here, as this is a slow terminal.
+termcapinfo wy75-42 xo:hs@
+
+# New termcap sequences for cursor application mode.
+termcapinfo wy* CS=\E[?1h:CE=\E[?1l:vi=\E[?25l:ve=\E[?25h:VR=\E[?5h:VN=\E[?5l:cb=\E[1K:CD=\E[1J
+
+################
+#
+# other terminals
+#
+
+# make hp700 termcap/info better
+termcapinfo  hp700 'Z0=\E[?3h:Z1=\E[?3l:hs:ts=\E[62"p\E[0$~\E[2$~\E[1$}:fs=\E[0}\E[61"p:ds=\E[62"p\E[1$~\E[61"p:ic@'
+
+# Extend the vt100 desciption by some sequences.
+termcap  vt100* ms:AL=\E[%dL:DL=\E[%dM:UP=\E[%dA:DO=\E[%dB:LE=\E[%dD:RI=\E[%dC
+terminfo vt100* ms:AL=\E[%p1%dL:DL=\E[%p1%dM:UP=\E[%p1%dA:DO=\E[%p1%dB:LE=\E[%p1%dD:RI=\E[%p1%dC
+termcapinfo linux C8
+# old rxvt versions also need this
+# termcapinfo rxvt C8
+
+
+################
+#
+# keybindings
+#
+
+#remove some stupid / dangerous key bindings
+bind k
+bind ^k
+bind .
+bind ^\
+bind \\
+bind ^h
+bind h
+#make them better
+bind 'K' kill
+bind 'I' login on
+bind 'O' login off
+bind '}' history
+
+# Yet another hack:
+# Prepend/append register [/] to the paste if ^a^] is pressed.
+# This lets me have autoindent mode in vi.
+register [ "\033:se noai\015a"
+register ] "\033:se ai\015a"
+bind ^] paste [.]
+
+################
+#
+# default windows
+#
+
+# screen -t local 0
+# screen -t mail 1 mutt
+# screen -t 40 2 rlogin server
+
+# caption always "%3n %t%? @%u%?%? [%h]%?%=%c"
+# hardstatus alwaysignore
+# hardstatus alwayslastline "%Lw"
+
+# bind = resize =
+# bind + resize +1
+# bind - resize -1
+# bind _ resize max
+#
+# defnonblock 1
+# blankerprg rain -d 100
+# idle 30 blanker
+
+#+end_src
+* Ranger :full:
+There are much more config options that i am actually not using (commands,
+rifle, scope). I'll just put the rc here
+** rc
+:PROPERTIES:
+ :TANGLE_FILE_NAME: ./ranger/.config/ranger/rc.conf
+:END:
+#+begin_src conf
+# ===================================================================
+# This file contains the default startup commands for ranger.
+# To change them, it is recommended to create either /etc/ranger/rc.conf
+# (system-wide) or ~/.config/ranger/rc.conf (per user) and add your custom
+# commands there.
+#
+# If you copy this whole file there, you may want to set the environment
+# variable RANGER_LOAD_DEFAULT_RC to FALSE to avoid loading it twice.
+#
+# The purpose of this file is mainly to define keybindings and settings.
+# For running more complex python code, please create a plugin in "plugins/" or
+# a command in "commands.py".
+#
+# Each line is a command that will be run before the user interface
+# is initialized.  As a result, you can not use commands which rely
+# on the UI such as :delete or :mark.
+# ===================================================================
+
+# ===================================================================
+# == Options
+# ===================================================================
+
+# Which viewmode should be used?  Possible values are:
+#     miller: Use miller columns which show multiple levels of the hierarchy
+#     multipane: Midnight-commander like multipane view showing all tabs next
+#                to each other
+set viewmode miller
+#set viewmode multipane
+
+# How many columns are there, and what are their relative widths?
+set column_ratios 1,3,4
+
+# Which files should be hidden? (regular expression)
+set hidden_filter ^\.|\.(?:pyc|pyo|bak|swp)$|^lost\+found$|^__(py)?cache__$
+
+# Show hidden files? You can toggle this by typing 'zh'
+set show_hidden false
+
+# Ask for a confirmation when running the "delete" command?
+# Valid values are "always", "never", "multiple" (default)
+# With "multiple", ranger will ask only if you delete multiple files at once.
+set confirm_on_delete multiple
+
+# Use non-default path for file preview script?
+# ranger ships with scope.sh, a script that calls external programs (see
+# README.md for dependencies) to preview images, archives, etc.
+#set preview_script ~/.config/ranger/scope.sh
+
+# Use the external preview script or display simple plain text or image previews?
+set use_preview_script true
+
+# Automatically count files in the directory, even before entering them?
+set automatically_count_files true
+
+# Open all images in this directory when running certain image viewers
+# like feh or sxiv?  You can still open selected files by marking them.
+set open_all_images true
+
+# Be aware of version control systems and display information.
+set vcs_aware false
+
+# State of the four backends git, hg, bzr, svn. The possible states are
+# disabled, local (only show local info), enabled (show local and remote
+# information).
+set vcs_backend_git enabled
+set vcs_backend_hg disabled
+set vcs_backend_bzr disabled
+set vcs_backend_svn disabled
+
+# Use one of the supported image preview protocols
+set preview_images true
+
+# Set the preview image method. Supported methods:
+#
+# * w3m (default):
+#   Preview images in full color with the external command "w3mimgpreview"?
+#   This requires the console web browser "w3m" and a supported terminal.
+#   It has been successfully tested with "xterm" and "urxvt" without tmux.
+#
+# * iterm2:
+#   Preview images in full color using iTerm2 image previews
+#   (http://iterm2.com/images.html). This requires using iTerm2 compiled
+#   with image preview support.
+#
+#   This feature relies on the dimensions of the terminal's font.  By default, a
+#   width of 8 and height of 11 are used.  To use other values, set the options
+#   iterm2_font_width and iterm2_font_height to the desired values.
+#
+# * terminology:
+#   Previews images in full color in the terminology terminal emulator.
+#   Supports a wide variety of formats, even vector graphics like svg.
+#
+# * urxvt:
+#   Preview images in full color using urxvt image backgrounds. This
+#   requires using urxvt compiled with pixbuf support.
+#
+# * urxvt-full:
+#   The same as urxvt but utilizing not only the preview pane but the
+#   whole terminal window.
+#
+# * kitty:
+#   Preview images in full color using kitty image protocol.
+#   Requires python PIL or pillow library.
+#   If ranger does not share the local filesystem with kitty
+#   the transfer method is changed to encode the whole image;
+#   while slower, this allows remote previews,
+#   for example during an ssh session.
+#   Tmux is unsupported.
+set preview_images_method w3m
+
+# Delay in seconds before displaying an image with the w3m method.
+# Increase it in case of experiencing display corruption.
+set w3m_delay 0.02
+
+# Default iTerm2 font size (see: preview_images_method: iterm2)
+set iterm2_font_width 8
+set iterm2_font_height 11
+
+# Use a unicode "..." character to mark cut-off filenames?
+set unicode_ellipsis false
+
+# BIDI support - try to properly display file names in RTL languages (Hebrew, Arabic).
+# Requires the python-bidi pip package
+set bidi_support false
+
+# Show dotfiles in the bookmark preview box?
+set show_hidden_bookmarks true
+
+# Which colorscheme to use?  These colorschemes are available by default:
+# default, jungle, snow, solarized
+set colorscheme jungle
+
+# Preview files on the rightmost column?
+# And collapse (shrink) the last column if there is nothing to preview?
+set preview_files true
+set preview_directories true
+set collapse_preview true
+
+# Save the console history on exit?
+set save_console_history true
+
+# Draw the status bar on top of the browser window (default: bottom)
+set status_bar_on_top false
+
+# Draw a progress bar in the status bar which displays the average state of all
+# currently running tasks which support progress bars?
+set draw_progress_bar_in_status_bar true
+
+# Draw borders around columns? (separators, outline, both, or none)
+# Separators are vertical lines between columns.
+# Outline draws a box around all the columns.
+# Both combines the two.
+set draw_borders none
+
+# Display the directory name in tabs?
+set dirname_in_tabs true
+
+# Enable the mouse support?
+set mouse_enabled true
+
+# Display the file size in the main column or status bar?
+set display_size_in_main_column true
+set display_size_in_status_bar true
+
+# Display the free disk space in the status bar?
+set display_free_space_in_status_bar true
+
+# Display files tags in all columns or only in main column?
+set display_tags_in_all_columns true
+
+# Set a title for the window?
+set update_title false
+
+# Set the title to "ranger" in the tmux program?
+set update_tmux_title true
+
+# Shorten the title if it gets long?  The number defines how many
+# directories are displayed at once, 0 turns off this feature.
+set shorten_title 3
+
+# Show hostname in titlebar?
+set hostname_in_titlebar true
+
+# Abbreviate $HOME with ~ in the titlebar (first line) of ranger?
+set tilde_in_titlebar false
+
+# How many directory-changes or console-commands should be kept in history?
+set max_history_size 20
+set max_console_history_size 50
+
+# Try to keep so much space between the top/bottom border when scrolling:
+set scroll_offset 8
+
+# Flush the input after each key hit?  (Noticeable when ranger lags)
+set flushinput true
+
+# Padding on the right when there's no preview?
+# This allows you to click into the space to run the file.
+set padding_right true
+
+# Save bookmarks (used with mX and `X) instantly?
+# This helps to synchronize bookmarks between multiple ranger
+# instances but leads to *slight* performance loss.
+# When false, bookmarks are saved when ranger is exited.
+set autosave_bookmarks true
+
+# Save the "`" bookmark to disk.  This can be used to switch to the last
+# directory by typing "``".
+set save_backtick_bookmark true
+
+# You can display the "real" cumulative size of directories by using the
+# command :get_cumulative_size or typing "dc".  The size is expensive to
+# calculate and will not be updated automatically.  You can choose
+# to update it automatically though by turning on this option:
+set autoupdate_cumulative_size false
+
+# Turning this on makes sense for screen readers:
+set show_cursor false
+
+# One of: size, natural, basename, atime, ctime, mtime, type, random
+set sort natural
+
+# Additional sorting options
+set sort_reverse false
+set sort_case_insensitive true
+set sort_directories_first true
+set sort_unicode false
+
+# Enable this if key combinations with the Alt Key don't work for you.
+# (Especially on xterm)
+set xterm_alt_key false
+
+# Whether to include bookmarks in cd command
+set cd_bookmarks true
+
+# Changes case sensitivity for the cd command tab completion
+set cd_tab_case sensitive
+
+# Use fuzzy tab completion with the "cd" command. For example,
+# ":cd /u/lo/b<tab>" expands to ":cd /usr/local/bin".
+set cd_tab_fuzzy true
+
+# Avoid previewing files larger than this size, in bytes.  Use a value of 0 to
+# disable this feature.
+set preview_max_size 0
+
+# The key hint lists up to this size have their sublists expanded.
+# Otherwise the submaps are replaced with "...".
+set hint_collapse_threshold 10
+
+# Add the highlighted file to the path in the titlebar
+set show_selection_in_titlebar true
+
+# The delay that ranger idly waits for user input, in milliseconds, with a
+# resolution of 100ms.  Lower delay reduces lag between directory updates but
+# increases CPU load.
+set idle_delay 2000
+
+# When the metadata manager module looks for metadata, should it only look for
+# a ".metadata.json" file in the current directory, or do a deep search and
+# check all directories above the current one as well?
+set metadata_deep_search false
+
+# Clear all existing filters when leaving a directory
+set clear_filters_on_dir_change false
+
+# Disable displaying line numbers in main column.
+# Possible values: false, absolute, relative.
+set line_numbers false
+
+# When line_numbers=relative show the absolute line number in the
+# current line.
+set relative_current_zero false
+
+# Start line numbers from 1 instead of 0
+set one_indexed false
+
+# Save tabs on exit
+set save_tabs_on_exit true
+
+# Enable scroll wrapping - moving down while on the last item will wrap around to
+# the top and vice versa.
+set wrap_scroll false
+
+# Set the global_inode_type_filter to nothing.  Possible options: d, f and l for
+# directories, files and symlinks respectively.
+set global_inode_type_filter
+
+# This setting allows to freeze the list of files to save I/O bandwidth.  It
+# should be 'false' during start-up, but you can toggle it by pressing F.
+set freeze_files false
+
+# ===================================================================
+# == Local Options
+# ===================================================================
+# You can set local options that only affect a single directory.
+
+# Examples:
+# setlocal path=~/downloads sort mtime
+
+# ===================================================================
+# == Command Aliases in the Console
+# ===================================================================
+
+alias e     edit
+alias q     quit
+alias q!    quit!
+alias qa    quitall
+alias qa!   quitall!
+alias qall  quitall
+alias qall! quitall!
+alias setl  setlocal
+
+alias filter     scout -prts
+alias find       scout -aets
+alias mark       scout -mr
+alias unmark     scout -Mr
+alias search     scout -rs
+alias search_inc scout -rts
+alias travel     scout -aefklst
+
+# ===================================================================
+# == Define keys for the browser
+# ===================================================================
+
+# Basic
+map     Q quitall
+map     q quit
+copymap q ZZ ZQ
+
+map R     reload_cwd
+map F     set freeze_files!
+map <C-r> reset
+map <C-l> redraw_window
+map <C-c> abort
+map <esc> change_mode normal
+map ~ set viewmode!
+
+map i display_file
+map ? help
+map W display_log
+map w taskview_open
+map S shell $SHELL
+
+map :  console
+map ;  console
+map !  console shell%space
+map @  console -p6 shell  %%s
+map #  console shell -p%space
+map s  console shell%space
+map r  chain draw_possible_programs; console open_with%%space
+map f  console find%space
+map cd console cd%space
+
+map <C-p> chain console; eval fm.ui.console.history_move(-1)
+
+# Change the line mode
+map Mf linemode filename
+map Mi linemode fileinfo
+map Mm linemode mtime
+map Mp linemode permissions
+map Ms linemode sizemtime
+map Mt linemode metatitle
+
+# Tagging / Marking
+map t       tag_toggle
+map ut      tag_remove
+map <any>  tag_toggle tag=%any
+map <Space> mark_files toggle=True
+map v       mark_files all=True toggle=True
+map uv      mark_files all=True val=False
+map V       toggle_visual_mode
+map uV      toggle_visual_mode reverse=True
+
+# For the nostalgics: Midnight Commander bindings
+map <F1> help
+map <F2> rename_append
+map <F3> display_file
+map <F4> edit
+map <F5> copy
+map <F6> cut
+map <F7> console mkdir%space
+map <F8> console delete
+map <F10> exit
+
+# In case you work on a keyboard with dvorak layout
+map <UP>       move up=1
+map <DOWN>     move down=1
+map <LEFT>     move left=1
+map <RIGHT>    move right=1
+map <HOME>     move to=0
+map <END>      move to=-1
+map <PAGEDOWN> move down=1   pages=True
+map <PAGEUP>   move up=1     pages=True
+map <CR>       move right=1
+#map <DELETE>   console delete
+map <INSERT>   console touch%space
+
+# VIM-like
+copymap <UP>       k
+copymap <DOWN>     j
+copymap <LEFT>     h
+copymap <RIGHT>    l
+copymap <HOME>     gg
+copymap <END>      G
+copymap <PAGEDOWN> <C-F>
+copymap <PAGEUP>   <C-B>
+
+map J  move down=0.5  pages=True
+map K  move up=0.5    pages=True
+copymap J <C-D>
+copymap K <C-U>
+
+# Jumping around
+map H     history_go -1
+map L     history_go 1
+map ]     move_parent 1
+map [     move_parent -1
+map }     traverse
+map {     traverse_backwards
+map )     jump_non
+
+map gh cd ~
+map ge cd /etc
+map gu cd /usr
+map gd cd /dev
+map gl cd -r .
+map gL cd -r %f
+map go cd /opt
+map gv cd /var
+map gm cd /media
+map gi eval fm.cd('/run/media/' + os.getenv('USER'))
+map gM cd /mnt
+map gs cd /srv
+map gp cd /tmp
+map gr cd /
+map gR eval fm.cd(ranger.RANGERDIR)
+map g/ cd /
+map g? cd /usr/share/doc/ranger
+
+# External Programs
+map E  edit
+map du shell -p du --max-depth=1 -h --apparent-size
+map dU shell -p du --max-depth=1 -h --apparent-size | sort -rh
+map yp yank path
+map yd yank dir
+map yn yank name
+map y. yank name_without_extension
+
+# Filesystem Operations
+map =  chmod
+
+map cw console rename%space
+map a  rename_append
+map A  eval fm.open_console('rename ' + fm.thisfile.relative_path.replace("%", "%%"))
+map I  eval fm.open_console('rename ' + fm.thisfile.relative_path.replace("%", "%%"), position=7)
+
+map pp paste
+map po paste overwrite=True
+map pP paste append=True
+map pO paste overwrite=True append=True
+map pl paste_symlink relative=False
+map pL paste_symlink relative=True
+map phl paste_hardlink
+map pht paste_hardlinked_subtree
+
+map dD console delete
+
+map dd cut
+map ud uncut
+map da cut mode=add
+map dr cut mode=remove
+map dt cut mode=toggle
+
+map yy copy
+map uy uncut
+map ya copy mode=add
+map yr copy mode=remove
+map yt copy mode=toggle
+
+# Temporary workarounds
+map dgg eval fm.cut(dirarg=dict(to=0), narg=quantifier)
+map dG  eval fm.cut(dirarg=dict(to=-1), narg=quantifier)
+map dj  eval fm.cut(dirarg=dict(down=1), narg=quantifier)
+map dk  eval fm.cut(dirarg=dict(up=1), narg=quantifier)
+map ygg eval fm.copy(dirarg=dict(to=0), narg=quantifier)
+map yG  eval fm.copy(dirarg=dict(to=-1), narg=quantifier)
+map yj  eval fm.copy(dirarg=dict(down=1), narg=quantifier)
+map yk  eval fm.copy(dirarg=dict(up=1), narg=quantifier)
+
+# Searching
+map /  console search%space
+map n  search_next
+map N  search_next forward=False
+map ct search_next order=tag
+map cs search_next order=size
+map ci search_next order=mimetype
+map cc search_next order=ctime
+map cm search_next order=mtime
+map ca search_next order=atime
+
+# Tabs
+map <C-n>     eval fm.tab_new('%d')
+map <C-w>     tab_close
+map <TAB>     tab_move 1
+map <S-TAB>   tab_move -1
+map <A-Right> tab_move 1
+map <A-Left>  tab_move -1
+map gt        tab_move 1
+map gT        tab_move -1
+map gn        tab_new
+map gc        tab_close
+map uq        tab_restore
+map <a-1>     tab_open 1
+map <a-2>     tab_open 2
+map <a-3>     tab_open 3
+map <a-4>     tab_open 4
+map <a-5>     tab_open 5
+map <a-6>     tab_open 6
+map <a-7>     tab_open 7
+map <a-8>     tab_open 8
+map <a-9>     tab_open 9
+map <a-r>     tab_shift 1
+map <a-l>     tab_shift -1
+
+# Sorting
+map or set sort_reverse!
+map oz set sort=random
+map os chain set sort=size;      set sort_reverse=False
+map ob chain set sort=basename;  set sort_reverse=False
+map on chain set sort=natural;   set sort_reverse=False
+map om chain set sort=mtime;     set sort_reverse=False
+map oc chain set sort=ctime;     set sort_reverse=False
+map oa chain set sort=atime;     set sort_reverse=False
+map ot chain set sort=type;      set sort_reverse=False
+map oe chain set sort=extension; set sort_reverse=False
+
+map oS chain set sort=size;      set sort_reverse=True
+map oB chain set sort=basename;  set sort_reverse=True
+map oN chain set sort=natural;   set sort_reverse=True
+map oM chain set sort=mtime;     set sort_reverse=True
+map oC chain set sort=ctime;     set sort_reverse=True
+map oA chain set sort=atime;     set sort_reverse=True
+map oT chain set sort=type;      set sort_reverse=True
+map oE chain set sort=extension; set sort_reverse=True
+
+map dc get_cumulative_size
+
+# Settings
+map zc    set collapse_preview!
+map zd    set sort_directories_first!
+map zh    set show_hidden!
+map <C-h> set show_hidden!
+copymap <C-h> <backspace>
+copymap <backspace> <backspace2>
+map zI    set flushinput!
+map zi    set preview_images!
+map zm    set mouse_enabled!
+map zp    set preview_files!
+map zP    set preview_directories!
+map zs    set sort_case_insensitive!
+map zu    set autoupdate_cumulative_size!
+map zv    set use_preview_script!
+map zf    console filter%space
+copymap zf zz
+
+# Filter stack
+map .n console filter_stack add name%space
+map .m console filter_stack add mime%space
+map .d filter_stack add type d
+map .f filter_stack add type f
+map .l filter_stack add type l
+map .| filter_stack add or
+map .& filter_stack add and
+map .! filter_stack add not
+map .r console filter_stack rotate
+map .c filter_stack clear
+map .* filter_stack decompose
+map .p filter_stack pop
+map .. filter_stack show
+
+# Bookmarks
+map `<any>  enter_bookmark %any
+map '<any>  enter_bookmark %any
+map m<any>  set_bookmark %any
+map um<any> unset_bookmark %any
+
+map m<bg>   draw_bookmarks
+copymap m<bg>  um<bg> `<bg> '<bg>
+
+# Generate all the chmod bindings with some python help:
+eval for arg in "rwxXst": cmd("map +u{0} shell -f chmod u+{0} %s".format(arg))
+eval for arg in "rwxXst": cmd("map +g{0} shell -f chmod g+{0} %s".format(arg))
+eval for arg in "rwxXst": cmd("map +o{0} shell -f chmod o+{0} %s".format(arg))
+eval for arg in "rwxXst": cmd("map +a{0} shell -f chmod a+{0} %s".format(arg))
+eval for arg in "rwxXst": cmd("map +{0}  shell -f chmod u+{0} %s".format(arg))
+
+eval for arg in "rwxXst": cmd("map -u{0} shell -f chmod u-{0} %s".format(arg))
+eval for arg in "rwxXst": cmd("map -g{0} shell -f chmod g-{0} %s".format(arg))
+eval for arg in "rwxXst": cmd("map -o{0} shell -f chmod o-{0} %s".format(arg))
+eval for arg in "rwxXst": cmd("map -a{0} shell -f chmod a-{0} %s".format(arg))
+eval for arg in "rwxXst": cmd("map -{0}  shell -f chmod u-{0} %s".format(arg))
+
+# ===================================================================
+# == Define keys for the console
+# ===================================================================
+# Note: Unmapped keys are passed directly to the console.
+
+# Basic
+cmap <tab>   eval fm.ui.console.tab()
+cmap <s-tab> eval fm.ui.console.tab(-1)
+cmap <ESC>   eval fm.ui.console.close()
+cmap <CR>    eval fm.ui.console.execute()
+cmap <C-l>   redraw_window
+
+copycmap <ESC> <C-c>
+copycmap <CR>  <C-j>
+
+# Move around
+cmap <up>    eval fm.ui.console.history_move(-1)
+cmap <down>  eval fm.ui.console.history_move(1)
+cmap <left>  eval fm.ui.console.move(left=1)
+cmap <right> eval fm.ui.console.move(right=1)
+cmap <home>  eval fm.ui.console.move(right=0, absolute=True)
+cmap <end>   eval fm.ui.console.move(right=-1, absolute=True)
+cmap <a-b> eval fm.ui.console.move_word(left=1)
+cmap <a-f> eval fm.ui.console.move_word(right=1)
+
+copycmap <a-b> <a-left>
+copycmap <a-f> <a-right>
+
+# Line Editing
+cmap <backspace>  eval fm.ui.console.delete(-1)
+cmap <delete>     eval fm.ui.console.delete(0)
+cmap <C-w>        eval fm.ui.console.delete_word()
+cmap <A-d>        eval fm.ui.console.delete_word(backward=False)
+cmap <C-k>        eval fm.ui.console.delete_rest(1)
+cmap <C-u>        eval fm.ui.console.delete_rest(-1)
+cmap <C-y>        eval fm.ui.console.paste()
+
+# And of course the emacs way
+copycmap <ESC>       <C-g>
+copycmap <up>        <C-p>
+copycmap <down>      <C-n>
+copycmap <left>      <C-b>
+copycmap <right>     <C-f>
+copycmap <home>      <C-a>
+copycmap <end>       <C-e>
+copycmap <delete>    <C-d>
+copycmap <backspace> <C-h>
+
+# Note: There are multiple ways to express backspaces.  <backspace> (code 263)
+# and <backspace2> (code 127).  To be sure, use both.
+copycmap <backspace> <backspace2>
+
+# This special expression allows typing in numerals:
+cmap <allow_quantifiers> false
+
+# ===================================================================
+# == Pager Keybindings
+# ===================================================================
+
+# Movement
+pmap  <down>      pager_move  down=1
+pmap  <up>        pager_move  up=1
+pmap  <left>      pager_move  left=4
+pmap  <right>     pager_move  right=4
+pmap  <home>      pager_move  to=0
+pmap  <end>       pager_move  to=-1
+pmap  <pagedown>  pager_move  down=1.0  pages=True
+pmap  <pageup>    pager_move  up=1.0    pages=True
+pmap  <C-d>       pager_move  down=0.5  pages=True
+pmap  <C-u>       pager_move  up=0.5    pages=True
+
+copypmap <UP>       k  <C-p>
+copypmap <DOWN>     j  <C-n> <CR>
+copypmap <LEFT>     h
+copypmap <RIGHT>    l
+copypmap <HOME>     g
+copypmap <END>      G
+copypmap <C-d>      d
+copypmap <C-u>      u
+copypmap <PAGEDOWN> n  f  <C-F>  <Space>
+copypmap <PAGEUP>   p  b  <C-B>
+
+# Basic
+pmap     <C-l> redraw_window
+pmap     <ESC> pager_close
+copypmap <ESC> q Q i <F3>
+pmap E      edit_file
+
+# ===================================================================
+# == Taskview Keybindings
+# ===================================================================
+
+# Movement
+tmap <up>        taskview_move up=1
+tmap <down>      taskview_move down=1
+tmap <home>      taskview_move to=0
+tmap <end>       taskview_move to=-1
+tmap <pagedown>  taskview_move down=1.0  pages=True
+tmap <pageup>    taskview_move up=1.0    pages=True
+tmap <C-d>       taskview_move down=0.5  pages=True
+tmap <C-u>       taskview_move up=0.5    pages=True
+
+copytmap <UP>       k  <C-p>
+copytmap <DOWN>     j  <C-n> <CR>
+copytmap <HOME>     g
+copytmap <END>      G
+copytmap <C-u>      u
+copytmap <PAGEDOWN> n  f  <C-F>  <Space>
+copytmap <PAGEUP>   p  b  <C-B>
+
+# Changing priority and deleting tasks
+tmap J          eval -q fm.ui.taskview.task_move(-1)
+tmap K          eval -q fm.ui.taskview.task_move(0)
+tmap dd         eval -q fm.ui.taskview.task_remove()
+tmap <pagedown> eval -q fm.ui.taskview.task_move(-1)
+tmap <pageup>   eval -q fm.ui.taskview.task_move(0)
+tmap <delete>   eval -q fm.ui.taskview.task_remove()
+
+# Basic
+tmap <C-l> redraw_window
+tmap <ESC> taskview_close
+copytmap <ESC> q Q w <C-c>
+map DD shell mv %s /home/${USER}/.local/share/Trash/files/
+map S shell bash -c "cd %d; bash"
+
+# dragon for drag and drop
+map <C-d> shell dragon-drag-and-drop -a -x %p
+
+#+end_src
+* git :full:
+** user data :crypt:
+CLOSED: [2021-02-21 So 21:21]
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./git/.gitconfig
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VARAAlr3lPkefyZoiIcf8Y9VOEmU4hNvVd4N+zMfh1P9rHerr
+vxnSfpgtM2soS243JJ3zUoKOAfxpWbfsv22u3BDZW0rmrkKlxKKh6qQu0NmUHv1O
+Zf1PT/APT8AzZAYjBX8osy1Ycsmgf181MQiQC8xZvfd0XpGG+2gHDyZysD7nnQ6I
+RCEPdXqAqMOIrzhWFANKyOi5VmWHpSecXCGkRwOKUlEInYnLXBORYzPco3EE/m5C
+w4m+W62AcPOblgs4ZS/jJURn8a5MofzJi3xMrvjwozoXzAOr5cIjKIXpvW3Xgq4v
+dSprIlr4CBKFtpPDP7D2CndBPRXcOnLe+znqZB1Z4J4h9XF928oRAr8HTxhVCKcZ
+86cjLCcZtDIX/27GxmrMdLIN/GK5B9HmWGV1udidfHV0DMVV6dR1ZduA3G1vyQ5S
+hbwTRWSs/WLoyHPJNkV7z8b7tDA4YdDQAVM7xNkhsX00JIDGtsSD5I66oEDVk5Qq
+oNpnQ/DlB0JWANYnQCFgM0tMrcd5O3yC13YFMlCmsZqoCUzhj8iOqTdjVmHBUJj6
+KkmJHKZlvuiWgSRffM+cpxDpR+o7hSzSV9mbxku5SSNTv5f5HzmUVxJczI5JAUq/
++GcDduhviL7d6+GQO3ilIXQtzUfnVl9dh6IOFxt5vZQ5hB8Vbk8LhqLg3qwHHD3S
+wHEBK5XpfjHw+qnvygP1QBvI2sTB/9u84GBD2Kb24GcuO10+kXKaM5KOba9g1HBJ
+OLJP5vKmt3s1C0tdkEq3sFGeIStiIgNgqK6pxw22fHHp4T6FAuDRXOKqxGoIt6aq
+fKn8Db+w+CS4T/wKOXbgFCkJBDSqsayk18qzddo+A7ILuQJ5kwLK5ATLppRpqIHa
+Dx21QGw2I9tJGOJHg5OWwSmpfxtaSXgapWBbDuYonODjkcgGoFk6t9865sjEUMyd
+rR9NAayYUo8DhPSQnrQX0FvHJ58hdK/y01F6VJLxRcFP0xtLuHzFUxqsuDD/rTfV
+F9xmN3b94xG/XGhI94/csMUeF7DTW3CB8V/Nkhn+iTXZGqSn52Zux7RxZf4Qe2Ds
+PqHNAtLo9b0/C2LHKCY1xTUQgg==
+=iAJt
+-----END PGP MESSAGE-----
+
+** credential :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./git/.git-credentials
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ/+NxQySsnws05UDdC4a9aXzlril2hb3hUQzGRHpfmp5SuM
+XSYlkogZL5y2FaDgd3qAoq9ZhxBtVjQGkKREWvCK3hvWW/vF7PM2zM5U3ogPvOYI
+nOVdCdRSz8DFmMRzqbO3ZA+/ujRGiIdhZWVYGI8GUTGjN2xE72v0vmFCjCC+Ddvl
+KCLkonKT/shqiTgEmLV0RUzxfFgS5DJ+wsM4bjHeHABM6nY/JdkfaCXZ3/PEA13k
+sdzhReC6HiyrITGLhaCDduhY2JqTTk1bWOmGHBs42VkP9HnnhhPBrizJCXSp//69
+ZR5jJmUeLs2OKOobPrcNe06NAKMAy9vmOBnvTyztDdFQvebJn7IISIBsjCnV19wr
+obKTMgCqgNnb11EyvQEKdPt9HmQdqSd7bSks/DNrpnV9gotPctXtTYv14qAXrSFq
++OCelNFwT+A2qEGyNrdFZ6M8B/1rItPqBmhgF2ii2mWt0xvH4K6fNn6QT3wiB+3C
+EQai+9/txdhBJmEgGqjJNzOOszoMTfhpYmSfg42FVmzU4mFfNBOZDoDAyNV+tLSb
+PISOtJnVu5OXKbPuEIXv1zsUbtKosaOzr7HXR8gJuI60zYSXh27I9y2A+eQnvXun
+RctD81I6eV7XrTUYMmMu3J0QgbVZX9lqnXAdn5zuuLkTmYDcqOCgmt1dkt4akXTS
+wDABGE9f6nYkRn8M0Kq2agPv/HZmokzlDGenzmd7xzCdGo+KNP9Bg/5co9ImjRdS
+ufBm6aDf6h38VY5BHYzR9HIj7lFkEIqE+/qDu8jobn7JYv7khPQBV5vpONlHfixo
+DODDUlS5c9l+wJNy7njRg0jkFNad0ZnndsUiSySJAJmnYTSrLccEDez8L8MQxWVy
+nJ1SyYTtJ6YYVU2n+CRf4/YF1deTLMh6Zamh5r8G18TZ/l+GeHDSUFIKVZYmbUMd
+QIKMCv60NDeBliToxA90cqYQnTzn2m5dlBNJsiZev7cIyPKQqDsnRXQGGRztNSf0
+Mkg=
+=S5Zq
+-----END PGP MESSAGE-----
+* gpg :full:
+** gpg agent :essential:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./gpg/.gnupg/gpg-agent.conf
+:END:
+#+begin_src conf
+default-cache-ttl 600
+max-cache-ttl 7200
+enable-ssh-support
+write-env-file
+#+end_src
+** gpg.conf
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./gpg/.gnupg/gpg.conf
+:END:
+#+begin_src conf
+
+# GnuPG config file created by KGpg
+no-greeting
+require-cross-certification
+no-emit-version
+no-comments
+with-fingerprint
+use-agent
+
+keyserver hkps://hkps.pool.sks-keyservers.net
+keyserver-options no-honor-keyserver-url
+
+auto-key-locate https://hkps.pool.sks-keyservers.net
+auto-key-retrieve
+
+cert-digest-algo SHA512
+default-preference-list SHA512 SHA384 SHA256 SHA224 AES256 AES192 AES CAST5 ZLIB BZIP2 ZIP Uncompressed
+personal-digest-preferences SHA512 SHA384 SHA256 SHA224
+keyid-format 0xlong
+#+end_src
+
+** gpg.conf :crypt:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ//dDNSlrhBaqOfukGV+5wssZvO5gFi2zYYRTYiw3jM8CNs
+SRnxUMIj+ZXdIpvRsIQLvWjv9JsIXg5crZuLJPz908qWh0AV5x9hqG/VsJRlETeU
+qELQ3Bb3WFHU0+a3yRgLxWv8oIq9hmT4GpySXuM/Y9dJ8wScNiet+/xsmNJTuFEI
+xXJKrXPptn/tPUtvG9ulCg83EWNnYq5GSDuywF/MdQn2IDZhjlBLoR7z8aUihVT7
+MYnEJ9NhrM1dsQsotBMY8yw+uzMKfEvFyP2VVi7cIYnBBluhRATw9e6lvu76jh1f
+jqtUjkwAlH+Kbzi9xtU9xB9gechIz9bc6KZxMXfhd2pEYwX+oaLV6P4rfWxrV4e9
+X7Dm0oTLtTPSQ9zgbaDsjaFanr99Yc931OhtlMm+/jZMjy4CUmA4fwSGMbLQwoKK
+djl0qkCwOyn3ojTx92jDnn//Hv6eF8A/fi0Ov6VSTYwJt1ntDV/KnoJzpMLTSCvm
+twxktKf2TrnFRnSDbskTKPvXS+/g0tz5lmEaIycPf6f5izUlMWW6mOwYLhMzh8Kv
+3kdC3WNhQtJLzKsspFB6ckSr/Z4yKFcJnY151vZpZmwHJ9bYD4wXGHvTxluWin54
+GEPzAQOwZeFYVCfesIkseRhLW4Wr33dqtuHV1ucn6VsRBtlyDrXF9J12o/JGFSPS
+kQE4BMgtuxeWHKXp8imYrlEHxEqCMoFxjqvL2lqERdbwurvKSIPox0iDO7xwE9DX
+neWeSyAUaEspAbx4S+VSxy9/T39x+xFN9WICw9oOX7Pfe1ilZR8s/8mAjmPliQj8
+Rx537k1dd+7RabdK7LJgbIE6xjjN7/8BT1o5kix70EkiaWrA5Z7mbDDfLEXHMax3
+hVw=
+=q+Ee
+-----END PGP MESSAGE-----
+* wm and eyecandy :full:
+** i3 :essential:
+*** config
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./i3/.config/i3/config
+:END:
+#+begin_src conf
+# This file has been auto-generated by i3-config-wizard(1).
+# It will not be overwritten, so edit it as you like.
+#
+# Should you change your keyboard layout some time, delete
+# this file and re-run i3-config-wizard(1).
+#
+
+# i3 config file (v4)
+#
+# Please see https://i3wm.org/docs/userguide.html for a complete reference!
+
+set $mod Mod4
+
+# Theme colors
+
+set $bg-color 	         #2f343f
+set $inactive-bg-color   #2f343f
+set $text-color          #f3f4f5
+set $inactive-text-color #676E7D
+set $urgent-bg-color     #E53935
+
+# window colors
+#                       border              background         text                 indicator
+# client.focused          $bg-color           $bg-color          $text-color          #00ff00
+# client.unfocused        $inactive-bg-color $inactive-bg-color $inactive-text-color #00ff00
+# client.focused_inactive $inactive-bg-color $inactive-bg-color $inactive-text-color #00ff00
+# client.urgent           $urgent-bg-color    $urgent-bg-color   $text-color          #00ff00
+
+# class                 border  backgr. text    indicator child_border
+client.focused          #4c7899 #81A1C1 #2E3440 #2e9ef4   #81A1C1
+client.focused_inactive #333333 #5d6678 #ffffff #484e50   #5f676a
+client.unfocused        #333333 #2E3440 #888888 #292d2e   #2E3440
+# Font for window titles. Will also be used by the bar unless a different font
+# is used in the bar {} block below.
+font pango:Noto Sans 9
+# This font is widely installed, provides lots of unicode glyphs, right-to-left
+# text rendering and scalability on retina/hidpi displays (thanks to pango).
+#font pango:DejaVu Sans Mono 8
+
+# Use Mouse+$mod to drag floating windows
+floating_modifier $mod
+
+
+# The combination of xss-lock, nm-applet and pactl is a popular choice, so
+# they are included here as an example. Modify as you see fit.
+
+# xss-lock grabs a logind suspend inhibit lock and will use i3lock to lock the
+# screen before suspend. Use loginctl lock-session to lock your screen.
+exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
+
+# NetworkManager is the most popular way to manage wireless networks on Linux,
+# and nm-applet is a desktop environment-independent system tray GUI for it.
+exec --no-startup-id nm-applet
+exec --no-startup-id conky -c ~/.config/conky
+exec --no-startup-id conky -c ~/.config/conky_shortcuts
+
+# Use pactl to adjust volume in PulseAudio.
+set $refresh_i3status killall -SIGUSR1 i3status
+bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +10% && $refresh_i3status
+bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -10% && $refresh_i3status
+bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ toggle && $refresh_i3status
+bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOURCE@ toggle && $refresh_i3status
+#
+# Sreen brightness controls
+bindsym XF86MonBrightnessUp exec xbacklight -inc 10 # increase screen brightness
+bindsym XF86MonBrightnessDown exec xbacklight -dec 10 # decrease screen brightness
+
+# Use Mouse+$mod to drag floating windows to their wanted position
+floating_modifier $mod
+
+# start a terminal
+# bindsym $mod+Return exec i3-sensible-terminal
+bindsym $mod+Return exec --no-startup-id konsole
+
+# kill focused window
+bindsym $mod+Shift+q kill
+
+# start dmenu (a program launcher)
+bindsym $mod+Shift+d exec dmenu_run
+bindsym $mod+d exec --no-startup-id /home/philip/.local/bin/rofi_launcher
+# bindsym $mod_next+Return exec --no-startup-id "rofi -show-icons -modi windowcd,window,drun -show drun"
+bindsym $mod+Tab exec --no-startup-id "rofi -show-icons -modi windowcd,window,drun -show window"
+ # There also is the (new) i3-dmenu-desktop which only displays applications
+# shipping a .desktop file. It is a wrapper around dmenu, so you need that
+# installed.
+# bindsym $mod+d exec --no-startup-id i3-dmenu-desktop
+
+# change focus
+# bindsym $mod+j focus left
+# bindsym $mod+k focus down
+# bindsym $mod+l focus up
+# bindsym $mod+semicolon focus right
+# hjkl focus
+bindsym $mod+h focus left
+bindsym $mod+j focus down
+bindsym $mod+k focus up
+bindsym $mod+l focus right
+
+
+# alternatively, you can use the cursor keys:
+bindsym $mod+Left focus left
+bindsym $mod+Down focus down
+bindsym $mod+Up focus up
+bindsym $mod+Right focus right
+
+# move focused window
+# bindsym $mod+Shift+j move left
+# bindsym $mod+Shift+k move down
+# bindsym $mod+Shift+l move up
+# bindsym $mod+Shift+semicolon move right
+# hjkl move
+bindsym $mod+Shift+h move left 100px
+bindsym $mod+Shift+j move down 100px
+bindsym $mod+Shift+k move up 100px
+bindsym $mod+Shift+l move right 100px
+
+# alternatively, you can use the cursor keys:
+bindsym $mod+Shift+Left move left
+bindsym $mod+Shift+Down move down
+bindsym $mod+Shift+Up move up
+bindsym $mod+Shift+Right move right
+
+# split in horizontal orientation
+bindsym $mod+semicolon split h
+
+# split in vertical orientation
+bindsym $mod+v split v
+
+# enter fullscreen mode for the focused container
+bindsym $mod+f fullscreen toggle
+
+# change container layout (stacked, tabbed, toggle split)
+bindsym $mod+s layout stacking
+bindsym $mod+w layout tabbed
+bindsym $mod+z layout toggle split
+
+# toggle tiling / floating
+bindsym $mod+Shift+space floating toggle
+
+# change focus between tiling / floating windows
+bindsym $mod+space focus mode_toggle
+
+# focus the parent container
+bindsym $mod+a focus parent
+
+# focus the child container
+#bindsym $mod+d focus child
+
+# Define names for default workspaces for which we configure key bindings later on.
+# We use variables to avoid repeating the names in multiple places.
+set $ws1 "1: "
+set $ws2 "2: "
+set $ws3 "3: "
+set $ws4 "4: "
+set $ws5 "5"
+set $ws6 "6"
+set $ws7 "7"
+set $ws8 "8"
+set $ws9 "9:"
+set $ws10 "10:  "
+
+# switch to workspace
+bindsym $mod+1 workspace number $ws1
+bindsym $mod+2 workspace number $ws2
+bindsym $mod+3 workspace number $ws3
+bindsym $mod+4 workspace number $ws4
+bindsym $mod+5 workspace number $ws5
+bindsym $mod+6 workspace number $ws6
+bindsym $mod+7 workspace number $ws7
+bindsym $mod+8 workspace number $ws8
+bindsym $mod+9 workspace number $ws9
+bindsym $mod+0 workspace number $ws10
+
+# move focused container to workspace
+bindsym $mod+Shift+1 move container to workspace number $ws1
+bindsym $mod+Shift+2 move container to workspace number $ws2
+bindsym $mod+Shift+3 move container to workspace number $ws3
+bindsym $mod+Shift+4 move container to workspace number $ws4
+bindsym $mod+Shift+5 move container to workspace number $ws5
+bindsym $mod+Shift+6 move container to workspace number $ws6
+bindsym $mod+Shift+7 move container to workspace number $ws7
+bindsym $mod+Shift+8 move container to workspace number $ws8
+bindsym $mod+Shift+9 move container to workspace number $ws9
+bindsym $mod+Shift+0 move container to workspace number $ws10
+
+# move workspace to other screen
+bindsym $mod+o move workspace to output right
+bindsym $mod+Shift+o move workspace to output up
+
+# assign windows to workspaces
+assign [class=Emacs] $ws1
+assign [class=Navigator|firefox] $ws2
+assign [class="Tor Browser"] $ws2
+assign [class=konsole|Terminator] $ws3
+assign [class=Spotify|Vlc] $ws3
+assign [class=Gimp*|Inkscape|Scribus] $ws4
+assign [class=matplotlib] $ws8
+#
+# reload the configuration file
+bindsym $mod+Shift+c reload
+# restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
+bindsym $mod+Shift+r restart
+# exit i3 (logs you out of your X session)
+bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -B 'Yes, exit i3' 'i3-msg exit'"
+
+# resize window (you can also use the mouse for that)
+mode "resize" {
+        # These bindings trigger as soon as you enter the resize mode
+
+        # Pressing left will shrink the window’s width.
+        # Pressing right will grow the window’s width.
+        # Pressing up will shrink the window’s height.
+        # Pressing down will grow the window’s height.
+        bindsym j resize shrink width 10 px or 10 ppt
+        bindsym k resize grow height 10 px or 10 ppt
+        bindsym l resize shrink height 10 px or 10 ppt
+        bindsym semicolon resize grow width 10 px or 10 ppt
+
+        # same bindings, but for the arrow keys
+        bindsym Left resize shrink width 10 px or 10 ppt
+        bindsym Down resize grow height 10 px or 10 ppt
+        bindsym Up resize shrink height 10 px or 10 ppt
+        bindsym Right resize grow width 10 px or 10 ppt
+
+        # back to normal: Enter or Escape or $mod+r
+        bindsym Return mode "default"
+        bindsym Escape mode "default"
+        bindsym $mod+r mode "default"
+}
+
+bindsym $mod+r mode "resize"
+
+# Open specific applications in floating mode
+for_window [class=".*"] title_format " %title"
+for_window [class="(?i)System-config-printer.py"] floating enable border normal
+for_window [class="(?i)arandr"] floating enable
+for_window [class="yakuake"] floating enable
+for_window [class="kdeconnect.damon"] floating enable
+for_window [class="kcalc"] floating enable border pixel 1
+for_window [class="Lxappearance"] floating enable sticky enable border normal
+for_window [class="Manjaro Settings Manager"] floating enable border normal
+for_window [class="Blueman-manager"] floating enable border normal
+for_window [class="Manjaro-hello"] floating enable
+for_window [class="Qtconfig-qt4"] floating enable sticky enable border normal
+for_window [class="Shutter"] floating disable
+for_window [class="Simple-scan"] floating enable border normal
+for_window [class="Timeset-gui"] floating enable border normal
+for_window [class="octopi"] floating enable
+for_window [class="qt5ct"] floating enable sticky enable border normal
+for_window [class="spectacle"] floating disable
+for_window [title="File Transfer*"] floating enable
+for_window [title="alsamixer"] floating enable border pixel 1
+for_window [class="(?i)^timeshift-gtk$"] floating disable
+
+
+
+
+# Start i3bar to display a workspace bar (plus the system information i3status
+# finds out, if available)
+
+bar {
+        i3bar_command i3bar
+        # status_command i3status
+        # use py3status
+        tray_output primary
+        status_command py3status -c ~/.config/i3/i3status.conf
+	colors {
+		background $bg-color
+	    	separator #757575
+		#                  border             background         text
+		focused_workspace  $bg-color          $bg-color          $text-color
+		inactive_workspace $inactive-bg-color $inactive-bg-color $inactive-text-color
+		urgent_workspace   $urgent-bg-color   $urgent-bg-color   $text-color
+	}
+}
+# hide/unhide i3status bar
+bindsym $mod+b bar mode toggle
+
+exec_always --no-startup-id feh --bg-scale /home/philip/Pictures/wallpapers/wallpaper1.jpg /home/philip/Pictures/wallpapers/wallpaper1.jpg
+exec_always --no-startup-id setxkbmap -model latitude -layout eu -option nbsp:level2
+
+hide_edge_borders both
+
+##### lock stuff
+set $Locker i3lock && sleep 1
+
+set $mode_system System (l) lock, (e) logout, (s) suspend, (h) hibernate, (r) reboot, (Shift+s) shutdown
+mode "$mode_system" {
+    bindsym l exec --no-startup-id $Locker, mode "default"
+    bindsym e exec --no-startup-id i3-msg exit, mode "default"
+    bindsym s exec --no-startup-id $Locker && systemctl suspend, mode "default"
+    bindsym h exec --no-startup-id $Locker && systemctl hibernate, mode "default"
+    bindsym r exec --no-startup-id systemctl reboot, mode "default"
+    bindsym Shift+s exec --no-startup-id systemctl poweroff -i, mode "default"
+
+    # back to normal: Enter or Escape
+    bindsym Return mode "default"
+    bindsym Escape mode "default"
+}
+
+bindsym $mod+p mode "$mode_system"
+
+### launch emacs
+bindsym $mod+e exec --no-startup-id /home/philip/.local/bin/run_emacs_client.sh
+
+### jump to urgent window
+bindsym $mod+x [urgent=latest] focus
+
+# read 1 character and mark the current window with this character
+bindsym $mod+m exec i3-input -F 'mark %s' -l 1 -P 'Mark: '
+
+# read 1 character and go to the window with the character
+bindsym $mod+g exec i3-input -F '[con_mark="%s"] focus' -l 1 -P 'Goto: '
+
+# start authenticitation service (should be started by xstart but is not...)
+exec --no-startup-id /usr/lib/polkit-kde-authentication-agent-1 
+
+# start picom 
+exec --no-startup-id picom -b
+
+# alttab for alt-tab window switching
+exec --no-startup-id alttab -fg "#d58681" -bg "#4a4a4a" -frame "#eb564d" -t 128x150 -i 127x64
+
+# run dunst as notification service
+exec dunst
+
+# add a blueman applet to bar
+exec --no-startup-id blueman-applet
+
+# audio applet icon
+exec --no-startup-id pasystray
+
+# run yakuake drop down terminal
+exec --no-startup-id yakuake
+
+# gaps # only works with i3-gaps  installed
+#
+
+# You can also use any non-zero value if you'd like to have a border
+for_window [class=".*"] border pixel 0
+
+# Configuration command (works at runtime)
+#gaps inner|outer|horizontal|vertical|top|right|bottom|left current|all set|plus|minus|toggle <px>
+# Gaps
+gaps inner 8
+gaps outer -4
+# Only enable gaps on a workspace when there is at least one container
+smart_gaps on
+# Activate smart borders (only when there are effectively no gaps)
+smart_borders no_gaps
+### gaps keybindings from wiki
+###
+set $mode_gaps Gaps: (o)uter, (i)nner, (h)orizontal, (v)ertical, (t)op, (r)ight, (b)ottom, (l)eft
+set $mode_gaps_outer Outer Gaps: +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps_inner Inner Gaps: +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps_horiz Horizontal Gaps: +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps_verti Vertical Gaps: +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps_top Top Gaps: +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps_right Right Gaps: +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps_bottom Bottom Gaps: +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps_left Left Gaps: +|-|0 (local), Shift + +|-|0 (global)
+bindsym $mod+Shift+g mode "$mode_gaps"
+
+mode "$mode_gaps" {
+        bindsym o      mode "$mode_gaps_outer"
+        bindsym i      mode "$mode_gaps_inner"
+        bindsym h      mode "$mode_gaps_horiz"
+        bindsym v      mode "$mode_gaps_verti"
+        bindsym t      mode "$mode_gaps_top"
+        bindsym r      mode "$mode_gaps_right"
+        bindsym b      mode "$mode_gaps_bottom"
+        bindsym l      mode "$mode_gaps_left"
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
+}
+
+mode "$mode_gaps_outer" {
+        bindsym plus  gaps outer current plus 5
+        bindsym minus gaps outer current minus 5
+        bindsym 0     gaps outer current set 0
+
+        bindsym Shift+plus  gaps outer all plus 5
+        bindsym Shift+minus gaps outer all minus 5
+        bindsym Shift+0     gaps outer all set 0
+
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
+}
+mode "$mode_gaps_inner" {
+        bindsym plus  gaps inner current plus 5
+        bindsym minus gaps inner current minus 5
+        bindsym 0     gaps inner current set 0
+
+        bindsym Shift+plus  gaps inner all plus 5
+        bindsym Shift+minus gaps inner all minus 5
+        bindsym Shift+0     gaps inner all set 0
+
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
+}
+mode "$mode_gaps_horiz" {
+        bindsym plus  gaps horizontal current plus 5
+        bindsym minus gaps horizontal current minus 5
+        bindsym 0     gaps horizontal current set 0
+
+        bindsym Shift+plus  gaps horizontal all plus 5
+        bindsym Shift+minus gaps horizontal all minus 5
+        bindsym Shift+0     gaps horizontal all set 0
+
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
+}
+mode "$mode_gaps_verti" {
+        bindsym plus  gaps vertical current plus 5
+        bindsym minus gaps vertical current minus 5
+        bindsym 0     gaps vertical current set 0
+
+        bindsym Shift+plus  gaps vertical all plus 5
+        bindsym Shift+minus gaps vertical all minus 5
+        bindsym Shift+0     gaps vertical all set 0
+
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
+}
+mode "$mode_gaps_top" {
+        bindsym plus  gaps top current plus 5
+        bindsym minus gaps top current minus 5
+        bindsym 0     gaps top current set 0
+
+        bindsym Shift+plus  gaps top all plus 5
+        bindsym Shift+minus gaps top all minus 5
+        bindsym Shift+0     gaps top all set 0
+
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
+}
+mode "$mode_gaps_right" {
+        bindsym plus  gaps right current plus 5
+        bindsym minus gaps right current minus 5
+        bindsym 0     gaps right current set 0
+
+        bindsym Shift+plus  gaps right all plus 5
+        bindsym Shift+minus gaps right all minus 5
+        bindsym Shift+0     gaps right all set 0
+
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
+}
+mode "$mode_gaps_bottom" {
+        bindsym plus  gaps bottom current plus 5
+        bindsym minus gaps bottom current minus 5
+        bindsym 0     gaps bottom current set 0
+
+        bindsym Shift+plus  gaps bottom all plus 5
+        bindsym Shift+minus gaps bottom all minus 5
+        bindsym Shift+0     gaps bottom all set 0
+
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
+}
+mode "$mode_gaps_left" {
+        bindsym plus  gaps left current plus 5
+        bindsym minus gaps left current minus 5
+        bindsym 0     gaps left current set 0
+
+        bindsym Shift+plus  gaps left all plus 5
+        bindsym Shift+minus gaps left all minus 5
+        bindsym Shift+0     gaps left all set 0
+
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
+}
+
+#+end_src
+*** i3status
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./i3/.config/i3/i3status
+:END:
+#+begin_src conf
+# i3status configuration file.
+# see "man i3status" for documentation.
+
+# It is important that this file is edited as UTF-8.
+# The following line should contain a sharp s:
+# ß
+# If the above line is not correctly displayed, fix your editor first!
+
+
+general {
+        colors = true
+        interval = 5
+        color_good = "#F9FAF9"
+        color_bad = "#F9FAF9"
+        color_degraded = "#DC322F"
+}
+
+order += "volume master"
+order += "spotify"
+order += "net_rate"
+order += "whatismyip"
+order += "wireless _first_"
+order += "ethernet _first_"
+order += "cpu_usage"
+order += "disk /"
+#order += "diskdata"
+order += "timer"
+order += "battery all"
+# order += "battery_level"
+# order += "external_script"
+order += "xrandr"
+order += "tztime local"
+
+volume master {
+        format = "VOL %volume"
+        format_muted = "VOL muted"
+        device = "default"
+        mixer = "Master"
+        mixer_idx = 0
+}
+
+spotify {
+	format = "( {artist} : {title})"
+	format_down = ""
+	format_stopped = ""
+}
+
+timer {
+	format = ":{timer}"
+	time = 3600
+}
+
+cpu_usage {
+        format = " cpu  %usage "
+}
+
+disk "/" {
+	prefix_type = decimal
+	format = " ⛁ %percentage_used (U:%used, F:%free) "
+}
+
+diskdata {
+	disk = sda2
+	prefix_type = decimal
+	#format_space = "[\?min_length=5 {value:.2f}]"
+	format = " ⛁ {used_percent}% (U:{used} GB, F:{free} GB) "
+}
+
+external_script {
+    format = "{output}"
+    script_path = "cat /sys/class/tty/tty0/active"
+}
+
+whatismyip {
+	format = " 🖧 {isp}\|{city}\|{countryCode} ({ip}) "
+	icon_on = "🖧"
+	hide_when_offline = True
+	url_geo = "http://ip-api.com/json"
+}
+
+wireless _first_ {
+	# if you use %speed, i3status requires root privileges
+        format_up = "  %essid (%ip) "
+        format_down = ""
+}
+
+ethernet _first_ {
+	# if you use %speed, i3status requires root privileges
+        format_up = "  eth (%ip) "
+        format_down = ""
+}
+
+net_rate {
+	format_value = "[\?min_length=10 {value:.1f} {unit}]"
+	si_units = "True"
+	format = "{down}⇣ {up}⇡"
+        interfaces_blacklist = "lo"
+}
+
+battery all {
+        format = " %status %percentage (%remaining) %consumption "
+        format_down = "No battery"
+        last_full_capacity = true
+        integer_battery_capacity = true
+        status_chr = "⚡"
+        status_bat = ""
+        status_unk = "?"
+        status_full = ""
+        low_threshold = 15
+        threshold_type = time
+}
+
+battery_level {
+	cache_timeout = 5
+	measurement_mode = "acpi"
+	hide_when_full = "True"
+	hide_seconds = "True"
+	blocks = ""
+	color_charging = "#00ff00"
+	format = " {icon} {percent}% ({time_remaining}) "
+}
+
+tztime local {
+        format = "%Y-%m-%d %H:%M:%S"
+        #format = " %d/%m %H:%M:%S"
+}
+
+xrandr {
+    # force_on_start = "eDP1+DP1"
+    HDMI1_pos = "right-of eDP1"
+    HDMI1_workspaces = "1"
+    hide_if_single_combination = true
+}
+#+end_src
+** compton
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./compton/.config/.compton.conf
+:END:
+#+begin_src conf
+backend = "xrender";
+vsync = true;
+
+shadow = true;
+shadow-radius = 10;
+shadow-offset-x = -5;
+shadow-offset-y = 0;
+shadow-opacity = 0.97;
+shadow-red = 0.11;
+shadow-green = 0.12;
+shadow-blue = 0.13;
+shadow-exclude = [
+  "name = 'Notification'",
+  "_GTK_FRAME_EXTENTS@:c",
+  "class_g = 'i3-frame'",
+  "_NET_WM_STATE@:32a *= '_NET_WM_STATE_HIDDEN'",
+  "_NET_WM_STATE@:32a *= '_NET_WM_STATE_STICKY'",
+  "!I3_FLOATING_WINDOW@:c"
+];
+shadow-ignore-shaped = true;
+
+blur-background = false;
+blur-background-fixed = true;
+blur-kern = "7x7box";
+blur-background-exclude = [
+  "class_g = 'i3-frame'",
+  "window_type = 'dock'",
+  "window_type = 'desktop'",
+  "_GTK_FRAME_EXTENTS@:c"
+];
+
+# Duplicating the _NET_WM_STATE entries because compton cannot deal with atom arrays :-/
+opacity-rule = [
+  "97:class_g = 'Termite' && !_NET_WM_STATE@:32a",
+
+  "0:_NET_WM_STATE@[0]:32a = '_NET_WM_STATE_HIDDEN'",
+  "0:_NET_WM_STATE@[1]:32a = '_NET_WM_STATE_HIDDEN'",
+  "0:_NET_WM_STATE@[2]:32a = '_NET_WM_STATE_HIDDEN'",
+  "0:_NET_WM_STATE@[3]:32a = '_NET_WM_STATE_HIDDEN'",
+  "0:_NET_WM_STATE@[4]:32a = '_NET_WM_STATE_HIDDEN'",
+
+  "90:_NET_WM_STATE@[0]:32a = '_NET_WM_STATE_STICKY'",
+  "90:_NET_WM_STATE@[1]:32a = '_NET_WM_STATE_STICKY'",
+  "90:_NET_WM_STATE@[2]:32a = '_NET_WM_STATE_STICKY'",
+  "90:_NET_WM_STATE@[3]:32a = '_NET_WM_STATE_STICKY'",
+  "90:_NET_WM_STATE@[4]:32a = '_NET_WM_STATE_STICKY'"
+];
+
+fading = false;
+fade-delta = 7;
+fade-in-step = 0.05;
+fade-out-step = 0.05;
+fade-exclude = [];
+
+mark-wmwin-focused = true;
+mark-ovredir-focused = true;
+use-ewmh-active-win = true;
+detect-rounded-corners = true;
+detect-client-opacity = true;
+refresh-rate = 0;
+dbe = false;
+glx-no-stencil = true;
+glx-copy-from-front = false;
+unredir-if-possible = false;
+focus-exclude = [];
+detect-transient = true;
+detect-client-leader = true;
+invert-color-include = [];
+
+wintypes: {
+    tooltip = { fade = true; shadow = false; opacity = 1.00; focus = true; };
+    dock = { shadow = false };
+    dnd = { shadow = false };
+};
+
+#+end_src
+** conky
+*** conkyrc :essential:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./conky/.conkyrc
+:END:
+#+begin_src conf
+own_window_class conky
+#+end_src
+
+*** general information
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./conky/.config/conky
+:END:
+#+begin_src conf
+conky.config = {
+    alignment = 'top_right',
+    background = true,
+	cpu_avg_samples = 2,
+	net_avg_samples = 2,
+    default_color = 'F9FAF9',
+    color2 = 'D64161',
+    double_buffer = true,
+    font = 'Bitstream Vera Sans:size=8',
+    draw_shades = false,
+    gap_x = 25,
+    gap_y = 13,
+    minimum_width = 200,
+    no_buffers = true,
+    own_window = true,
+    own_window_type = 'override',
+	own_window_argb_visual = true,
+	own_window_argb_value = 120,
+	own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
+    update_interval = 1.0,
+    use_xft = true,
+	out_to_console = false,
+	override_utf9_locale = true,
+}
+conky.text = [[
+${voffset 8}$color2${font Bitstream Vera Sans:size=16}${time %A}$font\
+${voffset -8}$alignr$color${font Bitstream Vera Sans:size=38}${time %e}$font
+$color${voffset -30}$color${font Bitstream Vera Sans:size=18}${time %b}$font\
+${voffset -3} $color${font Bitstream Vera Sans:size=20}${time %Y}$font$color2$hr
+#
+${voffset 20}${goto 40}${color}CPU${font Bitstream Vera Sans:bold:size=8}$alignr$cpu%
+${voffset 5}${goto 40}$font$color2${top name 1}$alignr$color${top cpu 1}%
+${goto 40}$color2${top name 2}$alignr$color${top cpu 2}%
+${goto 40}$color2${top name 3}$alignr$color${top cpu 3}%
+${goto 40}$color2${top name 4}$alignr$color${top cpu 4}%
+${goto 40}$color2${top name 5}$alignr$color${top cpu 5}%
+#
+${voffset 10}${goto 40}${color}RAM${font Bitstream Vera Sans:bold:size=8}$alignr$mem$font
+${goto 40}${voffset 5}$color2${top_mem name 1}$alignr$color${top_mem mem_res 1}
+${goto 40}$color2${top_mem name 2}$alignr$color${top_mem mem_res 2}
+${goto 40}$color2${top_mem name 3}$alignr$color${top_mem mem_res 3}
+${goto 40}$color2${top_mem name 4}$alignr$color${top_mem mem_res 4}
+${goto 40}$color2${top_mem name 5}$alignr$color${top_mem mem_res 5}
+#
+${voffset 10}${goto 40}${color}Swap${font Bitstream Vera Sans:bold:size=8}$alignr${swap}/ ${swapfree}
+${voffset 15}$font$alignr${execi 10000 awk -F= '/TION/ {print $2}' /etc/lsb-release |sed 's/"//g'} \
+${execi 10000 awk -F= '/EASE=/ {printf $2" "} /NAME/ {print $2}' /etc/lsb-release}
+${voffset 10}${color2}${alignr}${execi 1200 whoami}@${nodename}
+${alignr}${color2}${font Bitstream Vera Sans:size=8}uptime: ${color}${uptime_short}
+${voffset 5}${color2}${font Bitstream Vera Sans:size=8}${alignr}kernel: ${color}${kernel}
+]]
+#+end_src
+*** shortcuts
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./conky/.config/conky_shortcuts
+:END:
+
+#+begin_src conf
+conky.config = {
+    alignment = 'bottom_left',
+    background = true,
+    cpu_avg_samples = 2,
+    default_color = 'D64161',
+    color2 = 'F9FAF9',
+    double_buffer = true,
+    font = 'Bitstream Vera Sans:size=8',
+    draw_shades = false,
+    gap_x = 25,
+    gap_y = 45,
+    minimum_width = 200,
+    no_buffers = true,
+    own_window = true,
+    own_window_type = 'override',
+    own_window_argb_value = 200,
+    own_window_transparent = true,
+    update_interval = 1.0,
+    use_xft = true,
+}
+conky.text = [[
+${color2}mod = ${color}<super>
+# -- ${color2}mod_next = ${color}<super>
+
+${color2}open new terminal - ${color}mod+Enter
+#${color2}open browser - ${color}mod_next+i
+#${color2}open pamac-manager - ${color}mod_next+u
+#${color2}open putty - ${color}mod_next+p
+
+${color2}rofi (launcher) - ${color}mod+d
+${color2}rofi (windows) - ${color}mod+Tab
+${color2}kill focused - ${color}mod+Shift+q
+
+${color2}container layout (tabbed) - ${color}mod+w
+${color2}container layout (horiz) - ${color}mod+q
+${color2}container layout (vert) - ${color}mod+e
+${color2}container layout (stck) - ${color}mod+s
+${color2}split container (horiz) - ${color}mod+;
+${color2}split container (vert) - ${color}mod+v
+${color2}toggle container type - ${color}mod+c
+
+${color2}focus windows - ${color}mod+[hjkl]
+
+${color2}switch to workspace 1-8 - ${color}mod+1-8
+${color2}send to workspace 1-8 - ${color}mod+Alt+1-8
+${color2}navigate workspaces - ${color}mod+Ctrl+arrows
+
+${color2}toggle floating - ${color}mod+Shift+Space
+${color2}toggle sticky - ${color}mod+Cntrl+s
+${color2}window opacity up[dn] - ${color}mod+Alt+[x|z]
+${color2}window dim disable[enable] - ${color}mod+Alt+[a|d]
+
+${color2}exit - ${color}mod+0
+]]
+#+end_src
+** picom
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./compton/.config/picom/picom.conf
+:END:
+#+begin_src conf
+#################################
+#             Shadows           #
+#################################
+
+
+# Enabled client-side shadows on windows. Note desktop windows 
+# (windows with '_NET_WM_WINDOW_TYPE_DESKTOP') never get shadow, 
+# unless explicitly requested using the wintypes option.
+#
+# shadow = false
+shadow = true;
+
+# The blur radius for shadows, in pixels. (defaults to 12)
+# shadow-radius = 12
+shadow-radius = 7;
+
+# The opacity of shadows. (0.0 - 1.0, defaults to 0.75)
+# shadow-opacity = .75
+
+# The left offset for shadows, in pixels. (defaults to -15)
+# shadow-offset-x = -15
+shadow-offset-x = -7;
+
+# The top offset for shadows, in pixels. (defaults to -15)
+# shadow-offset-y = -15
+shadow-offset-y = -7;
+
+# Avoid drawing shadows on dock/panel windows. This option is deprecated,
+# you should use the *wintypes* option in your config file instead.
+#
+# no-dock-shadow = false
+
+# Don't draw shadows on drag-and-drop windows. This option is deprecated, 
+# you should use the *wintypes* option in your config file instead.
+#
+# no-dnd-shadow = false
+
+# Red color value of shadow (0.0 - 1.0, defaults to 0).
+# shadow-red = 0
+
+# Green color value of shadow (0.0 - 1.0, defaults to 0).
+# shadow-green = 0
+
+# Blue color value of shadow (0.0 - 1.0, defaults to 0).
+# shadow-blue = 0
+
+# Do not paint shadows on shaped windows. Note shaped windows 
+# here means windows setting its shape through X Shape extension. 
+# Those using ARGB background is beyond our control. 
+# Deprecated, use 
+#   shadow-exclude = 'bounding_shaped'
+# or 
+#   shadow-exclude = 'bounding_shaped && !rounded_corners'
+# instead.
+#
+# shadow-ignore-shaped = ''
+
+# Specify a list of conditions of windows that should have no shadow.
+#
+# examples:
+#   shadow-exclude = "n:e:Notification";
+#
+# shadow-exclude = []
+shadow-exclude = [
+  "name = 'Notification'",
+  "class_g = 'Conky'",
+  "class_g ?= 'Notify-osd'",
+  "class_g = 'Cairo-clock'",
+  "_GTK_FRAME_EXTENTS@:c"
+];
+
+# Specify a X geometry that describes the region in which shadow should not
+# be painted in, such as a dock window region. Use 
+#    shadow-exclude-reg = "x10+0+0"
+# for example, if the 10 pixels on the bottom of the screen should not have shadows painted on.
+#
+# shadow-exclude-reg = "" 
+
+# Crop shadow of a window fully on a particular Xinerama screen to the screen.
+# xinerama-shadow-crop = false
+
+
+#################################
+#           Fading              #
+#################################
+
+
+# Fade windows in/out when opening/closing and when opacity changes,
+#  unless no-fading-openclose is used.
+# fading = false
+fading = true
+
+# Opacity change between steps while fading in. (0.01 - 1.0, defaults to 0.028)
+# fade-in-step = 0.028
+fade-in-step = 0.03;
+
+# Opacity change between steps while fading out. (0.01 - 1.0, defaults to 0.03)
+# fade-out-step = 0.03
+fade-out-step = 0.03;
+
+# The time between steps in fade step, in milliseconds. (> 0, defaults to 10)
+# fade-delta = 10
+
+# Specify a list of conditions of windows that should not be faded.
+# fade-exclude = []
+
+# Do not fade on window open/close.
+# no-fading-openclose = false
+
+# Do not fade destroyed ARGB windows with WM frame. Workaround of bugs in Openbox, Fluxbox, etc.
+# no-fading-destroyed-argb = false
+
+
+#################################
+#   Transparency / Opacity      #
+#################################
+
+
+# Opacity of inactive windows. (0.1 - 1.0, defaults to 1.0)
+# inactive-opacity = 1
+inactive-opacity = 0.95;
+
+# Opacity of window titlebars and borders. (0.1 - 1.0, disabled by default)
+# frame-opacity = 1.0
+frame-opacity = 0.7;
+
+# Default opacity for dropdown menus and popup menus. (0.0 - 1.0, defaults to 1.0)
+# menu-opacity = 1.0
+
+# Let inactive opacity set by -i override the '_NET_WM_OPACITY' values of windows.
+# inactive-opacity-override = true
+inactive-opacity-override = false;
+
+# Default opacity for active windows. (0.0 - 1.0, defaults to 1.0)
+# active-opacity = 1.0
+
+# Dim inactive windows. (0.0 - 1.0, defaults to 0.0)
+# inactive-dim = 0.0
+
+# Specify a list of conditions of windows that should always be considered focused.
+# focus-exclude = []
+focus-exclude = [ "class_g = 'Cairo-clock'" ];
+
+# Use fixed inactive dim value, instead of adjusting according to window opacity.
+# inactive-dim-fixed = 1.0
+
+# Specify a list of opacity rules, in the format `PERCENT:PATTERN`, 
+# like `50:name *= "Firefox"`. picom-trans is recommended over this. 
+# Note we don't make any guarantee about possible conflicts with other 
+# programs that set '_NET_WM_WINDOW_OPACITY' on frame or client windows.
+# example:
+#    opacity-rule = [ "80:class_g = 'URxvt'" ];
+#
+# opacity-rule = []
+
+
+#################################
+#     Background-Blurring       #
+#################################
+
+
+# Parameters for background blurring, see the *BLUR* section for more information.
+# blur-method = 
+# blur-size = 12
+#
+# blur-deviation = false
+
+# Blur background of semi-transparent / ARGB windows. 
+# Bad in performance, with driver-dependent behavior. 
+# The name of the switch may change without prior notifications.
+#
+# blur-background = false
+
+# Blur background of windows when the window frame is not opaque. 
+# Implies:
+#    blur-background 
+# Bad in performance, with driver-dependent behavior. The name may change.
+#
+# blur-background-frame = false
+
+
+# Use fixed blur strength rather than adjusting according to window opacity.
+# blur-background-fixed = false
+
+
+# Specify the blur convolution kernel, with the following format:
+# example:
+#   blur-kern = "5,5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1";
+#
+# blur-kern = ''
+blur-kern = "3x3box";
+
+
+# Exclude conditions for background blur.
+# blur-background-exclude = []
+blur-background-exclude = [
+  "window_type = 'dock'",
+  "window_type = 'desktop'",
+  "_GTK_FRAME_EXTENTS@:c"
+];
+
+#################################
+#       General Settings        #
+#################################
+
+# Daemonize process. Fork to background after initialization. Causes issues with certain (badly-written) drivers.
+# daemon = false
+
+# Specify the backend to use: `xrender`, `glx`, or `xr_glx_hybrid`.
+# `xrender` is the default one.
+#
+# backend = 'glx'
+backend = "xrender";
+
+# Enable/disable VSync.
+# vsync = false
+vsync = true
+
+# Enable remote control via D-Bus. See the *D-BUS API* section below for more details.
+# dbus = false
+
+# Try to detect WM windows (a non-override-redirect window with no 
+# child that has 'WM_STATE') and mark them as active.
+#
+# mark-wmwin-focused = false
+mark-wmwin-focused = true;
+
+# Mark override-redirect windows that doesn't have a child window with 'WM_STATE' focused.
+# mark-ovredir-focused = false
+mark-ovredir-focused = true;
+
+# Try to detect windows with rounded corners and don't consider them 
+# shaped windows. The accuracy is not very high, unfortunately.
+#
+# detect-rounded-corners = false
+detect-rounded-corners = true;
+
+# Detect '_NET_WM_OPACITY' on client windows, useful for window managers
+# not passing '_NET_WM_OPACITY' of client windows to frame windows.
+#
+# detect-client-opacity = false
+detect-client-opacity = true;
+
+# Specify refresh rate of the screen. If not specified or 0, picom will 
+# try detecting this with X RandR extension.
+#
+# refresh-rate = 60
+refresh-rate = 0
+
+# Limit picom to repaint at most once every 1 / 'refresh_rate' second to 
+# boost performance. This should not be used with 
+#   vsync drm/opengl/opengl-oml
+# as they essentially does sw-opti's job already, 
+# unless you wish to specify a lower refresh rate than the actual value.
+#
+# sw-opti = 
+
+# Use EWMH '_NET_ACTIVE_WINDOW' to determine currently focused window, 
+# rather than listening to 'FocusIn'/'FocusOut' event. Might have more accuracy, 
+# provided that the WM supports it.
+#
+# use-ewmh-active-win = false
+
+# Unredirect all windows if a full-screen opaque window is detected, 
+# to maximize performance for full-screen windows. Known to cause flickering 
+# when redirecting/unredirecting windows.
+#
+# unredir-if-possible = false
+
+# Delay before unredirecting the window, in milliseconds. Defaults to 0.
+# unredir-if-possible-delay = 0
+
+# Conditions of windows that shouldn't be considered full-screen for unredirecting screen.
+# unredir-if-possible-exclude = []
+
+# Use 'WM_TRANSIENT_FOR' to group windows, and consider windows 
+# in the same group focused at the same time.
+#
+# detect-transient = false
+detect-transient = true
+
+# Use 'WM_CLIENT_LEADER' to group windows, and consider windows in the same 
+# group focused at the same time. 'WM_TRANSIENT_FOR' has higher priority if 
+# detect-transient is enabled, too.
+#
+# detect-client-leader = false
+detect-client-leader = true
+
+# Resize damaged region by a specific number of pixels. 
+# A positive value enlarges it while a negative one shrinks it. 
+# If the value is positive, those additional pixels will not be actually painted 
+# to screen, only used in blur calculation, and such. (Due to technical limitations, 
+# with use-damage, those pixels will still be incorrectly painted to screen.) 
+# Primarily used to fix the line corruption issues of blur, 
+# in which case you should use the blur radius value here 
+# (e.g. with a 3x3 kernel, you should use `--resize-damage 1`, 
+# with a 5x5 one you use `--resize-damage 2`, and so on). 
+# May or may not work with *--glx-no-stencil*. Shrinking doesn't function correctly.
+#
+# resize-damage = 1
+
+# Specify a list of conditions of windows that should be painted with inverted color. 
+# Resource-hogging, and is not well tested.
+#
+# invert-color-include = []
+
+# GLX backend: Avoid using stencil buffer, useful if you don't have a stencil buffer. 
+# Might cause incorrect opacity when rendering transparent content (but never 
+# practically happened) and may not work with blur-background. 
+# My tests show a 15% performance boost. Recommended.
+#
+# glx-no-stencil = false
+
+# GLX backend: Avoid rebinding pixmap on window damage. 
+# Probably could improve performance on rapid window content changes, 
+# but is known to break things on some drivers (LLVMpipe, xf86-video-intel, etc.).
+# Recommended if it works.
+#
+# glx-no-rebind-pixmap = false
+
+# Disable the use of damage information. 
+# This cause the whole screen to be redrawn everytime, instead of the part of the screen
+# has actually changed. Potentially degrades the performance, but might fix some artifacts.
+# The opposing option is use-damage
+#
+# no-use-damage = false
+use-damage = true
+
+# Use X Sync fence to sync clients' draw calls, to make sure all draw 
+# calls are finished before picom starts drawing. Needed on nvidia-drivers 
+# with GLX backend for some users.
+#
+# xrender-sync-fence = false
+
+# GLX backend: Use specified GLSL fragment shader for rendering window contents. 
+# See `compton-default-fshader-win.glsl` and `compton-fake-transparency-fshader-win.glsl` 
+# in the source tree for examples.
+#
+# glx-fshader-win = ''
+
+# Force all windows to be painted with blending. Useful if you 
+# have a glx-fshader-win that could turn opaque pixels transparent.
+#
+# force-win-blend = false
+
+# Do not use EWMH to detect fullscreen windows. 
+# Reverts to checking if a window is fullscreen based only on its size and coordinates.
+#
+# no-ewmh-fullscreen = false
+
+# Dimming bright windows so their brightness doesn't exceed this set value. 
+# Brightness of a window is estimated by averaging all pixels in the window, 
+# so this could comes with a performance hit. 
+# Setting this to 1.0 disables this behaviour. Requires --use-damage to be disabled. (default: 1.0)
+#
+# max-brightness = 1.0
+
+# Make transparent windows clip other windows like non-transparent windows do,
+# instead of blending on top of them.
+#
+# transparent-clipping = false
+
+# Set the log level. Possible values are:
+#  "trace", "debug", "info", "warn", "error"
+# in increasing level of importance. Case doesn't matter. 
+# If using the "TRACE" log level, it's better to log into a file 
+# using *--log-file*, since it can generate a huge stream of logs.
+#
+# log-level = "debug"
+log-level = "warn";
+
+# Set the log file.
+# If *--log-file* is never specified, logs will be written to stderr. 
+# Otherwise, logs will to written to the given file, though some of the early 
+# logs might still be written to the stderr. 
+# When setting this option from the config file, it is recommended to use an absolute path.
+#
+# log-file = '/path/to/your/log/file'
+
+# Show all X errors (for debugging)
+# show-all-xerrors = false
+
+# Write process ID to a file.
+# write-pid-path = '/path/to/your/log/file'
+
+# Window type settings
+# 
+# 'WINDOW_TYPE' is one of the 15 window types defined in EWMH standard: 
+#     "unknown", "desktop", "dock", "toolbar", "menu", "utility", 
+#     "splash", "dialog", "normal", "dropdown_menu", "popup_menu", 
+#     "tooltip", "notification", "combo", and "dnd".
+# 
+# Following per window-type options are available: ::
+# 
+#   fade, shadow:::
+#     Controls window-type-specific shadow and fade settings.
+# 
+#   opacity:::
+#     Controls default opacity of the window type.
+# 
+#   focus:::
+#     Controls whether the window of this type is to be always considered focused. 
+#     (By default, all window types except "normal" and "dialog" has this on.)
+# 
+#   full-shadow:::
+#     Controls whether shadow is drawn under the parts of the window that you 
+#     normally won't be able to see. Useful when the window has parts of it 
+#     transparent, and you want shadows in those areas.
+# 
+#   redir-ignore:::
+#     Controls whether this type of windows should cause screen to become 
+#     redirected again after been unredirected. If you have unredir-if-possible
+#     set, and doesn't want certain window to cause unnecessary screen redirection, 
+#     you can set this to `true`.
+#
+wintypes:
+{
+  tooltip = { fade = true; shadow = true; opacity = 0.75; focus = true; full-shadow = false; };
+  dock = { shadow = false; }
+  dnd = { shadow = false; }
+  popup_menu = { opacity = 0.8; }
+  dropdown_menu = { opacity = 0.8; }
+};
+#+end_src
+* latexmk :full:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./latexmk/.latexmkrc
+:END:
+#+begin_src conf
+# .latexmkrc starts
+# $pdf_mode = 1;
+$pdf_previewer = 'start okular %O %S';
+# .latexmkrc ends
+$dvipdf = "dvipdf -dALLOWPSTRANSPARENCY %O %S %D";
+$ps2pdf = "ps2pdf -dALLOWPSTRANSPARENCY %O %S %D";
+#+end_src
+* matplotlib :full:
+To keep it clean the style files will become  an own repo (maybe inside this one)
+* Editors :full:
+** nvim :essential:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./nvim/.vimrc
+:END:
+#+begin_src conf
+" vim-bootstrap 
+
+"*****************************************************************************
+"" Vim-PLug core
+"*****************************************************************************
+let vimplug_exists=expand('~/.vim/autoload/plug.vim')
+
+let g:vim_bootstrap_langs = "c,python"
+let g:vim_bootstrap_editor = "vim"				" nvim or vim
+
+if !filereadable(vimplug_exists)
+  if !executable("curl")
+    echoerr "You have to install curl or first install vim-plug yourself!"
+    execute "q!"
+  endif
+  echo "Installing Vim-Plug..."
+  echo ""
+  silent exec "!\curl -fLo " . vimplug_exists . " --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
+  let g:not_finish_vimplug = "yes"
+
+  autocmd VimEnter * PlugInstall
+endif
+
+" Required:
+call plug#begin(expand('~/.vim/plugged'))
+
+"*****************************************************************************
+"" Plug install packages
+"*****************************************************************************
+Plug 'scrooloose/nerdtree'
+Plug 'jistr/vim-nerdtree-tabs'
+Plug 'tpope/vim-commentary'
+Plug 'tpope/vim-fugitive'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+Plug 'airblade/vim-gitgutter'
+Plug 'vim-scripts/grep.vim'
+Plug 'vim-scripts/CSApprox'
+Plug 'Raimondi/delimitMate'
+Plug 'majutsushi/tagbar'
+Plug 'w0rp/ale'
+Plug 'Yggdroot/indentLine'
+Plug 'avelino/vim-bootstrap-updater'
+Plug 'sheerun/vim-polyglot'
+Plug 'tpope/vim-rhubarb' " required by fugitive to :Gbrowse
+
+if isdirectory('/usr/local/opt/fzf')
+  Plug '/usr/local/opt/fzf' | Plug 'junegunn/fzf.vim'
+else
+  Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --bin' }
+  Plug 'junegunn/fzf.vim'
+endif
+let g:make = 'gmake'
+if exists('make')
+        let g:make = 'make'
+endif
+Plug 'Shougo/vimproc.vim', {'do': g:make}
+
+"" Vim-Session
+Plug 'xolox/vim-misc'
+Plug 'xolox/vim-session'
+
+"" Snippets
+Plug 'SirVer/ultisnips'
+Plug 'honza/vim-snippets'
+
+"" Color
+Plug 'tomasr/molokai'
+
+"*****************************************************************************
+"" Custom bundles
+"*****************************************************************************
+
+" c
+Plug 'vim-scripts/c.vim', {'for': ['c', 'cpp']}
+Plug 'ludwig/split-manpage.vim'
+
+
+" python
+"" Python Bundle
+Plug 'davidhalter/jedi-vim'
+Plug 'raimon49/requirements.txt.vim', {'for': 'requirements'}
+
+
+"*****************************************************************************
+"*****************************************************************************
+
+"" Include user's extra bundle
+if filereadable(expand("~/.vimrc.local.bundles"))
+  source ~/.vimrc.local.bundles
+endif
+
+call plug#end()
+
+" Required:
+filetype plugin indent on
+
+
+"*****************************************************************************
+"" Basic Setup
+"*****************************************************************************"
+"" Encoding
+set encoding=utf-8
+set fileencoding=utf-8
+set fileencodings=utf-8
+set ttyfast
+
+"" Fix backspace indent
+set backspace=indent,eol,start
+
+"" Tabs. May be overridden by autocmd rules
+set tabstop=4
+set softtabstop=0
+set shiftwidth=4
+set expandtab
+
+"" Map leader to ,
+let mapleader=','
+
+"" Enable hidden buffers
+set hidden
+
+"" Searching
+set hlsearch
+set incsearch
+set ignorecase
+set smartcase
+
+set fileformats=unix,dos,mac
+
+if exists('$SHELL')
+    set shell=$SHELL
+else
+    set shell=/bin/sh
+endif
+
+" session management
+let g:session_directory = "~/.vim/session"
+let g:session_autoload = "no"
+let g:session_autosave = "no"
+let g:session_command_aliases = 1
+
+"*****************************************************************************
+"" Visual Settings
+"*****************************************************************************
+syntax on
+set ruler
+set number
+
+let no_buffers_menu=1
+silent! colorscheme molokai
+
+set mousemodel=popup
+set t_Co=256
+set guioptions=egmrti
+set gfn=Monospace\ 10
+
+if has("gui_running")
+  if has("gui_mac") || has("gui_macvim")
+    set guifont=Menlo:h12
+    set transparency=7
+  endif
+else
+  let g:CSApprox_loaded = 1
+
+  " IndentLine
+  let g:indentLine_enabled = 1
+  let g:indentLine_concealcursor = 0
+  let g:indentLine_char = '┆'
+  let g:indentLine_faster = 1
+
+  
+  if $COLORTERM == 'gnome-terminal'
+    set term=gnome-256color
+  else
+    if $TERM == 'xterm'
+      set term=xterm-256color
+    endif
+  endif
+  
+endif
+
+
+if &term =~ '256color'
+  set t_ut=
+endif
+
+
+"" Disable the blinking cursor.
+set gcr=a:blinkon0
+set scrolloff=3
+
+"" Status bar
+set laststatus=2
+
+"" Use modeline overrides
+set modeline
+set modelines=10
+
+set title
+set titleold="Terminal"
+set titlestring=%F
+
+set statusline=%F%m%r%h%w%=(%{&ff}/%Y)\ (line\ %l\/%L,\ col\ %c)\
+
+" Search mappings: These will make it so that going to the next one in a
+" search will center on the line it's found in.
+nnoremap n nzzzv
+nnoremap N Nzzzv
+
+if exists("*fugitive#statusline")
+  set statusline+=%{fugitive#statusline()}
+endif
+
+" vim-airline
+let g:airline_theme = 'powerlineish'
+let g:airline#extensions#branch#enabled = 1
+let g:airline#extensions#ale#enabled = 1
+let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#tagbar#enabled = 1
+let g:airline_skip_empty_sections = 1
+
+"*****************************************************************************
+"" Abbreviations
+"*****************************************************************************
+"" no one is really happy until you have this shortcuts
+cnoreabbrev W! w!
+cnoreabbrev Q! q!
+cnoreabbrev Qall! qall!
+cnoreabbrev Wq wq
+cnoreabbrev Wa wa
+cnoreabbrev wQ wq
+cnoreabbrev WQ wq
+cnoreabbrev W w
+cnoreabbrev Q q
+cnoreabbrev Qall qall
+
+"" NERDTree configuration
+let g:NERDTreeChDirMode=2
+let g:NERDTreeIgnore=['\.rbc$', '\~$', '\.pyc$', '\.db$', '\.sqlite$', '__pycache__']
+let g:NERDTreeSortOrder=['^__\.py$', '\/$', '*', '\.swp$', '\.bak$', '\~$']
+let g:NERDTreeShowBookmarks=1
+let g:nerdtree_tabs_focus_on_files=1
+let g:NERDTreeMapOpenInTabSilent = '<RightMouse>'
+let g:NERDTreeWinSize = 50
+set wildignore+=*/tmp/*,*.so,*.swp,*.zip,*.pyc,*.db,*.sqlite
+nnoremap <silent> <F2> :NERDTreeFind<CR>
+nnoremap <silent> <F3> :NERDTreeToggle<CR>
+
+" grep.vim
+nnoremap <silent> <leader>f :Rgrep<CR>
+let Grep_Default_Options = '-IR'
+let Grep_Skip_Files = '*.log *.db'
+let Grep_Skip_Dirs = '.git node_modules'
+
+" terminal emulation
+nnoremap <silent> <leader>sh :terminal<CR>
+
+
+"*****************************************************************************
+"" Commands
+"*****************************************************************************
+" remove trailing whitespaces
+command! FixWhitespace :%s/\s\+$//e
+
+"*****************************************************************************
+"" Functions
+"*****************************************************************************
+if !exists('*s:setupWrapping')
+  function s:setupWrapping()
+    set wrap
+    set wm=2
+    set textwidth=79
+  endfunction
+endif
+
+"*****************************************************************************
+"" Autocmd Rules
+"*****************************************************************************
+"" The PC is fast enough, do syntax highlight syncing from start unless 200 lines
+augroup vimrc-sync-fromstart
+  autocmd!
+  autocmd BufEnter * :syntax sync maxlines=200
+augroup END
+
+"" Remember cursor position
+augroup vimrc-remember-cursor-position
+  autocmd!
+  autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g`\"" | endif
+augroup END
+
+"" txt
+augroup vimrc-wrapping
+  autocmd!
+  autocmd BufRead,BufNewFile *.txt call s:setupWrapping()
+augroup END
+
+"" make/cmake
+augroup vimrc-make-cmake
+  autocmd!
+  autocmd FileType make setlocal noexpandtab
+  autocmd BufNewFile,BufRead CMakeLists.txt setlocal filetype=cmake
+augroup END
+
+set autoread
+
+"*****************************************************************************
+"" Mappings
+"*****************************************************************************
+
+"" Split
+noremap <Leader>h :<C-u>split<CR>
+noremap <Leader>v :<C-u>vsplit<CR>
+
+"" Git
+noremap <Leader>ga :Gwrite<CR>
+noremap <Leader>gc :Gcommit<CR>
+noremap <Leader>gsh :Gpush<CR>
+noremap <Leader>gll :Gpull<CR>
+noremap <Leader>gs :Gstatus<CR>
+noremap <Leader>gb :Gblame<CR>
+noremap <Leader>gd :Gvdiff<CR>
+noremap <Leader>gr :Gremove<CR>
+
+" session management
+nnoremap <leader>so :OpenSession<Space>
+nnoremap <leader>ss :SaveSession<Space>
+nnoremap <leader>sd :DeleteSession<CR>
+nnoremap <leader>sc :CloseSession<CR>
+
+"" Tabs
+nnoremap <Tab> gt
+nnoremap <S-Tab> gT
+nnoremap <silent> <S-t> :tabnew<CR>
+
+"" Set working directory
+nnoremap <leader>. :lcd %:p:h<CR>
+
+"" Opens an edit command with the path of the currently edited file filled in
+noremap <Leader>e :e <C-R>=expand("%:p:h") . "/" <CR>
+
+"" Opens a tab edit command with the path of the currently edited file filled
+noremap <Leader>te :tabe <C-R>=expand("%:p:h") . "/" <CR>
+
+"" fzf.vim
+set wildmode=list:longest,list:full
+set wildignore+=*.o,*.obj,.git,*.rbc,*.pyc,__pycache__
+let $FZF_DEFAULT_COMMAND =  "find * -path '*/\.*' -prune -o -path 'node_modules/**' -prune -o -path 'target/**' -prune -o -path 'dist/**' -prune -o  -type f -print -o -type l -print 2> /dev/null"
+
+" The Silver Searcher
+if executable('ag')
+  let $FZF_DEFAULT_COMMAND = 'ag --hidden --ignore .git -g ""'
+  set grepprg=ag\ --nogroup\ --nocolor
+endif
+
+" ripgrep
+if executable('rg')
+  let $FZF_DEFAULT_COMMAND = 'rg --files --hidden --follow --glob "!.git/*"'
+  set grepprg=rg\ --vimgrep
+  command! -bang -nargs=* Find call fzf#vim#grep('rg --column --line-number --no-heading --fixed-strings --ignore-case --hidden --follow --glob "!.git/*" --color "always" '.shellescape(<q-args>).'| tr -d "\017"', 1, <bang>0)
+endif
+
+cnoremap <C-P> <C-R>=expand("%:p:h") . "/" <CR>
+nnoremap <silent> <leader>b :Buffers<CR>
+nnoremap <silent> <leader>e :FZF -m<CR>
+"Recovery commands from history through FZF
+nmap <leader>y :History:<CR>
+
+" snippets
+let g:UltiSnipsExpandTrigger="<tab>"
+let g:UltiSnipsJumpForwardTrigger="<tab>"
+let g:UltiSnipsJumpBackwardTrigger="<c-b>"
+let g:UltiSnipsEditSplit="vertical"
+
+" ale
+let g:ale_linters = {}
+
+" Tagbar
+nmap <silent> <F4> :TagbarToggle<CR>
+let g:tagbar_autofocus = 1
+
+" Disable visualbell
+set noerrorbells visualbell t_vb=
+if has('autocmd')
+  autocmd GUIEnter * set visualbell t_vb=
+endif
+
+"" Copy/Paste/Cut
+if has('unnamedplus')
+  set clipboard=unnamed,unnamedplus
+endif
+
+noremap YY "+y<CR>
+noremap <leader>p "+gP<CR>
+noremap XX "+x<CR>
+
+if has('macunix')
+  " pbcopy for OSX copy/paste
+  vmap <C-x> :!pbcopy<CR>
+  vmap <C-c> :w !pbcopy<CR><CR>
+endif
+
+"" Buffer nav
+noremap <leader>z :bp<CR>
+noremap <leader>q :bp<CR>
+noremap <leader>x :bn<CR>
+noremap <leader>w :bn<CR>
+
+"" Close buffer
+noremap <leader>c :bd<CR>
+
+"" Clean search (highlight)
+nnoremap <silent> <leader><space> :noh<cr>
+
+"" Switching windows
+noremap <C-j> <C-w>j
+noremap <C-k> <C-w>k
+noremap <C-l> <C-w>l
+noremap <C-h> <C-w>h
+
+"" Vmap for maintain Visual Mode after shifting > and <
+vmap < <gv
+vmap > >gv
+
+"" Move visual block
+vnoremap J :m '>+1<CR>gv=gv
+vnoremap K :m '<-2<CR>gv=gv
+
+"" Open current line on GitHub
+nnoremap <Leader>o :.Gbrowse<CR>
+
+"*****************************************************************************
+"" Custom configs
+"*****************************************************************************
+
+" c
+autocmd FileType c setlocal tabstop=4 shiftwidth=4 expandtab
+autocmd FileType cpp setlocal tabstop=4 shiftwidth=4 expandtab
+
+
+" python
+" vim-python
+augroup vimrc-python
+  autocmd!
+  autocmd FileType python setlocal expandtab shiftwidth=4 tabstop=8 colorcolumn=79
+      \ formatoptions+=croq softtabstop=4
+      \ cinwords=if,elif,else,for,while,try,except,finally,def,class,with
+augroup END
+
+" jedi-vim
+let g:jedi#popup_on_dot = 0
+let g:jedi#goto_assignments_command = "<leader>g"
+let g:jedi#goto_definitions_command = "<leader>d"
+let g:jedi#documentation_command = "K"
+let g:jedi#usages_command = "<leader>n"
+let g:jedi#rename_command = "<leader>r"
+let g:jedi#show_call_signatures = "0"
+let g:jedi#completions_command = "<C-Space>"
+let g:jedi#smart_auto_mappings = 0
+
+" ale
+:call extend(g:ale_linters, {
+    \'python': ['flake8'], })
+
+" vim-airline
+let g:airline#extensions#virtualenv#enabled = 1
+
+" Syntax highlight
+" Default highlight is better than polyglot
+let g:polyglot_disabled = ['python']
+let python_highlight_all = 1
+
+
+
+"*****************************************************************************
+"*****************************************************************************
+
+"" Include user's local vim config
+if filereadable(expand("~/.vimrc.local"))
+  source ~/.vimrc.local
+endif
+
+"*****************************************************************************
+"" Convenience variables
+"*****************************************************************************
+
+" vim-airline
+if !exists('g:airline_symbols')
+  let g:airline_symbols = {}
+endif
+
+if !exists('g:airline_powerline_fonts')
+  let g:airline#extensions#tabline#left_sep = ' '
+  let g:airline#extensions#tabline#left_alt_sep = '|'
+  let g:airline_left_sep          = '▶'
+  let g:airline_left_alt_sep      = '»'
+  let g:airline_right_sep         = '◀'
+  let g:airline_right_alt_sep     = '«'
+  let g:airline#extensions#branch#prefix     = '⤴' "➔, ➥, ⎇
+  let g:airline#extensions#readonly#symbol   = '⊘'
+  let g:airline#extensions#linecolumn#prefix = '¶'
+  let g:airline#extensions#paste#symbol      = 'ρ'
+  let g:airline_symbols.linenr    = '␊'
+  let g:airline_symbols.branch    = '⎇'
+  let g:airline_symbols.paste     = 'ρ'
+  let g:airline_symbols.paste     = 'Þ'
+  let g:airline_symbols.paste     = '∥'
+  let g:airline_symbols.whitespace = 'Ξ'
+else
+  let g:airline#extensions#tabline#left_sep = ''
+  let g:airline#extensions#tabline#left_alt_sep = ''
+
+  " powerline symbols
+  let g:airline_left_sep = ''
+  let g:airline_left_alt_sep = ''
+  let g:airline_right_sep = ''
+  let g:airline_right_alt_sep = ''
+  let g:airline_symbols.branch = ''
+  let g:airline_symbols.readonly = ''
+  let g:airline_symbols.linenr = ''
+endif
+
+#+end_src
+
+** emacs
+*** chemacs
+A tool to use more than one emacs profile in parallel.
+**** emacs-profile
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./chemacs/.emacs-profile
+:END:
+This file contains the chosen emacs profile that I want to use with emacs.
+#+begin_src conf
+doom28
+#+end_src
+**** emacs-profiles.el
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./chemacs/.emacs-profiles.el
+:END:
+#+begin_src elisp
+(("default"       . ((user-emacs-directory . "~/emacs-configurations/doom28")))
+ ("none"       . ((user-emacs-directory . "~/emacs-configurations/none")))
+ ("doom28"       . ((user-emacs-directory . "~/emacs-configurations/doom28")))
+ )
+#+end_src
+* Scripts :full:
+** Compress PDF :essential:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/compressPDF
+:END:
+
+#+begin_src bash
+#!/usr/bin/env bash
+# Reduction of PDF file size by means of bitmap resolution lowering with Ghostscript
+# Based on this StackExchange comment: http://tex.stackexchange.com/a/41273/56326
+
+if [[ $1 == "-h" || $1 == "--help" || $1 == "help" ]]; then
+	echo "reducePdfSize.sh FILE <COMPRESSIONLEVEL>"
+	echo "Compresses a (LaTeX-generated) PDF file."
+	echo ""
+	echo "Arguments:"
+	echo "  -h               -  Print this help message"
+	echo "  FILE             -  Input file. Output file name is auto generated."
+	echo "  COMPRESSIONLEVEL -  Level of compression (optional). One of the following: highest, high (default), mid, low, lowest."
+	exit 1
+fi
+
+if [[ ! -e $1 ]]; then
+	echo "ERROR: Please specify input file"
+	exit 1
+fi
+
+inputfile=$1
+outputfile=$inputfile"_compressed.pdf"
+level="ebook"
+
+if [[ $2 == "highest" ]]; then  # 72 dpi images
+	level="screen"
+fi
+if [[ $2 == "high" ]]; then  # 150 dpi images
+	level="ebook"
+fi
+if [[ $2 == "mid" ]]; then  # 300 dpi images
+	level="printer"
+fi
+if [[ $2 == "low" ]]; then  # 300 dpi images, color preserving
+	level="prepress"
+fi
+if [[ $2 == "lowest" ]]; then  # best possible
+	level="default"
+fi
+
+gs -sDEVICE=pdfwrite -dCompabilityLevel=1.4 -dPDFSETTINGS=/$level -dNOPAUSE -dQUIET -dBATCH -sOutputFile=$outputfile $inputfile
+
+#+end_src
+
+** keyboard alarm
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/keyboard_light_alarm
+:END:
+#+begin_src bash
+#!/bin/bash
+echo 0 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.2
+echo 2 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.2
+echo 0 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.2
+echo 2 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.2
+echo 0 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.2
+echo 2 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.2
+
+echo 0 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.10
+echo 2 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.1
+echo 0 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.1
+echo 2 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.1
+echo 0 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.1
+echo 2 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.1
+
+echo 0 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.5
+echo 2 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.5
+echo 0 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.5
+echo 2 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.5
+echo 0 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.5
+echo 2 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.5
+
+echo 0 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.2
+echo 2 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.2
+echo 0 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.2
+echo 2 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.2
+echo 0 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.2
+echo 2 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.2
+
+echo 0 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.10
+echo 2 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.1
+echo 0 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.1
+echo 2 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.1
+echo 0 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.1
+echo 2 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.1
+
+echo 0 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.5
+echo 2 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.5
+echo 0 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.5
+echo 2 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.5
+echo 0 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.5
+echo 2 >> /sys/class/leds/dell::kbd_backlight/brightness
+sleep 0.5
+#+end_src
+** rofi launcher
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/rofi_launcher
+:END:
+#+begin_src bash
+#!/usr/bin/env bash
+# rofi -show-icons -modi windowcd,window,drun -show drun -lines 3 -eh 2 -width 100 -padding 800 -opacity "85" -bw 0 -bc "#2f343f" -bg "#2f343f" -fg "#f3f4f5" -hlbg "#2f343f" -hlfg "#9575cd" -font "Noto Sans Display 18"
+# rofi -show-icons -modi windowcd,window,drun -show drun -lines 4 -width 600 -padding 800 -font "Noto Sans Display 12"
+rofi -show-icons -modi windowcd,window,drun -show drun -lines 4 -width 1000 -font "Noto Sans Display 12"
+#+end_src
+
+** emacs client
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/run_emacs_client.sh
+:END:
+#+begin_src bash
+#!/usr/bin/env sh
+
+# Checks if there's a frame open
+emacsclient -n -e “(if (> (length (frame-list)) 1) ‘t)” 2> /dev/null | grep t &> /dev/null
+
+if [ “$?” -eq “1” ]; then
+ emacsclient -a ‘’ -nqc “$@” &> /dev/null
+else
+ emacsclient -nq “$@” &> /dev/null
+fi
+#+end_src
+
+** SC_toggle
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/SC_toggle
+:END:
+
+#+begin_src bash
+
+#!/bin/bash
+touch ~/.gnupg/sc-toggle-status
+SC=$(cat ~/.gnupg/sc-toggle-status)
+if [ "$SC" == "card1" ]; then
+  echo "card2" > .gnupg/sc-toggle-status
+  find ~/.gnupg/private-keys-v1.d -name "*.card2" | while read f; do cp "$f" "${f%.card2}"; done
+  echo "Switching to SmartCard 2"
+else
+  echo "card1" > .gnupg/sc-toggle-status
+  find ~/.gnupg/private-keys-v1.d -name "*.card1" | while read f; do cp "$f" "${f%.card1}"; done
+  echo "Switching to SmartCard 1"
+fi
+#+end_src
+** backup_phd.sh
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/backup_phd.sh
+:END:
+
+#+begin_src bash
+
+#!/usr/bin/bash
+BACKUP_SOURCE1="/home/philip/Documents/Research"
+BACKUP_SOURCE2="/home/philip/Documents/PhD"
+BACKUP_SOURCE3="/home/philip/Documents/PhD-cloudless"
+BACKUP_DEVICE="/dev/sdb1"
+MOUNT_POINT='/run/media/philip/PhD Backups and More'
+
+
+#check if mount point directory exists, if not create it
+if [ ! -d “MOUNT_POINT” ] ; then 
+		mkdir  "$MOUNT_POINT"; 
+	fi
+	udisksctl mount -b  $BACKUP_DEVICE  
+
+	echo "Copy to $MOUNT_POINT "
+	echo "from $BACKUP_SOURCE1\n"
+	#run a differential backup of files
+	rsync -auzR $BACKUP_SOURCE1 "$MOUNT_POINT" 
+	rsync -auzR $BACKUP_SOURCE2 "$MOUNT_POINT" 
+	rsync -auzR $BACKUP_SOURCE3 "$MOUNT_POINT" 
+	#sudo umount $BACKUP_DEVICE
+	exit
+#+end_src
+** backup_phd_data
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/backup_phd_data
+:END:
+#+begin_src bash
+#!/bin/bash
+
+rsync --progress -c -a /home/philip/Documents/Research office_lin:/run/media/philiph/driveD/_BACKUP_LAPTOP
+rsync --progress -c -a /home/philip/Documents/PhD office_lin:/run/media/philiph/driveD/_BACKUP_LAPTOP
+
+#+end_src
+** backup_phd_data_hqnom :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/backup_phd_data_hqnom
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ//a51ptttqvcdy24hTxNa7ZYpm3LJLVPYAw9J7hB+DqP++
+hZic0cVy/DL5RYhQyJnAhzwq9mI/R+n4rzwW7oKNoQGdbTAY1CnZbsb0fU4/agej
+UHQsCh1KgM3x0c9P1MsWBX1rPVIrTRKAj1fEGgmaxuXXv3L9KcwgdYYGMTN27GKW
+HvelaONJk1Ni25ubRzXYGoOOp6OqQaZb3kRUCEvYrQl7IYGbliallOIcxufphLek
+oRC68U2JDMD5f/+1b1pxBxDexuPDWdGg/t2KblTD3IoSig3GIGSeOAdewA4ZiBT+
+oD3xzfqV7mLFR9m8BdYSfMKK5H7wKqAsfg7hhG/E7zJGw8+pkz3ks9L0PGWua2mR
+3gfkYAQybAbVQHfo8GI0uJXp6zTYe9tYCvsOV34YgMQqqnWc4CJtZzSv0IqIfOoI
+JoOvyqKKOL1RDcGVQ0XOe4Oix2WSj99o+iCNQU/23wVcc0sbz/Dx9IosfIQQkfaV
+Vqx94PbDFZkYAkWy1B64/DVxy9kzjVzc7vePH7Uzi26b75ArEU/VASq2DxBL7TKs
+b1bE6KcDgyrDVysRy0S+guBIYhKDYhUtlxQw+U7q4PsMi28pD31Nx9uPA3fD+/ot
+Mny/D1xkUnVN+0sz8N9LZwW2K2Bj1d0CA6dnbVItUxTeeiky4zhziAoSuJq+GeDS
+wGsBzC5nHfHaWqs24XFyFiEj3MuNX2KtBYFrPtBt/8LiSWqUIwC75G3XAlywWLo2
+ax7i0l1aSyisxOJZYXk0MauaTsP5F3BdSMPwkPrquhN8yFlHm/c2jyTrmGgAukYB
+KB9ERd+kYO7uJicgR9ncP4J+GpBz9pjVE3MvvhY4fFAORT19DxMij6RTdRg/1hx2
+ABc0zK0Vw5VdtcwGwv4k5BNffz7bSdb7HZNk1dTigvPMrb9q8sWh87gZn98FEXyn
+Z28nJXFdkFcaxqG3RiLsF0fLcGLRwJ6V/rEEG2k6hXcbFZCHEwvTvDruA+Ta6j91
+N2yqkAcL6A76fwxix1/HnD4soTPReaZs/nFT1c5WPzSoi7PCT9An02Tllg/wHsLW
+54nqcwNkW8UG2pnnGw==
+=bXsL
+-----END PGP MESSAGE-----
+** backup_phd_stick.sh
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/backup_phd_stick.sh
+:END:
+#+begin_src bash
+#!/usr/bin/env bash
+# set -euo pipefail
+
+#!/usr/bin/bash
+BS1="/home/philip/Documents/Research"
+BS2="/home/philip/Documents/PhD"
+BS3="/home/philip/Documents/PhD-cloudless"
+MOUNT_POINT="/media/veracrypt6/"
+rm -r /tmp/rsync
+mkdir /tmp/rsync
+# mount using veracrypt
+. veramount_phdstick.sh
+
+echo "Copy to ${MOUNT_POINT}"
+for BACKUP_SOURCE in $BS1 $BS2 $BS3
+do
+    echo "from $BACKUP_SOURCE \n"
+    rsync -az -T /tmp/rsync --chmod=a=rwX $BACKUP_SOURCE "$MOUNT_POINT" --info=progress2 --ignore-errors --ignore-missing-args
+done
+
+# echo "from $BACKUP_SOURCE1\n"
+# #run a differential backup of files
+# # rsync -az $BACKUP_SOURCE1 "$MOUNT_POINT" --info=progress2
+# echo "from ${BACKUP_SOURCE2}\n"
+# rsync -az $BACKUP_SOURCE2 "$MOUNT_POINT" --info=progress2
+# echo "from ${BACKUP_SOURCE3}\n"
+# rsync -az $BACKUP_SOURCE3 "$MOUNT_POINT" --info=progress2
+#sudo umount $BACKUP_DEVICE
+exit
+#+end_src
+** backup_system_whole
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/backup_system_whole
+:END:
+#+begin_src bash
+#!/bin/bash
+sudo rsync -aAXH --info=progress2 --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} / /media/veracrypt1/laptop
+
+#+end_src
+** backup_system_whole_unencrypted
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/backup_system_whole_unencrypted
+:END:
+#+begin_src bash
+#!/bin/bash
+sudo rsync -aAXH --info=progress2 --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} / /run/media/philip/Elements/wholebackup
+#+end_src
+** mount_calcmaitre :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME:  ./scripts/.local/bin/mount_calcmaitre
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ/9GjUpPjNBefj6Ks4ItzQt1uTht+rsEzbkndf67KpIaNoV
+SR7HZWQjmVSJPUv8DPKnN/0zzLW3y9gl1IdOWIVSpDqVFuPeIC2nR2DhG2091djc
+NeHcEDtm0yFUj8ar8R36PQeQv6J/OZFIYYlzkuIa/JgDwEkO82/HgC9ziBQoDHZi
+PUpX3zjlTrnvO7oBZcKV2Y7O+HuyJdAEE9l3yn1ZTUoZ0+mmjmFebwvfL4iCIRMl
+ha2FBFpM1+YX5hUmgrUUFp+W4cZ56+EU8Pw7MvRd87lL8c/6MKyIWyXdFLUSyKUh
+9uVN90ZbEXXXHj7EC6EWAqT6xtFIPKa/DKa+dS7XRHd4C568Xks4cOt4rGIkJeHJ
+ZU2YWalgMdcIBgSfbkHADfPyYCQc2DoDgKw+gQzfoxoil1zsjOfzEzTvEq8uKb+j
+RMcC18dzXze/0m40+RX5s4yTA/sHy4d2h7xO9UYsYFMNrfzePgYYYoT4ZVCJ18b8
+VrYev93zjJK4kntVf28H4rd/vew887MbOfzF62V2N4/nIuBP0m7IYBXUr4D1CRnz
+7eA2j3TyToY+VS7Ygz4BqYKqtRZRKFmCkYaXR88KTcJuhUg2fZ9znGn/Yn5jqmrx
+azJwFqUA3wfzMZphpzxer0ppmE6MK9cHCcz3SbAm0PaeSYa1HjxTg5s/0dsAzgPS
+wA4B8lPyvSpXpCPT3SF+SeWf7zarraDK3b4P8iIoewchAP/dRtULJXUXtvbO5VAu
+CAMoS45MgzZzOlkUxUWlCXOA58FPoXg1/l62rj9is0R4w0hdCu3wx/wL4fu8JL+G
+hkHdqHIK+bFkhWeR1z1LDh3ffmm0bupxZJdtY9rCXgeAxfrM5HzJ2oxQXVClRwyd
+ltOUy7B8d3xZrsvAB+4H1ne7viF8tl+43VLl54fGZVFB3LWAWnKZ8mKx0rnB7Gki
+25FPoOGMv/OdCAtKh1m21g==
+=AUcB
+-----END PGP MESSAGE-----
+** mount_datamanip :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/mount_datamanip
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ/5AaR84s4rvP42xo9WUzauqD2r1r8emrjNEgubCw7qHJx9
+ha12abYck5VGrfdxh9C7jd2BJkIQzYzTeiquVPPBTnMs6BIpyHi39t19wa7fqa35
+kE+PeZdvpQo8Zpf2jDPr/QeSYJQVnmlOsbwaR5FoaKQy07xBdWHEqMYdgHG4Kfcf
+wfnxTheXd5+SpYNlkKh0j4DnPI0lYB8P3w1xN/urEWImUofZH5KS6BI1Cb81qRTr
+25wDdFgffAvTFTR9mvGb7WhT/PvV3SX9Ycz55w05nGZPj/ltEO7huXKQIM9UJZsy
+/0bF3srikq20nEOkxoJZ8OtVGB7TyO975WCMkUXfmLUUHUVlOi8eV84QN7C5I3oq
+1cko21kslCRzb3aOwnP0mmq94vbmCTHzCBDixl+ytfVotBPt8NYd7AIU48KjuEc8
+880sMc1/IXyNVBNMWQ3Mbr+YO6rLZfD781iA1n18Mz81k27DJlX/Ez/Yb0bvzyMB
+fuc4deHSAMOnFmC3CV/Ja8mhVlA/9egitDcqmsMl53iM5W4mtvaQVIhPjmr/QdZp
+CzfkkdnFdO29klMYSV3XTEIZJqnHWuqrWkq2x7W7maQ63ddRrW+EbpND7HWbzTF0
+vgZADPXRYi277enyDzkmmDByxejapG1b3DTqr2WZW4d1yLtYKi22r2kcqAiL+/HS
+wDkBHDgOsCZIErc0tz5Rw8lKYV/MXiBOtXAO5HnwtvkItWrgSMSXCqe/2R0RnoXP
+tJQbl/RniLt7FmPdR6MLSkquAzcvCLIegMbX7OwL/46vEvFhbyIaO0L4VWsWSkyI
+oNpuXBehe9r/ATcX8r/z5kJEeg/hOMDhx0xgMSMC451AeFX1nyG34QnBJZYlaXVw
+4loIuUmqJFFGVeWQHuTVrBFk+BVmdWPN9q+2rjVT67Wp/Gm2yaZiQ/4+du3gG8Ob
+mD46H0/M49hTl+5rPPme4CbWqLQziYgC0dDuq38QhIPKLoGvZT75N86c58jYgiph
+NSR4eg8zI9rXCdQ=
+=lD4v
+-----END PGP MESSAGE-----
+** mount_hqnom :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/mount_hqnom
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ//ced7GtlQWRAXE8pZKCpVCVQiaygHzo1/atTHvhaJCupF
+lEWNe+HALk9jjBae2FL2ERTYaTYX31Ojyn3ApJBanpzk65PMcQIY2+rIySN9yMt9
+bgOa6S1lxVj4NzeCHm2GCxP1+l9BvnkCiR7lO0u5fNuJ7NQd4pTRRoWrAnm6/Ma1
+68X4RWTI0qoZ7lqXD9BkPXZXsBHzJquZSoq/ttPQHUi0jduS2RDchBNZzUjlls2d
+x7h5T91b9vUj7t4OO44+rIzV94d/JSxbhCTgNgchg9zsdSIrn0xoHhRV9LZ32inZ
+AaLsPr3wzi1IECSfoR+jyW0Ze3x/A+hyAE4/W1Hr/oyZRpkAHytxmPgV8p8w7tmn
+pJWvoIXadcnHWuCNHKuGvBIJbp4emuB1j0kk1RTnxqJQwJwqVAT1Szfew93blX5x
+5JowMiCum1Nya4r3hVwig1vDb2a5rVXACSk6XNeIHuuTpn5hr3h4JP52ArXAaCIU
+xaDEuhjFax7EPoLZPD6RWf0Ly3J23HmhI7u4nUEzJkTkfzUaawbp2wz3TgkIvUH3
+3pI/tDbuSuCYgu7lqes6L8JnpNupkvzVuxiKRs2cbLXsBDRrUafZEbdOeq7ay7kD
+IDjfhNFo+60M9rvoUN+yfKjxO+c/dDy7udYJsnXH6mfpJ2BVRzrGNqMi8h97CgbS
+wC8BfpadEGyu4DYAOUcau3Hcssd/Fq43ibWz6myk/rYoilB9ejQ7wSjjVGWyxi/d
+0cS6QZ550v4VJgUjDPvThkKLMQE+1NpTy/licS+Rr6x8WnTMx7eO1KvmnRMbAlpK
+T6N7g/Qwd2+kbVsaxtNJelOXNf1MyAL8QuwyFZKu807XPbILfIBHi441u7D2yfqn
+8iXIxwpLjHi/KlTogH6euVv6ngcbry1iTSwN/uaY06s6BGsmQEDwO9DFGKsHuat5
+hrKwiYCt40xF8PPS8/GZeQSTYCDGjAsNiWLSUlwCbRKNNgX9G+gMdHfkxb4fBo4F
+Lg==
+=Qh+G
+-----END PGP MESSAGE-----
+** mount_hqnom.save :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/mount_hqnom.save
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ/+P5q4tHEbRMEu/zakbEtCcUiNiT36hQOwY6ukuovr2RDS
+8Fh6vazIA2N6O7amHDw9fsDXGuwMP4WrS30MR2R4l7XtsoaZDD+0qtDWzkjPfwTJ
+qCi8WlxB/3lx7llTdaeR9PVwaNftSI9RaiFEVN6MLjhJ4pFq+rBVjuzjLx0c9hMu
+6GEeZwWMZg9ID7OXLwxGEiG380gJqHX8++6Bymf4XvxxLCmQGZCsWiFRdnJ8FJF0
+9Kka3T7+j+06190vQAysvJS48N6mEXE2LzEqrFo11wPhvEM8XIa/wlaMdDjnqOsC
+FQXGn8B0aWZ6Yw/06DhdNbcbE8AiniNvk5pHSW1AJ8I2phhN9jxjEXOqCGLMXZ7C
+3LaGtv/z0PIoZRUU+tQin1ffY/sHRujY/s/M07i2WgVPLbxxtuBr1J5dMFQVT3kc
+wChEpnQ8PatfboPCJLhJQWyPE1pztZMC3rDuHb3jbbC+GXrUUZHl5G4ZC4wTvgiP
+AFmfbA4wkTX2pCg09EJWNOkkVdvGQRy8rI4MVQCo4KoCblkAQDZMsON+vnk+VKTV
+8P5ThVrIyh1re+blFPeZ2BujWPvWC1fmybi9azmavPhNClMS6ngZ6Q4D7MUUVFvt
+YPeunyhHew87mE8W5UMoYjOK6MMY28arhqw7qiGipoZ+h5X8N86PZvv31aULgJrS
+wBIBnHc3zdwh3LADzzOv8GGotwRfbBQV8GIcFRwlLv7d43/sMWwhmyHYyPmfB2Yh
+wUzELeQIjqOBpDKQytd7AyCIHwZOuN6seSRC6FHdnSquCWer/MRhIONS9IRhVkg6
+A8ApRQIz5qnxn48fOBJMjiKldwwKcYoKPHD5UgLWWhprkALiY51safGnpYuKOBcU
+UODB5dbJhT79ya/UUOsr6R0l49qp1kAc5NDbB8o/NFjc1FyhVgj7MQMkm0DoRjqO
+hnvE7RtqW2dkEVZBKj3z2HKDpSg=
+=R+mF
+-----END PGP MESSAGE-----
+** mount_lab :crypt:
+-----BEGIN PGP MESSAGE-----
+
+hQILA8yc76sS3P8VAQ/4rtlSl7N6JtL5FyrGBztnq9OBX0wdQWRsMzPTqXfLfhvF
+W36AyE1wN8kMxpeG3SCLCOjXexDuIptKbORXwo1gKySAdf9AGgwrXxxnG0ZyShMk
+5tHMKSMAJkzmD0fcccwEp7qLgKuVLLQEtAKgrAm3WKIahHuddQk5d69LPBm5sLr3
+E7KLTQm8049Ffzr2uzOAxrgic/IcfFnzNICR26IEi1DYpYeeKfmVlbgwYL8GKYlD
+g8DLXKVTpk6EdXz7PJkDBO3hNGPwVzXJyq0Z0jaP2kzrkHWK+z4PQU7Lu6/2mPnT
+9V+yXjBsOS6UMbQsFfhzubrI1z205aHxcprnr8sEYYDNn/0DUGqeomSlUmN6XzYL
+4plz0AaVBut3AlELUpV3yKP/vHTxrVD0cCo2mfXeqK6tNI7s20Eb8mZsjqVqA73j
+n4uHxsQao+oiXXbroAm2Yx+dYe5+VLLLzwRr0JUM9N5Eu5VAWtkVDqU9LLFbwNk6
+O7CoFc9q4eGBwFdYJa9F7Ys25NU0MkZiWwp5VenmXfQyvkzm9Vd96NxP+J6iKGmM
+BiTIRWGhWL7ZkkKYnMThscG5LJGZ2bt3e4le2ZTJO1lRYGsjhJ5OGDAy69EMYJIu
+sSu3X5HCVqDld29NWmACj3WR6mmBzDgJEuWjyIgrsbwvPg8sGPkhvTAoZuXXntLA
+NwHobQwoptr+7cTpkdGUjUoEuYiTUxldjJj3wONnJgSTJh3p2YGViswkni5vrS9Q
+wNVU8abHTugdmJRDwhtNCB9CySpzGKoR1HRI5ZT/wntCkKD2bRis90I7Yw8Dp/5e
+2HqKuf+endDsaqGUwbk1KzXh63oKk8G/QZTqXgltjBGjoSOG3SWCCcRLAm76JJpx
+h95qnGJTxrUahY/1F9aCH3pbqooiV2AUCKpXf4E3anKZAHSrLuVcXcDNPBBF0dLg
+6q1I3pEB+eCRXbcUtUxGC0vRj4d3fzG642e6df6kiPXYlLHAothCjemOAYjzyGNJ
+QOdKKxbRT/w=
+=pyK5
+-----END PGP MESSAGE-----
+** mount_lab_local :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/mount_lab_local
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VARAAgm0Qsklvq2rg8AeLtphdFO5nOBS0tU6tFVip7VvFYkm2
+z3yow6iDBSIds/vcN/3J8ectpDTDP3w3vhIrzlYn8r+694GUgbJMh/kXs3c1JDV1
+JgPM+wTEDB/NLEfb7O7rCJnQ8JgJ7J9d8wrNmszyvKStz6v+cyFHFlxJIz20e5zU
+t4neNgd0yX4b6qELFBF0vcqUblW7Yuy1TvOFKfdE1QoNNEwlSIEZZuQpxH3PJkvz
+kukyy7rEbKia6N6NBFmBthocVM/tHYCuU07IcdWt7o3J63BKfvGTx/fYvcVrC8GK
+n/ZfuiBjySwtS13M34x+Z+ACeMgb1Md1WHn241aZipERIM71Rz+qfEbHuigdWwlA
+BbzBemC4CW1yPMtnKqI9r4XWAt8dumYitAP0N8FGttWpVRylrbUkAHes5lZyA280
+J4IX3BWGIcrokTTlM9/4iuA4Puaqx864z0z/fVZM4q/U0PbQ7KsNHQ2osdOIBTJE
+mLfSfD8ft9AbgmV4P7CamH78YyEnQpYtBcW9x4O7Xm1TeAq59/Cf+mniQrLON0Fc
+diGMM1QnGc1zT3r9PYgcycT4Lz0MAtgzMTWCdIBbQM5aBNzlsRRwAe6vGG1hVhe1
+9gSgLY8FYfKpCLw/s5xSjmzS56aWCXRyWR4mXwFYFo42AEgPaqnBx6MPr7NThsfS
+swFFY7X8jIyZx6VU9rcM5pCwyJLy/wwpFGQB+Hf5iCRzgEh8MQec+TvqKqq+UB/j
+GGCMEa8F7BGLV10lTz3RvRi//LJvG5TiKPzOdCNHAkeOAUOIFkvpiku3DYJT93lF
+ODjomFHm5yxKz4zZWgVtzGhQQM/aMywGtpS9XV+vNzyc8ZWkPkNRWEfOfej3WeGQ
+HxFpJx6dPzjbcVsil/pkCjv0wBaXYtz1PyEkVb90pudWnqhh
+=Q3nC
+-----END PGP MESSAGE-----
+** mount_minion
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/mount_minion
+:END:
+#+begin_src bash
+#!/bin/bash
+fusermount -u /home/philip/mounts/minion
+sshfs minion: /home/philip/mounts/minion
+#+end_src
+** mount_office :crypt:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ//SYQRhzPbNis6b8m196Rc7FXQpwHBlYanJ6f+MnQVrGFe
+MS0r7XvTqj0YL6lPTvRTwScKTMONGOdBVkvbKr+YrBvWqX8lM+gJAwVLIycl3oh3
+6ZwpUj3poI/B7Hcg44G6h+R5BV3SZyM/h2FAVJQCY5SLI3v6WSmmXJcVqsQidywZ
+CLWM+uwm4gNgd0Q6cTKFQDpbQmIBl1dMXNLlSrR1gWVjpvw+UTjw9C30IU86L2c/
+3OJAEBWe/uS3lzYZbYeF/+CH4iuDgGxHsyDvTmh1HYTD2XNYLKuAh2jKdCQwVr55
+3GIlMq9CFkwe4+Rro8Csr7ksgRLYGbuADP7XAFfl0+hrYsF1pTkCfn43PwaPXA4J
+PwQgOZ1Ctf76H8/P11RfqHNXb/cnd+/dXczIeQM5xqPcAg+AdoDUCoTd1YJE8D3R
+IOhUYx0nukuwEFkAv2DdHkb4r8MXz3CaVwGwJhB2ub5CCXbJY5L05Ck3sgoPr7va
+ekoOARDloAqhW8N+e76bPWvIraywGCzMi4uYf0TVRnR8jXulqTVbfs6JdNMYqLHU
+E5e6nftHEaM/LezfsTT+Fxx1NVOXnA/ztPCv4/rl00/qrLMvmhetSw+PXn2MbftL
+3quSG/sNWV4lGNa3RqaCoYCzXItf++6YVCxomduKabSUaIHxrPO5so4KROPaB3nS
+wGYBwC1B+BhdJ6OQHA05NYdMR0WwuwdoccGwRnV3zBj4+YJ938f7hkupnTDiNjw4
+1kG6PYzYmG56Xl5mgCzDFSNfYLXtrIhUguqoWPJe93bZzgJbZRR6Ko3UmSKkgy8o
+u7WfIkYv2JLApcRYiKVgnTvUoZ36S/CkEB9LjspvgIU1MKhsY1VVIqXhNDQSyl+L
+PVpQEKsQ7K7grETOALs6HVFMbYxBgh379uQYT8LX1hVt5D+qdhhGW0eyJwCvQBzQ
+m1eYpxS7qE7MIjum8eqNI8WuvAu7FbI/fTvebkQfOyekhAImOZ9BGOzY7ZLgC3Hn
+G4DyhX0g02/Rvb28R9xBGdv+7JGZLgfmKBuFSLQgs9UK+jJhx+yhNMMVkrVZuBYR
+OIyz0VIXd+c=
+=B40U
+-----END PGP MESSAGE-----
+** mount_office_lin :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/mount_office_lin
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ//f27rQE6ol1hXNRprFEySpUGYSlOPm/RqjnEBHN8qdCSg
+hD4ap//GuNoLBwtNnbS6e+MWlnp68SOPjZGGQjjPrLRq/wZTVj7tu+uTpY1J20iu
+aw83NQEPcwBnKtD1w7sh+LTsfGv/bwczBc1N0wFiIW2/Tqtz8N8IHwOc8RFBz2qC
+mySasOLXPRqekDFDrvOL1ycGKdPqfrMahFRIdE0lJQMchn4R3kRdnCQqErJJmmv5
+igWiIC4ax74oOX+a8Xkrj1u2D/DJqCvE0J2xQQjGKOkxVC4+25R645ER4bBNWrEB
+LhpFOjnUsUDCZA1PUby1BbV/RCBtv6ya+nkzsX+DyrcUayiMMwioudx7gkOTymFp
+ppQ3dkOeTljf7uVhp5p4UtVXElCMWO/Rx7tQGPm0bb4Yt20WfrBYUnfOeDnuFSII
+7ycU1FRS5irJY9/H5xfvziJXXyb/leIL4vpbqYvNtbYbtHD0u8wDKqCmrj7Ca+st
+GzQy9Q0VVKw1UaPVmEBmZro3Nq/t1o1yDYekmWq/cU0VA1TK22ejhoz+hNU9KhFj
+XCM3sIVqbmLH6zYOgHi7Ze3lwIo2RLPSPcXKvxqQI/ndSODbUKIa9XZjUTvFBAzF
+bQ6LewVWZHVxv4GdHKdKe+Glb/X5iJupDd7egQkyPPE+k/D+mKKaAvZjPZ4N2FrS
+wAABauXJcyM8kDxEi5rfzPcFkSYR4CLuzCtsKxo4/eBpkVAHIEMax8PE8RInhcZk
+aI0lkdBU1VscZ3wN4D1soVgHYvi2dTBD8iDT6t38phHYDPcyYCJo2fr6jpl48MJH
+YGHHI0UP9i4VJCEx5Tr69vi7JOKAnK0W9ZEIjeanaNgzhKwZqyU87/qN9WZiwZ0Q
+gLwEt/Bol/FyihIdE5ttW61kOPBebQ2JwKIZ0FaRBjlrqfWGRsNITZSpBU3M39NS
+qNo=
+=N90g
+-----END PGP MESSAGE-----
+** mount_office_local
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/mount_office_local
+:END:
+#+begin_src bash
+#!/bin/bash
+sudo umount -l /home/philip/neeloffice
+sshfs -o allow_other root@10.0.0.1:/ /home/philip/neeloffice #-o sshfs_debug
+#+end_src
+** mount_ubuntucalculator :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/mount_ubuntucalculator
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ/9EyvEJo/Xv4HFQW5V/+tRLL3nHZUtqiYP0X+lRnKEj8N8
+Ib4xW+yJDiYO+96OOIWQ0dFIrVORaw67bE7LLGihfHerpcq55wqASb4p/Wb1qzgY
+gsfufLYXp4Kv0QF9XzknyvBHBx119z7IWXkOz1s/LTK63j0/WoBvyTuYRx8GaeG8
+QtpRWrYEa5sFSnPEx56Cfl4A+lB3iVGsJkzQQ+WFCS6nr6L8GF2XxA64epWtWj6J
+FGdAkgXnBolUk8ZrSRl1jJfe1YoVuyUNi3ImW7wKKesG3UWvjv+lPYzPNeU+GnA2
+fV2g1/D1F7rHzUbBXby32XCQh5cvKschaV6PXHZ5Oe4GbphRMBbJwp547yh35Oss
+EapZJ1gnSt5eHBBI+Faij1OwDa8dlWvFeyT0cCZGMmBaMFVrgX3dW64L6SffLPUV
+mQOjzunjczpKqvMlFViUXHl/RXzIboRgpq2fjLbmLHFNt9Mv0xD7XwCOmazDQ/WN
+pN2UXccoHKht22ZoS8kqQ9VDVHfxhdzbMiLlBzuLtWinhoqldb8PxshlMIUNngpj
+xHhIJBj8nQbQEeQDiKss1y+Fv0pfGW2c4doO05cMgOZy9aR+j66Sp49OVRGVP850
+u4yKEylGESqvTWpd1v1k+sKeLldEkpO/l6Br28zNQgaZXOfRWjbiN+6SAKSZcWHS
+ugHFPKA1nQ9135OYIh9ghLwT2mO2klDENNoguAUABchA4DMNpezWyojzi9VzX3Hz
+xQrTY9rbjkcJeo7TevN+7z/OobDVBC6fBKu3jkAWblJnAe+vYZtSVa9Zblg5ooc3
+M3HygH8w2w20CP95t0qm5MglBBu309EGtR6Zt8Ydy0tmsND9Df+NiUzn40b92BZb
+HJU4NrA8K8CQrn27nULGH+ZQYlVGJvPVPxsVpt/SIzTxtF1+o6MxEionxA==
+=gD/I
+-----END PGP MESSAGE-----
+** neelvpn
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/neelvpn
+:END:
+#+begin_src bash
+#!/bin/bash
+sudo killall -s SIGKILL openfortivpn
+sudo openfortivpn -c /etc/openfortivpn/neel
+#+end_src
+** office
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/office
+:END:
+#+begin_src bash
+#!/bin/bash
+#
+# set a second screen
+xrandr --output HDMI1 --auto --right-of eDP1
+#+end_src
+** pulseaudio_pyenv.sh
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/pulseaudio_pyenv.sh
+:END:
+#+begin_src bash
+#!/usr/bin/env bash
+set -euo pipefail
+export PYENV_VERSION=system
+pulseaudio-equalizer-gtk
+#+end_src
+** ssh_calcmaitre :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/ssh_calcmaitre
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ/+PNiX0I+YFhrjWBeYE3Tbe+GqOrQDY3Dd47A30ZwOZfnH
+Dt4FjQS3RpDQTvZZqkLPldFCe1qCiskmR54+CuI1M0NhIu8Jhvz3UwYw+kcVCG82
+I+SqhuNWWWvVRr/NAPWIMDdxJe38hU9uRd5iUBxmtcaBADreRMU0Ew2Mk0cXfhhH
+Kklqnk3yDLwJ9RT1vuUHE1+u9qHH7imKZo8NIC9EhuVbAPsl1DEXA88+yp7lXWxz
+6hP0A7zBiVQQg4IwscC5nUrwzwZO9z3fCVwbHvVAfi02Kg3Gwv/OolJg7YsGcKcu
+RI6KZhhBAGDIa4k+3Ln3c5enk9nGxrXa+Be1zZZrW1ssiIKmULLBFpzU6qAlAjfB
+uwAYNX5teczMzWkqufkhG4tKi+5QPWzGEWNxA6yIsmTzk8mju59WeF+MzGq1lDPJ
+Z10L0SOwvMPZBmEt9jp7TQAAi3FZoM10O73yh+qxzjtdS/qgW6iWNnLuSE/Z9fiy
+OLfAcS6L6R/6PlU6ZTg2CYcBk8JhZlgkZl8z+C8RwQTRMSpcB7xtbWExQSMbsjrE
+Xbv90ne5JVOzDwXK5pMxfYekjsJES84e85jcB1rxzG2arPDsuPfikyGtEC+AleM8
+DqDDOFusk71QZXgTWm/I1ayYf8xxB2hZBEx8CJZ1guSqaDuNlyFzeesEJ3fcyKvS
+lgFV+qa7B+kqFaELHS/eYedRkdKz+wrZGMMtJBACmTcRa5PibOqOs9BtZGAnqNex
+mcytMVbFoVi0bqWe0XHJnqaFU5UYX5M0gdj9CrJRepUaQFCeP5Tz0fj+JvAhjShj
+9Vf3repGhvzdFSExUKG+84elD9ikhuCC+reclcTxUWxMhUIF9LrWiJctee8l2tNA
+btw1l70GMw==
+=cp2I
+-----END PGP MESSAGE-----
+** ssh_lab :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/ssh_lab
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ//Rr6Prn61/OqTV/sVIytcJJaV5iuMxVGXW1QVfQIcVQQw
+5kRCG/DJqpxk03U6t3j2JXpP3qfwmwjKR0FfDf/dBco7611R5jvlsSZ2BafBGrt4
+QjJvK8XhvnGU0Q2bpf2SF/sme01XG7AKJ/aBI5CzQC4x7QB3tZ7zLteov3unQ7R9
+4GYwV33w2enjfuDe6qjKU42Meyt++BmNWZC4C4XUa/au80wmvBFCjtLcb6e9QnQi
+piBWPUK8ea6+gc2YLZoW32v9tzRsiO2vLYdY3magUmemndiwTx9l1nrRxkkRGt6u
+dYqLG5bGXspgk5dnMBEBRV/srC4eqTWRTsCf+02BPEJdX5Tdt0cy56dDgiImDjK+
+8w0WBoAKEQE20We7vqGUSkXGx/IbXtEJFLll9wkBIc8ESGJtdo7t40k2utUJOJPC
+fOQya0bk4sqm4Dd1OVOrY0N+3tAen+KGlGCZAEjvVSQQh3UiXg3jwW7gZgGUPwhs
+gnx5j0ntyC1++zvG71rOlCM0N8w5Ly6x5z24fxdqpQb04NFOClKjFLBAEHdA4oRu
+n+eOnMipCpEGLveUcyfQQ424lBJi2p7RLfTozEbvsO3ppIis3uxl6cPU/iBiZ454
+FWK1UtuARrSI92H5BJQ+N6nKkpTHP+Q23Cpqloe/kU76FJQASKqa1rLpYjt3XT3S
+ggEs1pC+bGvX5SwKKqWJqfQL7Mp1l4KVETYLR4JYVbsMU7aroqolTVOhxZy1w6NY
+D0YzGkQog61+OwlgYckh3w+uwpLNc9lpfhCwjOaa+kJBC4V65PHcMxskgO5zXHMh
+muyCPFdPfhXd0jfzxCd/0Rh+tU8T9kPUnybcL2RaKh89OZA=
+=rSWk
+-----END PGP MESSAGE-----
+** ssh_neeloffice_jupyter :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/ssh_neeloffice_jupyter
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ//YZPKPlNKaNNBWsJtJwbZZSXJl2fwMo7OzFyzCoRz/9tc
+VzYIWJN9zBi6DLlBjc1WijJFrsxipv91d84szt3Py/OP3voI0rR0wd4u6vfQbp5j
+yhNnAf79l2wHEoa/A0B1c252+C68vZw/QUKAWapTTKcvgIjCfXZutbANqFid9mP1
+UAm6FMT0Arc29VrqKfUaytwiDmow8+ZIQnHIqknE/xu0hQLL+JMDkg5f4W1HZSTt
+gX79X7DaL430T4XgD+80E4ZK+rvfiSAZ6RbUgawdIV+FsKmNhDQXKl0JJ8ys5Gn7
+PCUCVNWmrAVIuKdb/xW1tcaDjAmNBMaMHNQJOJuI/oU2thQBHaqm4WIbMmxYAVf3
+su+ZvC35rTyF7VkGAtg4IepRQfm0kSm2IIodYDgjOGHTFK8kCsOTrwGevqTMWoXL
+oezqh3fq5Bi4G9vWUOWwmWd5rb6eRbOny/T8di4blwyXYRZW++M8DYlhW9gu2obR
+ajtiAH4BZhlhpXYcPvAERa/0KPSRUB7UqPCRXJqc8/Th3K+mDOPxJKIBbZqR0Rsx
+qBZ5UHkLTbkEswizmYv09eyqO5R/sa4fw7sOtl0RsjLRRd2aoJz3rSraNJH+fSrN
+fHNo12pHc1GgUnBd2iKsWFQH3V281qAwlDB5E37vf9gdtpN38+cOrWhnMg2ggu/S
+kAE+AaRGu1+oP6YVZjEv0rl3zriGFJ6Rh/wjS38C/6QZjk91wOer7xYom1J0gafn
+hsacMuB+XllLz5KKQFXD7wSI9FfjmtZDiudfjb6XT8qXrmcJD7tFehrI9aq3M9HC
+inVleWKUHbtK8Z0a8p1jw8GwI9iGlvDM1m8t4A7JSRXH99gB+72FRapVDtxiKiUv
+ig==
+=TnLQ
+-----END PGP MESSAGE-----
+** ssh_neeloffice_lin :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/ssh_neeloffice_lin
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VARAAlmVv/8snAM4yrf9nWw18Jz7nqBpOMw12KHGRT3rz7y5v
+IprjsJy2myanEjj2i+J1EdnkuTOQOTdI77D92lX0BtULFxi4aOIwp541qwOOWEfn
+6hLUvxfHnxcUyZbpwslZnvBJl+1Wb1eFwsrUpjGrJfSET/CSrNkRooi7jvmSHI/u
+FfPIb1inE5lMRxryYaZBFqxsnBzZmFHOEEGPCT9DlGCVY0HPtbQ0D4+89SdcBVv1
+vec+DZOGOeeoqThTNHBlddY5HN34EJTzPz7oNloG39T5PJBTmNenJYq+dMwQeDQz
+CwEM0trQvAPS1uYSoi4rTYvzf4w/6Po8e3qa44+O23eI8d+xMbb2RkBRBdetXvVz
+vK7dn6p6JdJFv2RjydfbVOe48ISo3Z6+OpvXA9l+jP7LgFLR224wF5dS7wxtYdo0
+C1K9Oy0V1R8kDEm5qCFJMzsthvJvEaAngXhgeUkQgLZCVx5ysNkR/OnB6PZMz4kT
+NVBD1KUcXAUvneZ/GH2uw9f801h6OSC22dYDMQl90D0+LLc9WVLiT6ZWhO7ulJoq
+/UoAepUJdMP4WPhifHVSdWxACUKZdSLvCAbDyTxSWkAmTs/FU1r1lrHuvaI2xJsd
+nT9ztAJnO/WbkAV0jV66qG0XmjqBZknsa6U++jO2x7GZsghuEWfo8b7TWNasnBbS
+hAH5ZLPhliEWAw/Ly+4ddWWLQOeU8J5Y9p/LVDRvbCjsDlP01yZZxWszgH/bLarq
+AKBhov1NHZL+QJC75svyXZtvfsQ3e6cVKUx6lRuFUu7+m6fFVdUxtM9ZbjSjEs+2
+L0MIOmJLiYzw/y6dBYiuWY3HBgbDnaVxPWRNL8d3eV/yEd2/Yw==
+=JEwe
+-----END PGP MESSAGE-----
+** ssh_neeloffice_win :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/ssh_neeloffice_win
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ//fYKsl0RL7OY9ep2LLn6e+rq4vHB+OZaX7nZGooxe+yv7
+9vMZ6SA2jlOYRuCeAZ+92w+H5vbHMWmHcXu2lqxKfIyk9j53RbISOAY4iiooZ4ML
+LjWQ0Ge85FUDmJXIIV97BHVMXRl/Xj6cYNS7ANcbW+8EPXgE0wGxg+F2R9x22yX+
+bvitykkrC+/FAxSIqKHQhnFDsYCTU0x0TvG0BLNC4R23Hq/Ebzx6QThNU2Nr0REo
+o2XYzPvM1EjpxIYYkbt1ZBgNuRF6RsTecYzymnqu5yLvU/Lxx3PTz2vOlcI03n2h
+I6U7T79JTteqMpB9C0Pw8394qH4UHSDCHqCbBftXBePsAWAOM2bR/8a3xfhdMY38
+joJv1eoFyeu4aJ9BqM/ud9OIcpEl3ZDG+Vxpkg2I7rGbKf9o9T6g75BCybNY0efm
+lwNfvNdVYCy4zYZn9A5TsTwkWbPPQGvdlUYaHmGOX0xIaA/NhpJHlTTMEd3C3N4L
+Tbo49cd2yOtDG5RCCkqjGIlNPGdihtvowzgAQqfzVS4maFS05GlXoSM/55oKx90m
+kvtBQf/47eEvUEQOOJkvIb1LSm4VALvksnvX4CbhbNG1zImwW7MHtMQANtXQelDK
+DDDyp7opevyKlzw9v4CiEBx+ZL2nxvuHU37wOTGD6gCNmL5cbH/pIk/QM0P4x1PS
+jgH7DGXb0fujIzm3Xs0py37zYe9s/fbOt59WJZ85a7oH6IHw3gV93NazO95bY272
+egF0uLwRlol/a8SqLVdbvMDXia8YYxjhEjHXcIvHtsJwHHWBZTpWiVVeiiyGqGlr
+5QZXEyJScHpBD+RLRzT1r4aCXXGHxgLCKHWMkYawjw7ECmAzUYU74kJ4QyYyBMU=
+=lgRJ
+-----END PGP MESSAGE-----
+** ssh_ubuntucalculator :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/ssh_ubuntucalculator
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ/+K3maXNKv7vDG92Y2Cu8jzJL22OxuJuczQBuky1UMkg0O
+fufP4fwEpywGyppmrTWT/dTXvcrtktYjiF9BnF5D+3E7YVeTDjKLUOpIzEWi97JQ
+pdN9DEhSKVyj63CmeJ4bOqvP4IkJDTS4vxV3FmdqoUAAPebkGoz8vr4EBc2vNyNm
+YJUB2x6QAL/NQWTbbxXcMuzjXzvhE1SbGgocK2/T/gKozt88eLsYIzBPGsmWxcXV
+1HZfrpemDZgAeq67ZMyI3C9lxNv2HcY4i7olETMtSfwkjKe2WWYkykrfMEWmHX24
+MKAUyq4xPglFgIAR2BZm6euwcUTN/2J5688dJ4v4BL8+dZmpnkFUP2kHLDCisr5c
+pp/BvFDwcoTvtibZj5Z5h/L4xVOdSg7178VuGycyFDT3GM/SZ6Xo8Y8Y7IO28dFB
+lSW+MlxlHx/G04xMUJvqLhmGfrbkzzuLAUq8qg/C23LS+Vkj4RWqlzGcxa33bQV1
+160WFTYDot7BGpBvcXBBE+EBB1+h7//KxJdJNkFfiX3PzmBKpd70rdkOAuljBheC
+oPDyc5LkXPy8rhHa/MaLJnVOqFfpix4oVISS4/XapihM5SDC91JSecDr3yReR0k6
+QUJkHsZ5C1KMZabu0vH3rAUEtKPur0QiEkftCa+xprspIrtHyqcABV8pee28jYnS
+gwEbvtCvZlfKpgyUeTMsayzc3oyIe8X6PwxM68xvinWVuafEDWKLY+R8yei8fhwt
+5WRgmJeR0EMVolPzQnUX7T1D2tdebBxPnfvwX1BSCME0SInJs1um3Zp4OSvThW80
+2y4WZVuhFvR5SjWjAuI8ZUXMykQYCoDTcAfC6cdgfoABfOsd
+=PpU5
+-----END PGP MESSAGE-----
+** veramount_phdstick.sh
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/veramount_phdstick.sh
+:END:
+#+begin_src bash
+#!/usr/bin/env bash
+# set -euo pipefail
+
+pw=`pass others/phdusb`
+if [ ! -d "/media/veracrypt6/Research" ]; then
+veracrypt --mount /dev/sdb -p "${pw}" --slot=6
+fi
+#+end_src
+
+* digikam :full:
+** digikamrc
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./digikam/.config/digikamrc
+:END:
+
+
+
+#+begin_src conf
+[AdvancedRename Input]
+Pattern History List=,Small Hike Senepi_[date:"yy-MM-dd"]_##[f],Biwak im Vercors bei Bac de lOrient_[date:"yy-MM-dd"]_##[f],Winterradtour_Barcelona_[date:"yy-MM-dd"]_##[f],Turin_[date:"yy-MM-dd"]_##[f],Slacken La Poya_[date:"yy-MM-dd"]_##[f],Nyons_[date:"yy-MM-dd"]_##[f],Chamrousse_hike_[date:"yy-MM-dd"]_##[f],[meta:Exif.Image.XPTitle][date:ISO]
+
+[AdvancedRename Widget]
+Options are expanded=true
+
+[Album Settings]
+Album Collections=Category,Friends,Holidays,Miscellaneous,Nature,Party,Todo,Travel
+Album Monitoring=false
+Album Sort Role=0
+All Groups Open=false
+Default Icon Size=142
+Default Tree Icon Size=22
+Icon Show Aspect Ratio=false
+Icon Show Comments=true
+Icon Show Coordinates=true
+Icon Show Date=false
+Icon Show Fullscreen=true
+Icon Show Image Format=true
+Icon Show Modification Date=false
+Icon Show Name=false
+Icon Show Overlays=true
+Icon Show Rating=true
+Icon Show Resolution=false
+Icon Show Size=false
+Icon Show Tags=true
+Icon Show Title=true
+IconView Font=Noto Sans,9,-1,5,50,0,0,0,0,0
+Image Group Mode=2
+Image Group Sort Order=0
+Image Sort Order=0
+Image Sorting=0
+Item Left Click Action=0
+Preview Convert To Eight Bit=true
+Preview Load Full Image Size=true
+Preview Raw Use Embedded Preview=false
+Preview Raw Use Half Size Data=false
+Preview Show Icons=true
+Preview Zoom Use Original Size=true
+Rating Filter Condition=0
+Recursive Albums=false
+Recursive Tags=true
+Show Album ToolTips=true
+Show Folder Tree View Items Count=false
+Show Thumbbar=true
+Show ToolTips=true
+Sidebar Title Style=2
+Theme=Default
+ToolTips Font=Noto Sans,9,-1,5,50,0,0,0,0,0
+ToolTips Show Album Caption=true
+ToolTips Show Album Category=true
+ToolTips Show Album Collection=true
+ToolTips Show Album Date=true
+ToolTips Show Album Name=false
+ToolTips Show Album Preview=false
+ToolTips Show Album Title=true
+ToolTips Show Audio Bit Rate=true
+ToolTips Show Audio Channel Type=true
+ToolTips Show Audio Codec=true
+ToolTips Show Audio Compressor=true
+ToolTips Show Comments=true
+ToolTips Show File Date=false
+ToolTips Show File Name=true
+ToolTips Show File Size=false
+ToolTips Show Image AR=true
+ToolTips Show Image Dim=true
+ToolTips Show Image Type=false
+ToolTips Show Label Rating=true
+ToolTips Show Photo Date=true
+ToolTips Show Photo Expo=true
+ToolTips Show Photo Flash=false
+ToolTips Show Photo Focal=true
+ToolTips Show Photo Lens=true
+ToolTips Show Photo Make=true
+ToolTips Show Photo Mode=true
+ToolTips Show Photo WB=false
+ToolTips Show Tags=true
+ToolTips Show Titles=true
+ToolTips Show Video Aspect Ratio=true
+ToolTips Show Video Codec=true
+ToolTips Show Video Duration=true
+ToolTips Show Video Frame Rate=true
+TreeView Font=Noto Sans,9,-1,5,50,0,0,0,0,0
+
+[AlbumFolderView Sidebar]
+CurrentIndex=189
+Expansion=0,1,73,74,112,113,115,91,77
+RestoreChecked=false
+Selection=189
+SortColumn=0
+SortOrder=0
+
+[AlbumIconViewFilterSearchTextBar Search Text Tool]
+CaseSensitive=0
+
+[AlbumSelectWidget]
+AlbumTreeViewCurrentIndex=136
+AlbumTreeViewExpansion=1,120,91,77
+AlbumTreeViewRestoreChecked=false
+AlbumTreeViewSelection=136
+AlbumTreeViewSortColumn=0
+AlbumTreeViewSortOrder=0
+CaseSensitive=0
+
+[Baloo Settings]
+Sync Baloo to Digikam=false
+Sync Digikam to Baloo=false
+
+[Batch Queue Manager Settings]
+BqmBottomSplitter=AAAA/wAAAAEAAAACAAABagAAAQwB/////wEAAAABAA==
+BqmTopSplitter=AAAA/wAAAAEAAAADAAACuwAAAb4AAAHNAf////8BAAAAAQA=
+BqmVerticalSplitter=AAAA/wAAAAEAAAACAAABZwAAAiMB/////wEAAAACAA==
+Height 1080=1010
+State=AAAA/wAAAAD9AAAAAAAAAoAAAAGFAAAABAAAAAQAAAAIAAAACPwAAAABAAAAAgAAAAEAAAAWAG0AYQBpAG4AVABvAG8AbABCAGEAcgEAAAAA/////wAAAAAAAAAA
+ToolBarsMovable=Disabled
+Width 1920=1620
+
+[Camera Settings]
+AlbumBox Expanded=true
+AutoAlbumDate=false
+AutoAlbumExt=false
+AutoRotate=true
+BackupOriginalRawFile=false
+Case Type=0
+CompressLossLess=true
+ConvertDng=true
+ConvertJpeg=false
+CustomDateFormat=yyyy-M-dd
+DNGSettings Expanded=true
+DefaultTargetAlbumId=0
+DocumentName=false
+FileSaveConflictRule=1
+FixDateTime=false
+FolderDateFormat=3
+FullScreen Hide SideBars=false
+FullScreen Hide ThumbBar=true
+FullScreen Hide ToolBars=false
+Height 1080=805
+LastTargetAlbum=189
+LossLessFormat=0
+Manual Rename String=Small Hike Senepi_[date:"yy-MM-dd"]_##[f]
+OnFlyBox Expanded=false
+PreviewMode=1
+Rename Method=2
+RenameCustomizer Expanded=true
+Script=
+ScriptingBox Expanded=true
+ShowLog=false
+SplitterState=AAAA/wAAAAEAAAACAAADKwAAAWsB/////wAAAAABAQ==
+State=AAAA/wAAAAD9AAAAAAAAB4AAAAOiAAAABAAAAAQAAAAIAAAACPwAAAABAAAAAgAAAAEAAAAWAG0AYQBpAG4AVABvAG8AbABCAGEAcgEAAAAA/////wAAAAAAAAAA
+Template=1
+ToolBarsMovable=Disabled
+TurnHighQualityThumbs=false
+UseDefaultTargetAlbum=false
+UseFileMetadata=false
+Width 1920=1073
+eDP1 Height 1080=1035
+eDP1 Width 1920=1920
+eDP1 XPosition=0
+eDP1 YPosition=22
+
+[CameraGui Sidebar Right]
+ActiveTab=3
+Minimized=false
+RestoreSize=-1
+
+[CameraGui Sidebar Right][Camera Item Properties Tab]
+FileProperties Expanded=true
+PhotographProperties Expanded=true
+VideoProperties Expanded=true
+
+[CameraGui Sidebar Right][GPS Properties Tab]
+Sort Order=0
+Web GPS Locator=0
+
+[CameraGui Sidebar Right][GPS Properties Tab][Map Widget]
+Backend=marble
+Center=geo:52,6
+GoogleMaps Map Type=ROADMAP
+GoogleMaps Show Map Type Control=true
+GoogleMaps Show Navigation Control=true
+GoogleMaps Show Scale Control=true
+Marble Map Theme=atlas
+Marble Projection=spherical
+Marble Show Compass=false
+Marble Show Navigation=false
+Marble Show Overview Map=false
+Marble Show Scale Bar=false
+Marker Grouping Radius=1
+Mouse Mode=0
+Preview Grouped Items=true
+Preview Single Items=true
+Show Thumbnails=true
+Show numbers on items=true
+Sticky Mode State=false
+Thumbnail Grouping Radius=30
+Thumbnail Size=60
+Zoom=marble:900
+
+[CameraGui Sidebar Right][Metadata Properties Tab]
+Current EXIF Item=
+Current IPTC Item=
+Current MAKERNOTE Item=
+Current XMP Item=
+EXIF Level=2
+IPTC Level=2
+ImagePropertiesMetaData Tab=0
+MAKERNOTE Level=2
+XMP Level=2
+
+[Color Management]
+BPCAlgorithm=true
+DefaultMismatchBehavior=2049
+DefaultMissingProfileBehavior=2050
+DefaultPath=
+DefaultUncalibratedBehavior=2080
+DoGamutCheck=0
+EnableCM=true
+GamutCheckMaskColor=126,255,255
+LastMismatchBehavior=2049
+LastMissingProfileBehavior=2050
+LastSpecifiedAssignProfile=
+LastSpecifiedInputProfile=
+LastUncalibratedBehavior=2080
+ManagedPreviews=true
+ManagedView=true
+MonitorProfileFile[$e]=/usr/share/digikam/profiles/srgb-d65.icm
+ProofingRenderingIntent=3
+RenderingIntent=0
+WorkProfileFile[$e]=/usr/share/digikam/profiles/srgb-d65.icm
+
+[CoreDB Settings]
+Recently Used Tags=29,26,27,28,30
+
+[DMetadata Settings][readCommentNamespaces][#0001]
+alternativeName=
+convertRatio=
+index=0
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.dc.description
+nsType=2
+secondNameOpts=0
+separator=
+specialOpts=2
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][readCommentNamespaces][#0002]
+alternativeName=
+convertRatio=
+index=1
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.exif.UserComment
+nsType=2
+secondNameOpts=0
+separator=
+specialOpts=1
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][readCommentNamespaces][#0003]
+alternativeName=
+convertRatio=
+index=2
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.tiff.ImageDescription
+nsType=2
+secondNameOpts=0
+separator=
+specialOpts=1
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][readCommentNamespaces][#0004]
+alternativeName=
+convertRatio=
+index=3
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.acdsee.notes
+nsType=2
+secondNameOpts=0
+separator=
+specialOpts=3
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][readCommentNamespaces][#0005]
+alternativeName=
+convertRatio=
+index=4
+isDefault=true
+isDisabled=false
+namespaceName=JPEG/TIFF Comments
+nsType=2
+secondNameOpts=0
+separator=
+specialOpts=4
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][readCommentNamespaces][#0006]
+alternativeName=Exif.Photo.UserComment
+convertRatio=
+index=5
+isDefault=true
+isDisabled=false
+namespaceName=Exif.Image.ImageDescription
+nsType=2
+secondNameOpts=0
+separator=
+specialOpts=0
+subspace=0
+tagPaths=1
+
+[DMetadata Settings][readCommentNamespaces][#0007]
+alternativeName=
+convertRatio=
+index=6
+isDefault=true
+isDisabled=false
+namespaceName=Iptc.Application2.Caption
+nsType=2
+secondNameOpts=0
+separator=
+specialOpts=0
+subspace=1
+tagPaths=1
+
+[DMetadata Settings][readRatingNamespaces][#0001]
+alternativeName=
+convertRatio=0,1,2,3,4,5
+index=0
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.xmp.Rating
+nsType=1
+secondNameOpts=0
+separator=
+specialOpts=0
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][readRatingNamespaces][#0002]
+alternativeName=
+convertRatio=0,1,2,3,4,5
+index=1
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.acdsee.rating
+nsType=1
+secondNameOpts=0
+separator=
+specialOpts=0
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][readRatingNamespaces][#0003]
+alternativeName=
+convertRatio=0,1,25,50,75,99
+index=2
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.MicrosoftPhoto.Rating
+nsType=1
+secondNameOpts=0
+separator=
+specialOpts=0
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][readRatingNamespaces][#0004]
+alternativeName=
+convertRatio=0,1,2,3,4,5
+index=3
+isDefault=true
+isDisabled=false
+namespaceName=Exif.Image.0x4746
+nsType=1
+secondNameOpts=0
+separator=
+specialOpts=0
+subspace=0
+tagPaths=1
+
+[DMetadata Settings][readRatingNamespaces][#0005]
+alternativeName=
+convertRatio=0,1,25,50,75,99
+index=4
+isDefault=true
+isDisabled=false
+namespaceName=Exif.Image.0x4749
+nsType=1
+secondNameOpts=0
+separator=
+specialOpts=0
+subspace=0
+tagPaths=1
+
+[DMetadata Settings][readRatingNamespaces][#0006]
+alternativeName=
+convertRatio=8,6,5,4,2,1
+index=5
+isDefault=true
+isDisabled=false
+namespaceName=Iptc.Application2.Urgency
+nsType=1
+secondNameOpts=0
+separator=
+specialOpts=0
+subspace=1
+tagPaths=1
+
+[DMetadata Settings][readTagsNamespaces][#0001]
+alternativeName=
+convertRatio=
+index=0
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.digiKam.TagsList
+nsType=0
+secondNameOpts=0
+separator=/
+specialOpts=6
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][readTagsNamespaces][#0002]
+alternativeName=
+convertRatio=
+index=1
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.MicrosoftPhoto.LastKeywordXMP
+nsType=0
+secondNameOpts=0
+separator=/
+specialOpts=5
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][readTagsNamespaces][#0003]
+alternativeName=Xmp.lr.HierarchicalSubject
+convertRatio=
+index=2
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.lr.hierarchicalSubject
+nsType=0
+secondNameOpts=6
+separator=|
+specialOpts=5
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][readTagsNamespaces][#0004]
+alternativeName=
+convertRatio=
+index=3
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.mediapro.CatalogSets
+nsType=0
+secondNameOpts=0
+separator=|
+specialOpts=5
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][readTagsNamespaces][#0005]
+alternativeName=
+convertRatio=
+index=4
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.acdsee.categories
+nsType=0
+secondNameOpts=0
+separator=/
+specialOpts=7
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][readTagsNamespaces][#0006]
+alternativeName=
+convertRatio=
+index=5
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.dc.subject
+nsType=0
+secondNameOpts=0
+separator=/
+specialOpts=5
+subspace=2
+tagPaths=0
+
+[DMetadata Settings][readTagsNamespaces][#0007]
+alternativeName=
+convertRatio=
+index=6
+isDefault=true
+isDisabled=false
+namespaceName=Iptc.Application2.Keywords
+nsType=0
+secondNameOpts=0
+separator=.
+specialOpts=0
+subspace=1
+tagPaths=1
+
+[DMetadata Settings][readTagsNamespaces][#0008]
+alternativeName=
+convertRatio=
+index=7
+isDefault=true
+isDisabled=false
+namespaceName=Exif.Image.XPKeywords
+nsType=0
+secondNameOpts=0
+separator=;
+specialOpts=0
+subspace=0
+tagPaths=1
+
+[DMetadata Settings][writeCommentNamespaces][#0001]
+alternativeName=
+convertRatio=
+index=0
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.dc.description
+nsType=2
+secondNameOpts=0
+separator=
+specialOpts=2
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][writeCommentNamespaces][#0002]
+alternativeName=
+convertRatio=
+index=1
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.exif.UserComment
+nsType=2
+secondNameOpts=0
+separator=
+specialOpts=1
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][writeCommentNamespaces][#0003]
+alternativeName=
+convertRatio=
+index=2
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.tiff.ImageDescription
+nsType=2
+secondNameOpts=0
+separator=
+specialOpts=1
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][writeCommentNamespaces][#0004]
+alternativeName=
+convertRatio=
+index=3
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.acdsee.notes
+nsType=2
+secondNameOpts=0
+separator=
+specialOpts=3
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][writeCommentNamespaces][#0005]
+alternativeName=
+convertRatio=
+index=4
+isDefault=true
+isDisabled=false
+namespaceName=JPEG/TIFF Comments
+nsType=2
+secondNameOpts=0
+separator=
+specialOpts=4
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][writeCommentNamespaces][#0006]
+alternativeName=Exif.Photo.UserComment
+convertRatio=
+index=5
+isDefault=true
+isDisabled=false
+namespaceName=Exif.Image.ImageDescription
+nsType=2
+secondNameOpts=0
+separator=
+specialOpts=0
+subspace=0
+tagPaths=1
+
+[DMetadata Settings][writeCommentNamespaces][#0007]
+alternativeName=
+convertRatio=
+index=6
+isDefault=true
+isDisabled=false
+namespaceName=Iptc.Application2.Caption
+nsType=2
+secondNameOpts=0
+separator=
+specialOpts=0
+subspace=1
+tagPaths=1
+
+[DMetadata Settings][writeRatingNamespaces][#0001]
+alternativeName=
+convertRatio=0,1,2,3,4,5
+index=0
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.xmp.Rating
+nsType=1
+secondNameOpts=0
+separator=
+specialOpts=0
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][writeRatingNamespaces][#0002]
+alternativeName=
+convertRatio=0,1,2,3,4,5
+index=1
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.acdsee.rating
+nsType=1
+secondNameOpts=0
+separator=
+specialOpts=0
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][writeRatingNamespaces][#0003]
+alternativeName=
+convertRatio=0,1,25,50,75,99
+index=2
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.MicrosoftPhoto.Rating
+nsType=1
+secondNameOpts=0
+separator=
+specialOpts=0
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][writeRatingNamespaces][#0004]
+alternativeName=
+convertRatio=0,1,2,3,4,5
+index=3
+isDefault=true
+isDisabled=false
+namespaceName=Exif.Image.0x4746
+nsType=1
+secondNameOpts=0
+separator=
+specialOpts=0
+subspace=0
+tagPaths=1
+
+[DMetadata Settings][writeRatingNamespaces][#0005]
+alternativeName=
+convertRatio=0,1,25,50,75,99
+index=4
+isDefault=true
+isDisabled=false
+namespaceName=Exif.Image.0x4749
+nsType=1
+secondNameOpts=0
+separator=
+specialOpts=0
+subspace=0
+tagPaths=1
+
+[DMetadata Settings][writeRatingNamespaces][#0006]
+alternativeName=
+convertRatio=8,6,5,4,2,1
+index=5
+isDefault=true
+isDisabled=false
+namespaceName=Iptc.Application2.Urgency
+nsType=1
+secondNameOpts=0
+separator=
+specialOpts=0
+subspace=1
+tagPaths=1
+
+[DMetadata Settings][writeTagsNamespaces][#0001]
+alternativeName=
+convertRatio=
+index=0
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.digiKam.TagsList
+nsType=0
+secondNameOpts=0
+separator=/
+specialOpts=6
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][writeTagsNamespaces][#0002]
+alternativeName=
+convertRatio=
+index=1
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.MicrosoftPhoto.LastKeywordXMP
+nsType=0
+secondNameOpts=0
+separator=/
+specialOpts=5
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][writeTagsNamespaces][#0003]
+alternativeName=Xmp.lr.HierarchicalSubject
+convertRatio=
+index=2
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.lr.hierarchicalSubject
+nsType=0
+secondNameOpts=6
+separator=|
+specialOpts=5
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][writeTagsNamespaces][#0004]
+alternativeName=
+convertRatio=
+index=3
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.mediapro.CatalogSets
+nsType=0
+secondNameOpts=0
+separator=|
+specialOpts=5
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][writeTagsNamespaces][#0005]
+alternativeName=
+convertRatio=
+index=4
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.acdsee.categories
+nsType=0
+secondNameOpts=0
+separator=/
+specialOpts=7
+subspace=2
+tagPaths=1
+
+[DMetadata Settings][writeTagsNamespaces][#0006]
+alternativeName=
+convertRatio=
+index=5
+isDefault=true
+isDisabled=false
+namespaceName=Xmp.dc.subject
+nsType=0
+secondNameOpts=0
+separator=/
+specialOpts=5
+subspace=2
+tagPaths=0
+
+[DMetadata Settings][writeTagsNamespaces][#0007]
+alternativeName=
+convertRatio=
+index=6
+isDefault=true
+isDisabled=false
+namespaceName=Iptc.Application2.Keywords
+nsType=0
+secondNameOpts=0
+separator=.
+specialOpts=0
+subspace=1
+tagPaths=1
+
+[DMetadata Settings][writeTagsNamespaces][#0008]
+alternativeName=
+convertRatio=
+index=7
+isDefault=true
+isDisabled=false
+namespaceName=Exif.Image.XPKeywords
+nsType=0
+secondNameOpts=0
+separator=;
+specialOpts=0
+subspace=0
+tagPaths=1
+
+[Database Settings]
+Database Connectoptions=
+Database Encrypted Password=AwIyMjI=
+Database Hostname=
+Database Name=/home/philip/Pictures/
+Database Name Face=/home/philip/Pictures/
+Database Name Similarity=/home/philip/Pictures/
+Database Name Thumbnails=/home/philip/Pictures/
+Database Port=-1
+Database Type=QSQLITE
+Database Username=
+Internal Database Server=false
+Internal Database Server Mysql Init Command=
+Internal Database Server Mysql Server Command=
+Internal Database Server Path=
+
+[DateFolderView Sidebar]
+CurrentIndex=
+Expansion=1
+Selection=
+SortColumn=0
+SortOrder=0
+
+[Digikam Left Sidebar]
+ActiveTab=0
+Minimized=false
+RestoreSize=-1
+
+[Digikam Right Sidebar]
+ActiveTab=0
+DigikamProperties Expanded=true
+FileProperties Expanded=true
+ItemProperties Expanded=true
+Minimized=false
+PhotographProperties Expanded=true
+RestoreSize=-1
+VideoProperties Expanded=true
+
+[Digikam Right Sidebar][Captions Tags Properties Tab]
+Contact Expanded=true
+ImageDescEdit Tab=0
+ImageDescEditTab CaptionsLang=x-default
+ImageDescEditTab SearchBarCaseSensitive=0
+ImageDescEditTab TagCheckViewCurrentIndex=
+ImageDescEditTab TagCheckViewExpansion=0
+ImageDescEditTab TagCheckViewRestoreChecked=false
+ImageDescEditTab TagCheckViewSelection=
+ImageDescEditTab TagCheckViewSortColumn=0
+ImageDescEditTab TagCheckViewSortOrder=0
+ImageDescEditTab TagCheckViewToggle Auto Tags=0
+ImageDescEditTab TitleLang=x-default
+ItemDescEdit Tab=0
+ItemDescEditTab CaptionsLang=x-default
+ItemDescEditTab SearchBarCaseSensitive=0
+ItemDescEditTab TagCheckViewCurrentIndex=
+ItemDescEditTab TagCheckViewExpansion=0
+ItemDescEditTab TagCheckViewRestoreChecked=false
+ItemDescEditTab TagCheckViewSelection=
+ItemDescEditTab TagCheckViewSortColumn=0
+ItemDescEditTab TagCheckViewSortOrder=0
+ItemDescEditTab TagCheckViewToggle Auto Tags=0
+ItemDescEditTab TitleLang=x-default
+Location Expanded=true
+Rights Expanded=true
+Subjects Expanded=true
+
+[Digikam Right Sidebar][Color Properties Tab]
+Current ICC Item=
+Histogram Channel=0
+Histogram Scale=1
+ICC Level=2
+ImagePropertiesColors Tab=0
+
+[Digikam Right Sidebar][GPS Properties Tab]
+Sort Order=0
+Web GPS Locator=0
+
+[Digikam Right Sidebar][GPS Properties Tab][Map Widget]
+Backend=marble
+Center=geo:52,6
+GoogleMaps Map Type=ROADMAP
+GoogleMaps Show Map Type Control=true
+GoogleMaps Show Navigation Control=true
+GoogleMaps Show Scale Control=true
+Marble Map Theme=atlas
+Marble Projection=spherical
+Marble Show Compass=false
+Marble Show Navigation=false
+Marble Show Overview Map=false
+Marble Show Scale Bar=false
+Marker Grouping Radius=1
+Mouse Mode=0
+Preview Grouped Items=true
+Preview Single Items=true
+Show Thumbnails=true
+Show numbers on items=true
+Sticky Mode State=false
+Thumbnail Grouping Radius=30
+Thumbnail Size=60
+Zoom=marble:900
+
+[Digikam Right Sidebar][Metadata Properties Tab]
+Current EXIF Item=
+Current IPTC Item=
+Current MAKERNOTE Item=
+Current XMP Item=
+EXIF Level=2
+IPTC Level=2
+ImagePropertiesMetaData Tab=0
+MAKERNOTE Level=2
+XMP Level=2
+
+[Digikam Right Sidebar][Version Properties Tab]
+Version Properties Tab=versions
+Version Properties View Mode=2
+
+[DigikamViewFolderSearchBar Search Text Tool]
+CaseSensitive=0
+
+[DigikamViewPeopleSearchBar Search Text Tool]
+CaseSensitive=0
+
+[DigikamViewSearchSearchBar Search Text Tool]
+CaseSensitive=0
+
+[DigikamViewTagFilterSearchBar Search Text Tool]
+CaseSensitive=0
+
+[DigikamViewTagFilterView]
+CurrentIndex=
+Expansion=
+RestoreChecked=false
+Selection=
+SortColumn=0
+SortOrder=0
+Toggle Auto Tags=0
+
+[DigikamViewTagSearchBar Search Text Tool]
+CaseSensitive=0
+
+[ExpoBlending Dialog]
+Height 1080=750
+Width 1920=800
+
+[ExpoBlending Settings]
+Auto Alignment=true
+align_image_stackBinary[$e]=/usr/bin/
+enfuseBinary[$e]=/usr/bin/
+
+[ExpoBlending Wizard]
+Height 1080=750
+Width 1920=800
+
+[Face Detection Dialog]
+AlbumComboBox-Checked=
+AlbumComboBox-CurrentIndex=
+AlbumComboBox-Expansion=1
+AlbumComboBox-RestoreChecked=true
+AlbumComboBox-Selection=
+AlbumComboBox-SortColumn=0
+AlbumComboBox-SortOrder=0
+AlbumTypeEntry=0
+Already Scanned Handling=Skip
+Face Scan Main Task=Recognize Marked Faces
+Settings Widget Visible=false
+TagComboBox-Checked=
+TagComboBox-CurrentIndex=
+TagComboBox-Expansion=
+TagComboBox-RestoreChecked=true
+TagComboBox-Selection=
+TagComboBox-SortColumn=0
+TagComboBox-SortOrder=0
+Use Full CPU=false
+UseWholeAlbumsEntry=true
+UseWholeTagsEntry=false
+
+[Face Detection Settings]
+Detection Accuracy=0.8
+
+[Face Management Settings]
+AlbumComboBox-Checked=
+AlbumComboBox-CurrentIndex=
+AlbumComboBox-Expansion=1
+AlbumComboBox-RestoreChecked=true
+AlbumComboBox-Selection=
+AlbumComboBox-SortColumn=0
+AlbumComboBox-SortOrder=0
+AlbumTypeEntry=0
+Already Scanned Handling=Skip
+Face Scan Main Task=Detect
+TagComboBox-Checked=
+TagComboBox-CurrentIndex=
+TagComboBox-Expansion=
+TagComboBox-RestoreChecked=true
+TagComboBox-Selection=
+TagComboBox-SortColumn=0
+TagComboBox-SortOrder=0
+Use Full CPU=false
+UseWholeAlbumsEntry=true
+UseWholeTagsEntry=false
+
+[Find Duplicates View]
+AlbumComboBox-Checked=
+AlbumComboBox-CurrentIndex=
+AlbumComboBox-Expansion=
+AlbumComboBox-RestoreChecked=true
+AlbumComboBox-Selection=
+AlbumComboBox-SortColumn=0
+AlbumComboBox-SortOrder=0
+AlbumTypeEntry=0
+Last maximum similarity=100
+Last minimum similarity=90
+Last search album tag relation=0
+Last search results restriction=0
+Lower bound for minimum similarity=40
+TagComboBox-Checked=
+TagComboBox-CurrentIndex=
+TagComboBox-Expansion=
+TagComboBox-RestoreChecked=true
+TagComboBox-Selection=
+TagComboBox-SortColumn=0
+TagComboBox-SortOrder=0
+UseWholeAlbumsEntry=false
+UseWholeTagsEntry=false
+
+[Fuzzy Search Sidebar]
+CurrentIndex=
+Expansion=
+FuzzySearch Tab=0
+Pen Sketch Hue=0
+Pen Sketch Saturation=0
+Pen Sketch Size=10
+Pen Sketch Value=255
+RestoreChecked=false
+Result Sketch items=10
+Selection=
+Similars Maximum Threshold=100
+Similars Threshold=90
+SortColumn=0
+SortOrder=0
+
+[Fuzzy Search View]
+AlbumComboBox-Checked=
+AlbumComboBox-CurrentIndex=
+AlbumComboBox-Expansion=1
+AlbumComboBox-RestoreChecked=true
+AlbumComboBox-Selection=
+AlbumComboBox-SortColumn=0
+AlbumComboBox-SortOrder=0
+UseWholeAlbumsEntry=true
+
+[FuzzySearchViewSearchFuzzyBar Search Text Tool]
+CaseSensitive=0
+
+[GPS Search Sidebar]
+CurrentIndex=
+Expansion=
+RestoreChecked=false
+Selection=
+Sort Order=0
+SortColumn=0
+SortOrder=0
+SplitterState=AAAA/wAAAAEAAAACAAABnAAAAH0B/////wEAAAACAA==
+
+[GPS Search Sidebar][GPSSearch Map Widget]
+Backend=marble
+Center=geo:52,6
+GoogleMaps Map Type=ROADMAP
+GoogleMaps Show Map Type Control=true
+GoogleMaps Show Navigation Control=true
+GoogleMaps Show Scale Control=true
+Marble Map Theme=atlas
+Marble Projection=spherical
+Marble Show Compass=false
+Marble Show Navigation=false
+Marble Show Overview Map=false
+Marble Show Scale Bar=false
+Marker Grouping Radius=1
+Mouse Mode=0
+Preview Grouped Items=true
+Preview Single Items=true
+Show Thumbnails=true
+Show numbers on items=true
+Thumbnail Grouping Radius=30
+Thumbnail Size=60
+Zoom=marble:900
+
+[GPSSearchViewSearchGPSBar Search Text Tool]
+CaseSensitive=0
+
+[General Settings]
+Application Font=Noto Sans,9,-1,5,50,0,0,0,0,0
+Application Style=breeze
+Apply Sidebar Changes Directly=false
+Clean core DB At Start=false
+Draw Frames To Grouped Items=true
+Face Scanner First Run=true
+FullScreen Hide SideBars=false
+FullScreen Hide ThumbBar=true
+FullScreen Hide ToolBars=false
+Height 1080=1006
+Height 768=694
+Icon Theme=
+Scan At Start=true
+Scroll Current Item To Center=false
+Show Only Face Tags For Assigning Name=true
+Show Permanent Delete Dialog=true
+Show Splash=true
+Show Trash Delete Dialog=true
+State=AAAA/wAAAAD9AAAAAAAAB4AAAAOiAAAABAAAAAQAAAAIAAAACPwAAAABAAAAAgAAAAEAAAAWAG0AYQBpAG4AVABvAG8AbABCAGEAcgEAAAAA/////wAAAAAAAAAA
+String Comparison Type=0
+ToolBarsMovable=Disabled
+Use Large Thumbs=false
+Use Native File Dialog=false
+Use Trash=true
+Version=5.9.0
+Width 1024=1024
+Width 1920=1920
+eDP1 Height 1080=1035
+eDP1 Width 1920=1920
+eDP1 XPosition=0
+eDP1 YPosition=22
+
+[Grouping Behaviour]
+Do BQM operations on all=2
+Do Import Export operations on all=2
+Do Kipi operations on all=2
+Do light table operations on all=2
+Do metadata operations on all=2
+Do slideshow operations on all=2
+Operate tools on all=2
+Rename all=2
+
+[Image Properties SideBar]
+EXIF Tags Filter=
+
+[Image Quality Settings]
+Accepted Threshold=60
+Blur Weight=100
+Compression Weight=100
+Detect Blur=true
+Detect Compression=true
+Detect Exposure=true
+Detect Noise=true
+Detect Overexposure=true
+Enable Sorter=false
+HighQ Accepted=true
+LowQ Rejected=true
+MediumQ Pending=true
+Noise Weight=100
+Pending Threshold=40
+Rejected Threshold=10
+Speed=1
+
+[ImageViewer Settings]
+AutoBrightness=true
+AutoZoom=false
+BackgroundColor=0,0,0
+Black Point=0
+Brightness Multiplier=1
+Custom White Balance=6500
+Custom White Balance Green=1
+Dcb Enhance Filter=false
+Dcb Iterations=-1
+Decoding Quality=0
+Dont Stretch Pixels=false
+Eeci Refine=false
+EnableCACorrection=false
+Es Median Filter Passes=0
+Expo Correction=false
+Expo Correction Highlight=0
+Expo Correction Shift=0.9939999999999998
+ExpoIndicatorMode=true
+FixColorsHighlights=false
+Four Color RGB=false
+FullScreen Hide SideBars=false
+FullScreen Hide ThumbBar=true
+FullScreen Hide ToolBars=false
+Height 1080=1051
+JPEG2000Compression=75
+JPEG2000LossLess=true
+JPEGCompression=75
+JPEGSubSampling=1
+Median Filter Passes=0
+Noise Reduction Chrominance Threshold=0
+Noise Reduction Threshold=0
+Noise Reduction Type=0
+Output Color Space=1
+OverExposureColor=0,0,0
+OverExposureIndicator=false
+OverExposurePercentsEntry=1
+PGFCompression=3
+PGFLossLess=true
+PNGCompression=9
+PreviewMode=128
+Show Thumbbar=false
+ShowImageSettingsDialog=true
+SixteenBitsImage=false
+SlideScreen=-2
+SlideShowDelay=5
+SlideShowLoop=false
+SlideShowPrintApertureFocal=false
+SlideShowPrintCapIfNoTitle=false
+SlideShowPrintComment=false
+SlideShowPrintDate=false
+SlideShowPrintExpoSensitivity=false
+SlideShowPrintLabels=false
+SlideShowPrintMakeModel=false
+SlideShowPrintName=true
+SlideShowPrintRating=false
+SlideShowPrintTags=false
+SlideShowPrintTitle=false
+SlideShowProgressIndicator=true
+SlideShowStartCurrent=false
+SplitterState=AAAA/wAAAAEAAAACAAAF8wAAAWsB/////wAAAAABAQ==
+State=AAAA/wAAAAD9AAAAAAAAB4AAAAOGAAAABAAAAAQAAAAIAAAACPwAAAABAAAAAgAAAAEAAAAWAG0AYQBpAG4AVABvAG8AbABCAGEAcgEAAAAA/////wAAAAAAAAAA
+TIFFCompression=false
+ToolBarsMovable=Disabled
+Unclip Color=0
+UnderExposureColor=255,255,255
+UnderExposureIndicator=false
+UnderExposurePercentsEntry=1
+Use Black Point=false
+Use White Point=false
+UseRawImportTool=false
+UseThemeBackgroundColor=true
+White Balance=1
+White Point=0
+Width 1920=1920
+Window-Maximized 1080x1920=true
+caBlueMultiplier=0
+caRedMultiplier=0
+corrections Expanded=false
+demosaicing Expanded=true
+whitebalance Expanded=true
+
+[ImageViewer Settings][Right Sidebar]
+ActiveTab=2
+DigikamProperties Expanded=true
+FileProperties Expanded=true
+ItemProperties Expanded=true
+Minimized=false
+PhotographProperties Expanded=true
+RestoreSize=-1
+VideoProperties Expanded=true
+
+[ImageViewer Settings][Right Sidebar][Captions Tags Properties Tab]
+Contact Expanded=true
+ImageDescEdit Tab=0
+ImageDescEditTab CaptionsLang=
+ImageDescEditTab SearchBarCaseSensitive=0
+ImageDescEditTab TagCheckViewCurrentIndex=
+ImageDescEditTab TagCheckViewExpansion=0
+ImageDescEditTab TagCheckViewRestoreChecked=false
+ImageDescEditTab TagCheckViewSelection=
+ImageDescEditTab TagCheckViewSortColumn=0
+ImageDescEditTab TagCheckViewSortOrder=0
+ImageDescEditTab TagCheckViewToggle Auto Tags=0
+ImageDescEditTab TitleLang=
+ItemDescEdit Tab=0
+ItemDescEditTab CaptionsLang=
+ItemDescEditTab SearchBarCaseSensitive=0
+ItemDescEditTab TagCheckViewCurrentIndex=
+ItemDescEditTab TagCheckViewExpansion=0
+ItemDescEditTab TagCheckViewRestoreChecked=false
+ItemDescEditTab TagCheckViewSelection=
+ItemDescEditTab TagCheckViewSortColumn=0
+ItemDescEditTab TagCheckViewSortOrder=0
+ItemDescEditTab TagCheckViewToggle Auto Tags=0
+ItemDescEditTab TitleLang=
+Location Expanded=true
+Rights Expanded=true
+Subjects Expanded=true
+
+[ImageViewer Settings][Right Sidebar][Color Properties Tab]
+Current ICC Item=
+Histogram Channel=0
+Histogram Scale=1
+ICC Level=2
+ImagePropertiesColors Tab=0
+
+[ImageViewer Settings][Right Sidebar][GPS Properties Tab]
+Sort Order=0
+Web GPS Locator=0
+
+[ImageViewer Settings][Right Sidebar][GPS Properties Tab][Map Widget]
+Backend=marble
+Center=geo:52,6
+GoogleMaps Map Type=ROADMAP
+GoogleMaps Show Map Type Control=true
+GoogleMaps Show Navigation Control=true
+GoogleMaps Show Scale Control=true
+Marble Map Theme=atlas
+Marble Projection=spherical
+Marble Show Compass=false
+Marble Show Navigation=false
+Marble Show Overview Map=false
+Marble Show Scale Bar=false
+Marker Grouping Radius=1
+Mouse Mode=0
+Preview Grouped Items=true
+Preview Single Items=true
+Show Thumbnails=true
+Show numbers on items=true
+Sticky Mode State=false
+Thumbnail Grouping Radius=30
+Thumbnail Size=60
+Zoom=marble:900
+
+[ImageViewer Settings][Right Sidebar][Metadata Properties Tab]
+Current EXIF Item=
+Current IPTC Item=
+Current MAKERNOTE Item=
+Current XMP Item=
+EXIF Level=2
+IPTC Level=2
+ImagePropertiesMetaData Tab=0
+MAKERNOTE Level=2
+XMP Level=2
+
+[ImageViewer Settings][Right Sidebar][Version Properties Tab]
+Version Properties Tab=versions
+Version Properties View Mode=2
+
+[ImageViewer Thumbbar]
+Height 1080=902
+State=AAAA/wAAAAD9AAAAAQAAAAAAAAEEAAABePwCAAAAAfsAAAAeAGUAZABpAHQAbwByAF8AdABoAHUAbQBiAGIAYQByAAAAAAAAAAF4AAAAZgEAAAMAAAJfAAABeAAAAAQAAAAEAAAACAAAAAj8AAAAAA==
+ToolBarsMovable=Disabled
+Width 1920=1523
+eDP1 Height 1080=902
+eDP1 Width 1920=1523
+
+[Import Filters]
+CurrentFilter=0
+Filter0=All Files|false|||
+Filter1=Only New Files|true|||
+Filter2=Raw Files|false|||image/x-nikon-nef;image/x-fuji-raf;image/x-adobe-dng;image/x-panasonic-raw;image/x-olympus-orf;image/x-kodak-dcr;image/x-kodak-k25;image/x-sony-arw;image/x-minolta-mrw;image/x-kodak-kdc;image/x-sigma-x3f;image/x-sony-srf;image/x-pentax-pef;image/x-panasonic-raw2;image/x-canon-crw;image/x-sony-sr2;image/x-canon-cr2
+Filter3=JPG/TIFF Files|false|||image/jpeg;image/tiff
+Filter4=Video Files|false|||video/quicktime;video/mp4;video/x-msvideo;video/mpeg
+IgnoreExtensions=dsp dps
+IgnoreNames=mgr_data pgr_mgr
+
+[Import MainWindow]
+SplitterState=AAAA/wAAAAEAAAABAAABeQH/////AAAAAAEB
+ThumbbarState=AAAA/wAAAAD9AAAAAQAAAAIAAAIwAAABLfwBAAAAAfsAAAAeAGkAbQBwAG8AcgB0AF8AdABoAHUAbQBiAGIAYQByAAAAAAAAAAIwAAAAaQEAAAMAAAXyAAADogAAAAQAAAAEAAAACAAAAAj8AAAAAA==
+
+[Import Settings]
+Default Icon Size=128
+Icon Show Coordinates=false
+Icon Show Date=true
+Icon Show Image Format=false
+Icon Show Name=true
+Icon Show Overlays=true
+Icon Show Rating=true
+Icon Show Size=false
+Icon Show Tags=true
+Icon Show Title=true
+IconView Font=Noto Sans,9,-1,5,50,0,0,0,0,0
+Image Separation Mode=1
+Image Sort Order=0
+Image Sorting=0
+Item Left Click Action=0
+Preview Each Item While Downloading it=false
+Preview Load Full Image Size=false
+Preview Show Icons=true
+Show Thumbbar=true
+Show ToolTips=false
+ToolTips Font=Noto Sans,9,-1,5,50,0,0,0,0,0
+ToolTips Show File Date=false
+ToolTips Show File Name=true
+ToolTips Show File Size=false
+ToolTips Show Folder Name=false
+ToolTips Show Image Dim=true
+ToolTips Show Image Type=false
+ToolTips Show Label Rating=true
+ToolTips Show Photo Expo=true
+ToolTips Show Photo Flash=false
+ToolTips Show Photo Focal=true
+ToolTips Show Photo Lens=true
+ToolTips Show Photo Make=true
+ToolTips Show Photo WB=false
+ToolTips Show Tags=true
+
+[ItemIconViewFaceTagFilterSearchBar Search Text Tool]
+CaseSensitive=0
+
+[ItemIconViewFaceTagFilterView]
+CurrentIndex=
+Expansion=
+RestoreChecked=false
+Selection=
+SortColumn=0
+SortOrder=0
+Toggle Auto Tags=0
+
+[ItemIconViewFolderSearchBar Search Text Tool]
+CaseSensitive=0
+
+[ItemIconViewPeopleSearchBar Search Text Tool]
+CaseSensitive=0
+
+[ItemIconViewSearchSearchBar Search Text Tool]
+CaseSensitive=0
+
+[ItemIconViewTagFilterSearchBar Search Text Tool]
+CaseSensitive=0
+
+[ItemIconViewTagFilterView]
+CurrentIndex=
+Expansion=
+RestoreChecked=false
+Selection=
+SortColumn=0
+SortOrder=0
+Toggle Auto Tags=0
+
+[ItemIconViewTagSearchBar Search Text Tool]
+CaseSensitive=0
+
+[Labels Sidebar]
+ColorSelection=
+Expansion=
+PickSelection=
+RatingSelection=
+
+[LightTable Settings]
+Auto Load Right Panel=true
+Auto Sync Preview=true
+Clear On Close=false
+FullScreen Hide SideBars=false
+FullScreen Hide ToolBars=false
+Horizontal Splitter State=AAAA/wAAAAEAAAADAAABawAABdIAAAFrAf////8AAAAAAQE=
+Navigate By Pair=false
+Show Thumbbar=true
+State=AAAA/wAAAAD9AAAAAAAAB4AAAAOGAAAABAAAAAQAAAAIAAAACPwAAAABAAAAAgAAAAEAAAAWAG0AYQBpAG4AVABvAG8AbABCAGEAcgEAAAAA/////wAAAAAAAAAA
+ToolBarsMovable=Disabled
+Window-Maximized 1080x1920=true
+
+[LightTable Settings][Left Sidebar]
+ActiveTab=0
+DigikamProperties Expanded=true
+FileProperties Expanded=true
+ItemProperties Expanded=true
+Minimized=false
+PhotographProperties Expanded=true
+RestoreSize=-1
+VideoProperties Expanded=true
+
+[LightTable Settings][Left Sidebar][Captions Tags Properties Tab]
+Contact Expanded=true
+ImageDescEdit Tab=0
+ImageDescEditTab CaptionsLang=
+ImageDescEditTab SearchBarCaseSensitive=0
+ImageDescEditTab TagCheckViewCurrentIndex=
+ImageDescEditTab TagCheckViewExpansion=0
+ImageDescEditTab TagCheckViewRestoreChecked=false
+ImageDescEditTab TagCheckViewSelection=
+ImageDescEditTab TagCheckViewSortColumn=0
+ImageDescEditTab TagCheckViewSortOrder=0
+ImageDescEditTab TagCheckViewToggle Auto Tags=0
+ImageDescEditTab TitleLang=
+ItemDescEdit Tab=0
+ItemDescEditTab CaptionsLang=
+ItemDescEditTab SearchBarCaseSensitive=0
+ItemDescEditTab TagCheckViewCurrentIndex=
+ItemDescEditTab TagCheckViewExpansion=0
+ItemDescEditTab TagCheckViewRestoreChecked=false
+ItemDescEditTab TagCheckViewSelection=
+ItemDescEditTab TagCheckViewSortColumn=0
+ItemDescEditTab TagCheckViewSortOrder=0
+ItemDescEditTab TagCheckViewToggle Auto Tags=0
+ItemDescEditTab TitleLang=
+Location Expanded=true
+Rights Expanded=true
+Subjects Expanded=true
+
+[LightTable Settings][Left Sidebar][Color Properties Tab]
+Current ICC Item=
+Histogram Channel=0
+Histogram Scale=1
+ICC Level=2
+ImagePropertiesColors Tab=0
+
+[LightTable Settings][Left Sidebar][GPS Properties Tab]
+Sort Order=0
+Web GPS Locator=0
+
+[LightTable Settings][Left Sidebar][GPS Properties Tab][Map Widget]
+Backend=marble
+Center=geo:52,6
+GoogleMaps Map Type=ROADMAP
+GoogleMaps Show Map Type Control=true
+GoogleMaps Show Navigation Control=true
+GoogleMaps Show Scale Control=true
+Marble Map Theme=atlas
+Marble Projection=spherical
+Marble Show Compass=false
+Marble Show Navigation=false
+Marble Show Overview Map=false
+Marble Show Scale Bar=false
+Marker Grouping Radius=1
+Mouse Mode=0
+Preview Grouped Items=true
+Preview Single Items=true
+Show Thumbnails=true
+Show numbers on items=true
+Sticky Mode State=false
+Thumbnail Grouping Radius=30
+Thumbnail Size=60
+Zoom=marble:900
+
+[LightTable Settings][Left Sidebar][Metadata Properties Tab]
+Current EXIF Item=
+Current IPTC Item=
+Current MAKERNOTE Item=
+Current XMP Item=
+EXIF Level=2
+IPTC Level=2
+ImagePropertiesMetaData Tab=0
+MAKERNOTE Level=2
+XMP Level=2
+
+[LightTable Settings][Left Sidebar][Version Properties Tab]
+Version Properties Tab=versions
+Version Properties View Mode=2
+
+[LightTable Settings][Right Sidebar]
+ActiveTab=2
+DigikamProperties Expanded=true
+FileProperties Expanded=true
+ItemProperties Expanded=true
+Minimized=false
+PhotographProperties Expanded=true
+RestoreSize=-1
+VideoProperties Expanded=true
+
+[LightTable Settings][Right Sidebar][Captions Tags Properties Tab]
+Contact Expanded=true
+ImageDescEdit Tab=0
+ImageDescEditTab CaptionsLang=
+ImageDescEditTab SearchBarCaseSensitive=0
+ImageDescEditTab TagCheckViewCurrentIndex=
+ImageDescEditTab TagCheckViewExpansion=0
+ImageDescEditTab TagCheckViewRestoreChecked=false
+ImageDescEditTab TagCheckViewSelection=
+ImageDescEditTab TagCheckViewSortColumn=0
+ImageDescEditTab TagCheckViewSortOrder=0
+ImageDescEditTab TagCheckViewToggle Auto Tags=0
+ImageDescEditTab TitleLang=
+ItemDescEdit Tab=0
+ItemDescEditTab CaptionsLang=
+ItemDescEditTab SearchBarCaseSensitive=0
+ItemDescEditTab TagCheckViewCurrentIndex=
+ItemDescEditTab TagCheckViewExpansion=0
+ItemDescEditTab TagCheckViewRestoreChecked=false
+ItemDescEditTab TagCheckViewSelection=
+ItemDescEditTab TagCheckViewSortColumn=0
+ItemDescEditTab TagCheckViewSortOrder=0
+ItemDescEditTab TagCheckViewToggle Auto Tags=0
+ItemDescEditTab TitleLang=
+Location Expanded=true
+Rights Expanded=true
+Subjects Expanded=true
+
+[LightTable Settings][Right Sidebar][Color Properties Tab]
+Current ICC Item=
+Histogram Channel=0
+Histogram Scale=1
+ICC Level=2
+ImagePropertiesColors Tab=0
+
+[LightTable Settings][Right Sidebar][GPS Properties Tab]
+Sort Order=0
+Web GPS Locator=0
+
+[LightTable Settings][Right Sidebar][GPS Properties Tab][Map Widget]
+Backend=marble
+Center=geo:52,6
+GoogleMaps Map Type=ROADMAP
+GoogleMaps Show Map Type Control=true
+GoogleMaps Show Navigation Control=true
+GoogleMaps Show Scale Control=true
+Marble Map Theme=atlas
+Marble Projection=spherical
+Marble Show Compass=false
+Marble Show Navigation=false
+Marble Show Overview Map=false
+Marble Show Scale Bar=false
+Marker Grouping Radius=1
+Mouse Mode=0
+Preview Grouped Items=true
+Preview Single Items=true
+Show Thumbnails=true
+Show numbers on items=true
+Sticky Mode State=false
+Thumbnail Grouping Radius=30
+Thumbnail Size=60
+Zoom=marble:900
+
+[LightTable Settings][Right Sidebar][Metadata Properties Tab]
+Current EXIF Item=
+Current IPTC Item=
+Current MAKERNOTE Item=
+Current XMP Item=
+EXIF Level=2
+IPTC Level=2
+ImagePropertiesMetaData Tab=0
+MAKERNOTE Level=2
+XMP Level=2
+
+[LightTable Settings][Right Sidebar][Version Properties Tab]
+Version Properties Tab=versions
+Version Properties View Mode=2
+
+[LightTable Thumbbar]
+Height 1080=902
+State=AAAA/wAAAAD9AAAAAQAAAAIAAARmAAABDvwBAAAAAfsAAAAmAGwAaQBnAGgAdAB0AGEAYgBsAGUAXwB0AGgAdQBtAGIAYgBhAHIAAAAAAAAABGYAAABpAQAAAwAABGYAAAJ3AAAABAAAAAQAAAAIAAAACPwAAAAA
+ToolBarsMovable=Disabled
+Width 1920=1126
+eDP1 Height 1080=902
+eDP1 Width 1920=1126
+eDP1 XPosition=0
+eDP1 YPosition=0
+
+[MainWindow]
+InitialAlbumID=189
+SplitterState=AAAA/wAAAAEAAAADAAACrQAABJAAAAFrAf////8AAAAAAQE=
+ThumbbarState=AAAA/wAAAAD9AAAAAQAAAAIAAAOrAAAAxPwBAAAAAfsAAAAmAG0AYQBpAG4AdwBpAG4AZABvAHcAXwB0AGgAdQBtAGIAYgBhAHIAAAAAAAAAA6sAAABpAQAAAwAAA6YAAAOiAAAABAAAAAQAAAAIAAAACPwAAAAA
+
+[Metadata Settings]
+Clear Metadata If Rescan=false
+Custom Sidecar Extensions=
+EXIF Rotate=true
+EXIF Set Orientation=true
+Metadata Writing Mode=0
+Rescan File If Modified=false
+Rotate By Internal Flag=true
+Rotate By Metadata Flag=true
+Rotate Contents Lossless=true
+Rotate Contents Lossy=false
+Save Color Label=true
+Save Date Time=true
+Save EXIF Comments=true
+Save FaceTags=false
+Save Pick Label=true
+Save Rating=true
+Save Tags=true
+Save Template=true
+Update File Timestamp=true
+Use Lazy Synchronization=false
+Use XMP Sidecar For Reading=false
+Write Metadata To RAW Files=false
+Write RAW Files=false
+
+[MetadataSelectorView Search Text Tool]
+CaseSensitive=0
+
+[People Sidebar]
+CurrentIndex=
+Expansion=
+RestoreChecked=false
+Selection=
+SortColumn=0
+SortOrder=0
+
+[PluginsSearchBar Search Text Tool]
+CaseSensitive=0
+
+[Search Sidebar]
+CurrentIndex=
+Expansion=
+RestoreChecked=false
+Selection=
+SortColumn=0
+SortOrder=0
+
+[SearchBar Search Text Tool]
+CaseSensitive=0
+
+[Setup Dialog]
+Height 1080=598
+Setup Page=5
+Template Tab=3
+Width 1920=794
+
+[Sketch Search View]
+AlbumComboBox-Checked=
+AlbumComboBox-CurrentIndex=
+AlbumComboBox-Expansion=1
+AlbumComboBox-RestoreChecked=true
+AlbumComboBox-Selection=
+AlbumComboBox-SortColumn=0
+AlbumComboBox-SortOrder=0
+UseWholeAlbumsEntry=true
+
+[TagFilter Sidebar]
+FaceTagsFilter Expanded=true
+LabelsFilter Expanded=true
+Matching Condition=0
+Search Text Filter Fields=127
+Show Untagged=false
+Show Without Face=false
+TagsFilter Expanded=true
+TextFilter Expanded=true
+TypeGeolocationFilter Expanded=true
+TypeMimeFilter Expanded=true
+
+[TagView Sidebar]
+CurrentIndex=
+Expansion=0
+RestoreChecked=false
+Selection=
+SortColumn=0
+SortOrder=0
+TagsSource=false
+
+[TimeLine Sidebar]
+CurrentIndex=
+Cursor Position=2018,10,1,0,0,0
+Expansion=
+Histogram Scale=0
+Histogram TimeUnit=2
+RestoreChecked=false
+Selection=
+SortColumn=0
+SortOrder=0
+
+[TimeLineViewSearchDateBar Search Text Tool]
+CaseSensitive=0
+
+[Versioning Settings]
+Auto-Save When Closing Editor=false
+Non-Destructive Editing Enabled=true
+Save Intermediate After Each Session=false
+Save Intermediate After Raw Conversion=false
+Save Intermediate When Not Reproducible=false
+Saving Format for Versions=JPG
+Show Intermediates in View=false
+Show Original in View=false
+
+[autocorrection Tool]
+Auto Correction Filter=1
+Histogram Channel=0
+Histogram Scale=1
+
+[import_mapwidgetview]
+Sort Order=0
+
+[import_mapwidgetview][Central Map Widget]
+Backend=marble
+Center=geo:52,6
+GoogleMaps Map Type=ROADMAP
+GoogleMaps Show Map Type Control=true
+GoogleMaps Show Navigation Control=true
+GoogleMaps Show Scale Control=true
+Marble Map Theme=atlas
+Marble Projection=spherical
+Marble Show Compass=false
+Marble Show Navigation=false
+Marble Show Overview Map=false
+Marble Show Scale Bar=false
+Marker Grouping Radius=1
+Mouse Mode=0
+Preview Grouped Items=true
+Preview Single Items=true
+Show Thumbnails=true
+Show numbers on items=true
+Thumbnail Grouping Radius=30
+Thumbnail Size=60
+Zoom=marble:900
+
+[mainwindow_mapwidgetview]
+Sort Order=0
+
+[mainwindow_mapwidgetview][Central Map Widget]
+Backend=marble
+Center=geo:52,6
+GoogleMaps Map Type=ROADMAP
+GoogleMaps Show Map Type Control=true
+GoogleMaps Show Navigation Control=true
+GoogleMaps Show Scale Control=true
+Marble Map Theme=atlas
+Marble Projection=spherical
+Marble Show Compass=false
+Marble Show Navigation=false
+Marble Show Overview Map=false
+Marble Show Scale Bar=false
+Marker Grouping Radius=1
+Mouse Mode=0
+Preview Grouped Items=true
+Preview Single Items=true
+Show Thumbnails=true
+Show numbers on items=true
+Thumbnail Grouping Radius=30
+Thumbnail Size=60
+Zoom=marble:900
+
+[mainwindow_tableview]
+Grouping mode=2
+
+[mainwindow_tableview][Current Profile]
+Column Count=5
+Header State=\x00\x00\x00\xff\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x05\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\xf4\x00\x00\x00\x05\x01\x01\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00d\xff\xff\xff\xff\x00\x00\x00\x81\x00\x00\x00\x00\x00\x00\x00\x05\x00\x00\x00d\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00d\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00d\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00d\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00d\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x03\xe8\x00\x00\x00\x00d
+Profile Name=
+
+[mainwindow_tableview][Current Profile][Column 0]
+Column Id=thumbnail
+NSettings=0
+
+[mainwindow_tableview][Current Profile][Column 1]
+Column Id=filename
+NSettings=0
+
+[mainwindow_tableview][Current Profile][Column 2]
+Column Id=digikam-rating
+NSettings=0
+
+[mainwindow_tableview][Current Profile][Column 3]
+Column Id=itemcreationdatetime
+NSettings=0
+
+[mainwindow_tableview][Current Profile][Column 4]
+Column Id=digikam-title
+NSettings=0
+#+end_src
+
+* gmsh :full:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./gmsh/.gmsh-options
+:END:
+#+begin_src conf
+// Gmsh Option File
+//
+// This file contains configuration options (preferences) that
+// are loaded each time Gmsh is launched. You can create this
+// file by hand, or let Gmsh generate it for you (with
+// 'File->Save Default Options'). This file can also be
+// automatically saved every time you quit Gmsh if the option
+// 'General.SaveOptions' is set.
+//
+General.BoundingBoxSize = 120.3897022174239; // Overall bounding box size (read-only)
+General.ColorScheme = 3;
+Geometry.Surfaces = 1;
+Geometry.SurfaceNumbers = 1;
+View.ShowElement = 1; // Show element boundaries?
+View.ShowScale = 0; // Show value scale?
+Print.EpsPS3Shading = 1; // Enable PostScript Level 3 shading
+#+end_src
+* mail :full:
+** mailrc :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./mail/.mailrc
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VARAAmVP6jisWGm9WyyiXHj8/fkCpmCBtwE0he0ane2Q+wBDu
+90YprvghlPbA9gctOUmDA/9bkTLXPQALnzFgISDUn7+CHOYX+mQROfesLaQqHyLp
+GlqtSFczaRd/rAQp9SHo4I7JbRMJgQpTU1lb10Gb63nA/QJ0zOLICvsaXd1SIt4u
+MlWNW9mLjj5wmrcvntrRDwxrhjMkiAOxU802rxyh4uE9sh1o76T9b2OzzsIt37Vz
+lYuOqkW8mMb1kbLUpk2Li8d9s+I5O3YBgzdYuQTLSlcJZZeW9W+nCuTJYhpz6AQH
+77CPEVSfCRwATb95gvtqr+fxd9kEqnq2WGPhxXMljDGJFcUPNMmZ+6Mc98Kc372h
+WREQCOt3CtTNlH7e9u0tYh7JbS5/aKeh64axKfToJK2LREO27RqNj8k4/iN5qER/
+sMcf3vxXZhNS6A3mkXDbySC9Swt5DCOSZGTNU8xlmx22T9V7maXI0rIsaripLZM4
+XWJXPUtc7PbTf/Lgnj0sWTGVDoRy3MLlh1F0voYrgPWGyT5PaTwnF1m26iiFOvv6
++PUAdiK1/N/WDsZk48ip6Fg7ifLfScYMXcgtNPisPHpBIoA4xuC/KFJxRzHP0Lsm
+HkDegsWKkZQIVHt1BPrGo6MgSgwi5N/ht0yogxQHHEr5eFee2W9P7vFdJnVrcfHS
+iwGiskEVZn+JhTLLAi7Bipuf1/1z6pbXOZmwY9ZtDXNYeFfpDiAqBUonWIRtL3KI
+iLyg0d3fDoFbXfutjM0hS/89GZLdWVDVgd0k9qx1c+ytnC/f/IA4P8NeqUKgsaqQ
+gVm1vcvba6jsTRD4Wu06UP5AMRPo9Tv14QM/ZXJdjzcoJYPYX0Te+oiq/kE=
+=89fO
+-----END PGP MESSAGE-----
+** mbsync :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./mbsync/.mbsyncrc
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ//cbelAflX4yIf0sD1nQG24Ei/YlkLCTrGJjmuCMvIUiyo
+nIxvQ3cIcQCibGEL0gRViermt3klOaABa5vxLQ3XB7MAPLB9G8ALiD7CUfdBCfm6
+rfEEI3t5n3UIQ4SfJALbZcp0XScYRV9q61aYNFXZsWRjFvoJCpgjvWQ0T79JRN+1
+T1jwwHC4K9/bqGiaoBLCxSPikJXIO0D/XItlO00rDQ/4HUusTDR9bJhWLj8L9ISN
+zp9gNhjvVAyVFZpRsvjHOYyBz38OAzLrWCVWpmdBXOEgFso5CTCSzhWHHhcatf6+
+lCcDkquHECVLM5u1pPgQxAAwwuXGBcpB40Qkr4TIshS+wpd0DzPV/pI9YiA+g9nF
+NQVfS8N5861RX9li9J7iwG67grbIwZ1V9gqSK5eJ091VXFMUl0NvgLNcnB7xRdf8
+rYsdw99o1HbE2LAksh6DzGaTK4QAC/E2eKPSNn1fpOMKk4r7cuPqdUtWvIkaDge+
+w2zXYT+oIyUCyvodYHeXIHK8IUaHKc8xKFCjU9LIC3f2Oqur8+2bWTWXG4lj28hQ
+OZWQmWdD8Os7j0GmeRUN9bpJlqIVLMzVIf1CBt6gsqOGrgsbylGHI2K0vkb0p65L
+ms/FpHzDQVyS3Oo8JaRhMtBeRnJ+RQd1WusE8fHthX6RMTZVlMN0NpNS4rvFWFzS
+6QFGEhq6j4kb+KGc8eLa4lmjae71rfuWeWcYOLfkdWCCwT1k2lK2PCYfh1Y4JOYz
+EBQ2OcjFWPwallChfK6uP87C/afParRO6ZvhzTBjPrz2sYj2vyScwCYVt6gVeO08
+FWBT2X2OYWxF/1WvrL4jxgwZvkA++INrfHTP0ng2jA1JmIXvHYsK4upBvJS4MFVK
+xq/lsFjp5x7xGduj4b2M3VG47wodxnNtB/1s2yrbFIMrAQr6IKiDrkXGk9Y9zgHS
+Go0Dn/2ndw61lAV8lTNi1oj64lHkxMU8XYOyJbGEGMnGZxgRs/fdkTc162hcGK3R
+0zEeuXlyEklzK8CR08Eu94aJrk7cYxz7EHNGiLM2j6esLdORIz9kA5C1r3VPTUPS
+rOIKEaAfsY4L71guOnSvxwIwQbKK2/ND9Tbf3SAsKARagj0vX2iaXPChQKw2e0DR
+ReZBbhiGRJXT+hv01r3AZMFfdgKWjOJN6Sd+6DdkHOxYDQzOxBCdDJfPi8VCreNF
+i76xnZ3RJo/FcmERjubqt4u1w6ISX8+82XPoR7uDMGNSzrP348LnRcBdgidFtsl/
+d+COiWXI0RDvrT0DdnEyrV3aGGJoRKLSq9Rt8VrFf8uq0t1gqSomZ6pVDrxNYpJK
+1anGRix72S7put32JHbCqYPkZjAHgMdkvpZEQtX0OSiIjeZA25Ijf/js9YCgBAlp
+m4WnT4oTSOru6iRBQfh0b8sbf2z1G6uLOfukg+w5dG1MjVDkjlIUPHx0LDsVHWLl
+UhAn50NlgtvRReDxXkdTE07mRwACskgsFEbJQWkrTXLFKj6eZoIi+i/Mw7JH6O1P
+eCLqXLQ+EbXWjAlNYlcNEKXh2XYUwr9pk2LmrlccQA==
+=hVT7
+-----END PGP MESSAGE-----
+* nextcloud :full:crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./nextcloud/.config/Nextcloud/nextcloud.cfg
+:END:
+
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ/+POfybBeUw4fM+W3+fVmB2SoXyI8JRh+6DSxagxg8B5m6
+UrQaEnhuy6pyPT7T4NSr1ZD6jNefsrXLitLccdE0AbwIhA0FJFkEuszWPo1yE0QX
+oueC75Cm2OZ14GX3ooucyvdhFtoIy65VCgj+TfpCpZud7Zg3ey9CsPLJfpBpBjGW
+dVd5Fodiz8BlBwsAVrAB8g2Hkxy4/PGmtU8rCayfWV43NY+pEeXDvO1Jh1Tr5T57
+Nxk1wVwHvGPEzbuOD6xoKOPFLCcjlALmFaW7cTm1xr8MRLa04uhoLcAqL0CIzi+N
+KwYGMwQDTdD1TZ6eYUOVbep7RBhW9VaOQuzuUaWHF8zqhB5bXVGFKgmP3d1SZTd9
+sukFMtgIa4+p9KRNvLLXgmlQbitP+M/QIUbMxLa+wQNEAhB877dVdfSUfsELR3Ye
+zDnBaiPkyqJ4sXe6UNZfpmjQu6ela7yYEiR7wax/2HCpEwBQDqzwzomXMxEClhQu
+wufWH94VuAk8ASscgOOoWO1+m3ky3C9PPtTMNf/n3XSACeIncB7GRjUkprdYfevs
+JA+3uqaKLTnhVRGCiUoCgCARFHkShbxludRzEgkOApJNZ/j8kjRE0Gpcsj3ELw8k
+9NNrnBvx20N/5R88y0v2+MuOIuoNmbRdw6Iv9jhEjHiGYMtEwxtfRTXwKWyEWP3S
+6gGXKBCTuMgNOQErxlwhQWdZ6t0vPFhoul9HzkYbCYmsVDsMOkGgqJlqwFQeRubW
+NQQbdumDZ1fnB1LG1mDP4jw38qyiVqnUCZabDXsUgzx2TdHUTy/nZKvFQyTq9MTf
+azttEFJQqPbyne1rRdkP4rTInepqI1W/wYFRkSUrQwogxfPJUh3SB4IH0JLy7LbY
+/VpeY3SCdmdaPUt/vza91vI4dzvSJZZfUFJc6VowT/TCPdw4y5sNRmrRRpOHNTiu
+XUEBeAuMyf7BXS33VDchnrMkSCiW8ztjr7Mgyn6lDzyhvb5dTn3aNHDLzAwJ72+L
+E0Z6hBvxwEQoNJVfSZBlN6Gtt1fQqgTjLlXrQFyxnNv/A0r5DhPVrjWsV4WBYPVa
+olCDpLi5bU3eLNYZa4f+cJ4Ukmg3En7HTG0yMq2O8skCmJUU7TUYKdbMKq5a/0Qh
++qCBygAxNjvJCtECBzBwSoAHfC2Qi0iaQlJxuYMp3LLbSjW7EsPHD1WIcAx3o9K2
++sBexGWxlr+YysU3IhvlWpNKCytAy4om8ILRCyP1rCdENGR4TO4ODd3VWIVztyUy
+TwKw5Ex652dyECUmsc8NcbV1X8YWx8HeV9ZUzbaKnko1J9t6BY4NRDZjUAVPy52E
+twHlYeOTWxbQ8cvt8XkY8cimklqyhP+pnJDKWF6khygliuYfEKLgM44Wiv/YsoI9
+NWOhvuSeI3A+hFHdEVSnEggfXfQ9bs9MzHILt5HAdV1XdQ3IBTU8NfcFbcba1TM/
+zKocT2oqrQHB+Mpyj3iigvHobDM9bl6yl6xBjQRjhUuTaE3lDiGVsAO9WXP9eY3n
+/KyHyoAGZWkknXKGugxA2f2POgnOqUsOh8vB1WMGK8FjMTk833TioVHHsoCG63TM
+Hk/LD1clrPjf3gZUfPGxT0uobO6CyzUbqHe2l3I4s2eIencokKFhEjQLICZp7MWp
+HFnjslDvb1mNX4tW1cfPvrVlIq6Nl6TDwpjRd+uxURAwOKPRZToEUFh+5QQ46aNe
+66EDz747bXxdR6A+VlHI27dMdya9ijy3eO1Rm63q3tSlrR567QqZG+/AMJIrPwkM
+7nvHnp6JaDGbU+Jne0xfPWPnE4vGAhrE3Nul2JyO59hklgrQMuhGJSGfM+hYjAh5
+TcK0A5wZogjknAmiI+MkVmx2HlL/c/5ERyRzcjc2P1BCG8Vm+7QQ6dE26G5XRJ79
+IztJqGaMzwbkEl95F7cl0M57OBKwmhJNqvV2ueD1vzoNXBMMKi1TTuWTZe9DvJxO
+AUnyGdPZEdveZiPo2SGFR/9uawRyCLlfK3a5158v174tDTSUz0Cn6l4DFfO/xjtF
+oCrpwyeR4sdizvlttAlXAP9JYt7ifZTxTB4lZY0mtBkwPkz/RfTTdXUpTq6jUCps
+65n3zb7PXUhJb5MoaJtTCI/rVRax9khx2SO1n5ulbBuWJ3MJHO9s2vmRYA==
+=W7F5
+-----END PGP MESSAGE-----
+* ssh :full:
+** config :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./ssh/.ssh/config
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ/9HwnYn7qbF8GfC4FX7TrLhBmWNtKbVPwZgMBB95vPqfB5
+lYY2p7yuEhFP263KM8AYE9YtkU0KYDv1iGRz8hJ2eUh/r6+vRGSMPMlyfkHrtnHP
+AQHqCS0ouoDM/wQ5hGtX7FVC9at3WF3nIHzvbhQ6BIZj5oCRicHQlpsevDO2lym0
+RrQ+xfBSZG9B8aq2fBlGmNsQbgUO0m175qpTrj9Y6WII2/Ted8QQE4hF6sqc0ShI
+6+O2o8VRxMiZVrmu7jd87VCxFdii/QvJpv2ClFqnLIcq7qtrMoxAjwah5cW8opsD
+ipH6NDHzdpQw5PK8YORGSuwIh1gMYUZXGvNSAOnTLPL9AoUzhuThGhlvULZ6dmoR
+mHMs8uMXsBRjqWzG4Dvz+p51Dqgmwh4XK/qhFt1+Or0GwQa4vsYTa0DJeyARnVSp
+WwfZXRgWSV7c7W2rCj91aWUtcsBGnhBxyOBzKlsRXh54UnaXVA1WVf0JYvq4DsiO
+wDPmqjdKYik7wPuPEO94Qxbbr3RGe6tHTm5/Bh+GStCIIMUoJYesRxQGQ9sJXtWL
+KuOb3qmiB+cWrFaOnPeHnR6nI+rKETzDF+sJvQdf1E3Mot+E0+METGGKJ3tULvKt
+8Nv7C4IeleMqxG+KAzH0BrD/AlcHomXsqGDbYAVGZQE5VdNuYqspF8jAdno89unS
+6QF74ULsrlCH21uAGWmAo6gJQoRHtsqdTVyjPDOtenTdr80XCZYR53RkUbayr47z
+AMxDmXjm+yNAa84GhMoWFsDx3ZrGcTv25xHBFbWgu0sv+lFw5CmCcvUIyaESvCrA
+jZGDqDhns1ue39rcO4kTsGtsFAoNywW0jfpS3w3vxkIadbdCteZjyX7snAZ3EDc2
+NJEGjkBOWlCussxLHBUOImOY5TgbJQ0PCyJog7XX5YAOVoBwJVLHJYpjuI+lrUD6
+Iwsot0ooqJPIWVRXyxM2M14xfSmjWwD2i64TuflzeYAbadSjhOrXwB8D7qyh0n0D
+4ZH2ektIRcG8yH9f4Cix8Vv2FK6JZnjzs7mgpKxF6xAiE57sNJfeg5Xz+Ie+uFbq
+a16ny5BvjWe/Ov4Qwy1QYGUDibql6FpbYpHELeEV43W+QCeuMXjNWEUQHMqqe7Ht
+EP+cWjWOeshGJc+iW2YT/E2igk7xfczJro1tBZPdfmyurA6BNaZGSNgs6q5mIuWa
++yDVMPPDXxkrkqqChG5dgVh0Cem+r7+hrTOpDjiyk3iHlE6uxNqGQXHYofSE/wOO
+BmxqkDGm++3YcN2QuU5edcm+yp1fyJujOH7IlUTJgxx2FieclrYhx05+mNUlyyWM
+rJujC21Hb1cAOpD2kx2xkvho+ovoEI9gNkpcCD5ar1/wJb4p2en3KYVoKpAukKwu
+GImQeuFMs7vloFQPsodxI4S3a9eO+1Q=
+=EsLp
+-----END PGP MESSAGE-----
+** known_hosts :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./ssh/.ssh/known_hosts
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ/+MvEG3HNKbCeQoWL5xvxdXZrq7+fqRpgEW+jBRBS6+Z+9
+yI+ip9HKliHAGvwXAQXcIoCFER2uJuDC99XYJYuevmMcUMHUUycleX77x/ktW5V4
+/9VU3cgSjyIhp8RJHXv7YVMjLwYDGsVjwJZr96ElHuVQx4DpZ9dkUObsCRubdbhS
+aylWMklVUbWx3H9WBJ3Wjv0KdOn98nr6AA03jt6YlcbgQTgbhf2J59sVtVdFAKfM
+wK/72qZZIdhHr4s57g/vu7urD2OmsIuZt2QiwVrhu2J4FdQGmWdjrOpVQ6zWYK2N
+WY6BEDrLx3nB29ZJQ9lU61vyyRMpIPmht5Z/lP9f+HjYqTz52Lx4PvhYMZJHIn8/
+jhsCo8shYEl4ucyRf00u8DDxbtiURGwYCKbYRxJ1DGMz8pQ21sgRqVnlsXUhf4iq
+WY5vZegd0s1s/4uEVmNmmGLnc2XrV0vDHg8M/WEqcEEb4mtwbYR6efo0N65As8rd
+nPA1jKj2G4wjsU9t0dRmJ6jIfNqnIZdBuNFpCaa/Z8Jj/YNJwJtxcKZwqWuCmLHr
+5WnWa7B/RHpnh8ToNGibHPRv4a4X9MGWETbfafzaVXfeu98on6elyGqK5ry2if3m
+eYajbfaB93qS89M06E5enXAri6tZFJpuywslQz+uzybO8QGKpJlQ0Ofs+Ch3/aTS
+6wGJsPjeOZ+I2fPaji/UmgEBu8MMzfj65yYIjrdik//49Rp1j9LNshVUCWy0BuYs
+AWHBow2kgqWvy9TvmMJW6M+UWHwoKZQIBqDC/WMgPeB3WynKodbUvs85bIKyWzMj
+OmJvRTL+dDsXzVBGaGuKdgP0NEea6Mr4PclHY+SKH12wWlXVmFnCE0WOqHPGqmoQ
+1AP9nCVcS/P/zUEDK5bHdRSCvjGPs1etJC331344rxDtkZnE/uUlzt22gCyYdjDZ
+293attWT0Ar1RqvRBxdduU+DwIj5Pp/Uf4INRzUhprRJYparXmFJglmZHT6RITlX
+Vv5QNyNInR5sHc+Q7iJviNerssdhF8h/5D64VMZO9q6JZeyiiM/x/shtdxDPes8o
+a+w16a8+d4rclYD4cdwXbHY0LCWKxgvWZ7jSEmLsgPMSgFeEjThvlQa60HGxRrfw
+TelhRLV4dLTJMry5dcbIfXyveMbttzXzl8qYqcAKhfN01+nqsZA+i+65MHUVHabG
+u6fggFdFQ3im26ISFRZWBLlPfbNzas7jF833LaUbyeLXkwZYm8QE53yFVNglDkEc
+WY515wg55ZYJgmtW+VCUMEybKrKMV4pIN2pj2mF5f+NAOoRFHu97Oo/+3exc1KF6
+mon2vrWamqhX88vV3wMPsqQv2mq9WvE2v9TmPML5rLVkJiGQQDYXBWDKpbmjiRcX
+gjSp1Vwc0N5vV1v/0hHlsMm/F4IaOKq8Xr55g3SI74I5NFbbfnVKtTkvdjgHHxRl
+MO9q5EiVebU3zLb5jhvi0/A4IoIwe8fOCfuEETawpiSWN2fL4YQgbCAPNl42Co79
+r1DM3Jtfyvus33REqBnUJaZZjBXcDWMVGQvrUx/Ta4zY7qzg1ETSO/zWNZaBOOYp
+TXCr6Js9QkTzIwAOtETgOqP+PjyhlucDg84GE3YCHjEHCvG1QeCiqWlhOFMEWwJZ
+QrsSrIecKpNM9esgqs7/thw8CD1hrwYMU/BFRYGWfHozZHXiVSjiT9Md/CZ+3lH2
+yqk138loYmRppV8W2PsJE6pih9ABoCOyeKPA1h9TzvFhSw7ll26QojVgfPHWs63D
+d3WDn4pXynG/smO5zGSl9d+orPkM11WvHbr3mnXXcks27pxsd+g8HTpAEQJBNLl2
+gLsLVUgM7sclUtJmfH97O9yfWRP6Vh4dTbrHJIKWryTUH7LVYASYhLFk7A9m2f/E
+esUlCAfNrAWFyATgpwlGtrwjvT6fjPxGsnK+K4tIvBZkhwbVqZ66Bm44Xewrfxuz
+9laumfzOb1yIjqhzkeL1/BVWHQ5Yyb0BOogcSkK6AHaSYZcz3K6am7oF+f5PztPo
+WPJcg/vAANPflAk105RReTTG2olX/o2R8oQndrg/TEIGqARnHmCsejanjInJ56vg
+vuMwb9Aba5bdl8G0lUxqmVhQt5Y2QYnFbkVljGGCY2WJ8JumIIIfPByvBjh4ISpe
+uzZ2AZFMf06gH0/+rG/H8m1Ul/TovfEmV8fA1ShPIGc8ncqUGP5otfzihu3dDFjG
+kzOevo87D3qVxBl3inON5qpPtnciX9JMsztdQJFbfQ3Tm1INYhcTvLl7jh9wZfLD
+Z6DdMKKv/Fe6+A7Qj/lUp9tIdcj0PoHPpSsKnpFbq5g3HlzxfQta2AJDQghRQXMG
+ClQHOxP7TZGxqX6Vt4vjtOaNlRYmnOKt4Xa5QEZCJOWiUw7AG9dCZfoA/Ajmxzsi
+EFkImjsH6gMKYEJJxs/E8Gbrv7tOjw+0lz0usjIUOo7PsFmBxdxXOVt8GK0QkfcA
+fK7W1vPAZRjAQaiBKWX5KZN3298DXjpeptA1vmGR/P3/55KW12/T4UX7hT+gmsQw
+LZanvLnI3dqrBPjtDr6WYi1B+gVt2X7eF5FYWjszUQqlrM9R1IiH/YyV265OhjuD
+pk7U25GbsGaJjIm0W1j+s9NeoQXCBXjXOy0j6y7QivJRSFFoHim6DEWu6p04qjzJ
+KE5mr86HlAUTdYmOYtuj4ZC1V8m6Xu6exopJJ9HGX5+x4VHLPdUNkPNv8ILRSJeJ
+GGG/wLagUuYjdT2yTTWL37RqmCmiiCjhenNPKUyATX8kA4fl/xhtwQJQwJSxMrFh
+cl8wqdQWoXT5U56jkgcV4WeSZhnIEptmP8Ji1pQ2trJb/7Ne5Dzyijz99nU7K3Tl
+BP13L+17AuWpnehtgsctcT7Ft7kD+QNXL9MemZA9V+eIvlBzl2XFPEkFkRZbSMnP
+PwFZHrfHXWerRMDtF6jCe+tOHNlgybpFckIRnhm/l2pvk1wa2qHACRdJcKjRUcAI
+o333EUjOK1hU7GW/GbIGxBGdD6Ivp4sx6URcxJR/NFMVJ4uULU2fHICvwXkHdhTG
+qp0A8Ey9sR/NeJSfwpHwwBxokmvZEUNOxOR9KGx83Hsl9pA8wr1SxQ72aj5W+a3C
+BQVl9kP33cgprQmWYngdJFL8XkEwMHNU+1F5qXfsqJFdRybhdMY9JEnnz5TmVgdk
+52ZtFdR8t38m7xu9TUeCyS5jetzQBeXRhO8fAhvrp9X464j1a/llPL05EoPY0jL2
+4tYizjN5XXLda4S7fyRWR+bith8uVD9wE9Jcii0lvoDBHf/USkI4u/KuYE5lnpq/
+mNChQeSj/2I1I08y2YgQj/CjGHCi/b4N1vV9F0KlVIOx0SBcnEPZ52FZ0YZ4Ti85
+VGLuLGJ9FYF/nCPl04xH78BaXYpq3Fe4wJrfhM7LPk89D0NwmAQoK/ag91dayhFG
+kg==
+=7ItG
+-----END PGP MESSAGE-----
+* x :full:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./x/.xinitrc
+:END:
+#+begin_src conf
+#!/bin/sh
+#
+# ~/.xinitrc
+#
+# Executed by startx (run your window manager from here)
+
+userresources=$HOME/.Xresources
+usermodmap=$HOME/.Xmodmap
+sysresources=/etc/X11/xinit/.Xresources
+sysmodmap=/etc/X11/xinit/.Xmodmap
+
+DEFAULT_SESSION=i3
+
+# merge in defaults and keymaps
+
+if [ -f $sysresources ]; then
+    xrdb -merge $sysresources
+fi
+
+if [ -f $sysmodmap ]; then
+    xmodmap $sysmodmap
+fi
+
+if [ -f "$userresources" ]; then
+    xrdb -merge "$userresources"
+fi
+
+if [ -f "$usermodmap" ]; then
+    xmodmap "$usermodmap"
+fi
+
+# start some nice programs
+
+if [ -d /etc/X11/xinit/xinitrc.d ] ; then
+    for f in /etc/X11/xinit/xinitrc.d/?*.sh ; do
+        [ -x "$f" ] && . "$f"
+    done
+    unset f
+fi
+
+xinput --map-to-output 'Melfas LGDisplay Incell Touch' eDP1
+get_session(){
+	local dbus_args=(--sh-syntax --exit-with-session)
+	case $1 in
+		awesome) dbus_args+=(awesome) ;;
+		bspwm) dbus_args+=(bspwm-session) ;;
+		budgie) dbus_args+=(budgie-desktop) ;;
+		cinnamon) dbus_args+=(cinnamon-session) ;;
+		deepin) dbus_args+=(startdde) ;;
+		enlightenment) dbus_args+=(enlightenment_start) ;;
+		fluxbox) dbus_args+=(startfluxbox) ;;
+		gnome) dbus_args+=(gnome-session) ;;
+		i3|i3wm) dbus_args+=(i3 --shmlog-size 0) ;;
+		jwm) dbus_args+=(jwm) ;;
+		kde) dbus_args+=(startkde) ;;
+		lxde) dbus_args+=(startlxde) ;;
+		lxqt) dbus_args+=(lxqt-session) ;;
+		mate) dbus_args+=(mate-session) ;;
+		xfce) dbus_args+=(xfce4-session) ;;
+		openbox) dbus_args+=(openbox-session) ;;
+		*) dbus_args+=($DEFAULT_SESSION) ;;
+	esac
+
+	echo "dbus-launch ${dbus_args[*]}"
+}
+
+# exec i3 -shmlog-size 0
+
+/usr/lib/polkit-kde-authentication-agent-1 &
+
+exec $(get_session)
+
+#+end_src
+* Local Variables
+# Local Variables:
+# org-use-property-inheritance: t
+# org-crypt-key: "0xB1625FEC99227CDB"
+# End:
