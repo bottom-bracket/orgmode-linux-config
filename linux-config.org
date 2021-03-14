@@ -1,7 +1,7 @@
 #+TITLE: Linux Config
-#+TAGS: full(f) essential(e) crypt(c)
+#+TAGS: full(f) essential(e) crypt(c) manjaroi3(i)
 #+PROPERTY: header-args :mkdirp yes :tangle (my-tangle-if-property-in-tags "conftype")
-#+conftype: full
+#+conftype: manjaroi3
 #+STARTUP: overview
 
 My linux configuration files tangled from a single org file. How spunky.
@@ -64,6 +64,10 @@ it works
 #+begin_src conf :tangle (my-is-conftype "half") 
 it does not work
 #+end_src
+** making files executable
+Org tangle will export files each time with standard permissions.
+In order to make them executable after tangling I need to add the ~:shebang
+#!/bin/bash~ header argument.
 
 ** encryped private data
 this is important for sharing!!! 
@@ -76,16 +80,21 @@ who got to this problem and there is a solution: [[https://ag91.github.io/blog/2
 I now just need to call ~org-decrypt-entries~ and then tangle the file.
 
 * Setup :full:
+:PROPERTIES:
+ :TANGLE_FILE_NAME: ./setup.sh
+:END:
 The ~setup.sh~ that uses stow to create symlinks in my home folder.
-** Head and essential modules :essential:
-#+begin_src bash :tangle setup.sh
+** Head and essential modules :essential:manjaroi3:
+#+begin_src bash  :shebang #!/bin/bash
 #!/usr/bin/env bash
 set -euo pipefail
 
 # make sure we have pulled in and updated any submodules
 git submodule init
 git submodule update
-
+#+end_src
+** Useronly for full configuration :full:
+#+begin_src bash :shebang #!/bin/bash
 # what directories should be installable by all users including the root user
 base=(
     bash
@@ -94,23 +103,6 @@ base=(
     screen
     ranger
 )
-# only basic packages in useronly if only essentials are needed
-useronly=(
-    bin         
-    compton     
-    git         
-    ssh          
-    gpg         
-    i3          
-    latexmk     
-    scripts     
-    picom
-    conky
-)
-#+end_src
-** Useronly for full configuration :full:
-#+begin_src bash
-
 # folders that should, or only need to be installed for a local user
 useronly=(
     chemacs      
@@ -134,9 +126,30 @@ useronly=(
 )
 
 #+end_src
-** Useronly for full configuration :essential:
+** modules for manjaroi3 configuration :manjaroi3:
 Part that runs stow for each folder in the ~base~ and ~useronly~ lists.
-#+begin_src bash
+#+begin_src bash :shebang #!/bin/bash
+
+# what directories should be installable by all users including the root user
+base=(
+    tmux
+    nvim
+)
+# only basic packages in useronly if only essentials are needed
+useronly=(
+    nvim
+    tmux
+    git         
+    ssh          
+    gpg         
+    i3          
+    latexmk     
+    scripts     
+    zsh
+    systemd
+    mbsync
+    mail
+)
 # run the stow command for the passed in directory ($2) in location $1
 stowit() {
     usr=$1
