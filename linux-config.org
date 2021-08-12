@@ -48,23 +48,9 @@ if not return 'no'."
 #+END_SRC
 
 #+RESULTS:
-: ./test.conf
-
-#+BEGIN_SRC emacs-lisp 
-(my-is-conftype "halg")
-#+END_SRC
-
-#+RESULTS:
 : no
 
-#+begin_src conf :tangle (my-is-conftype "full") 
-it works
-#+end_src
-
-#+begin_src conf :tangle (my-is-conftype "half") 
-it does not work
-#+end_src
-** making files executable
+#** making files executable
 Org tangle will export files each time with standard permissions.
 In order to make them executable after tangling I need to add the ~:shebang
 #!/bin/bash~ header argument.
@@ -391,9 +377,10 @@ ranger() {
 **** defaults
 #+begin_src bash :shebang #!/bin/bash
 #### Editor
-export EDITOR="/usr/bin/nvim"
+export EDITOR="/home/philip/.local/bin/emacsclient -t -a=\"\""
 
 #### QT5 Theming
+# export QT_QPA_PLATFORMTHEME=gtk2
 export QT_QPA_PLATFORMTHEME=qt5ct
 #### Terminal
 export TERMINAL="konsole"
@@ -401,10 +388,6 @@ export TERMINAL="konsole"
 # PATH=$HOME/git/emacs28/src:$PATH
 alias emacs-restart="systemctl restart --user emacs"
 
-#####   pyenv
-export PATH="/home/philip/.pyenv/bin:$PATH"
-eval "$(pyenv init --no-rehash -)"
-eval "$(pyenv virtualenv-init --no-rehash -)"
 
 ### scuff-em
 export SCUFF_MATPROPFILE='/home/philip/Documents/Research/Simulations/Scuff-em/matprop.dat'
@@ -435,14 +418,13 @@ export BROWSER="firefox"
 export TERMINAL=konsole
 #### QT5 Theming
 export QT_QPA_PLATFORMTHEME=qt5ct
+# export QT_QPA_PLATFORMTHEME=gtk2
 #####   pyenv
 export PATH="/home/philip/.pyenv/bin:$PATH"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 export BROWSER=firefox
 
-#### biber
-export PATH="$PATH:/usr/bin/vendor_perl"
 
 ### SSH agent (needed for i3)
 export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
@@ -453,12 +435,18 @@ export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
  :TANGLE_FILE_NAME: ./bash/.profile 
 :END:
 #+begin_src bash :shebang #!/bin/bash
-export EDITOR=/bin/nvim
-export QT_QPA_PLATFORMTHEME="qt5ct"
-export QT_AUTO_SCREEN_SCALE_FACTOR=0
+export EDITOR=/usr/bin/nvim
+# export QT_QPA_PLATFORMTHEME="qt5ct"
+export QT_AUTO_SCREEN_SCALE_FA  CTOR=0
 export GTK2_RC_FILES="$HOME/.gtkrc-2.0"
 export BROWSER="/bin/firefox"
+# pyenv
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init --path)"
+
 #+end_src
+
 ** Zsh :manjaroi3:
 *** zshenv
 :PROPERTIES:
@@ -467,12 +455,9 @@ export BROWSER="/bin/firefox"
 #+begin_src bash :shebang #!/bin/bash
 #### Terminal
 export TERMINAL=konsole
-#### QT5 Theming
-export QT_QPA_PLATFORMTHEME=qt5ct
+#### Editor
+export EDITOR="/home/philip/.local/bin/emacsclient -t -a=\"\""
 #####   pyenv
-export PATH="/home/philip/.pyenv/bin:$PATH"
-eval "$(pyenv init -)"
-eval "$(pyenv virtualenv-init -)"
 export BROWSER=firefox
 
 #### biber
@@ -480,6 +465,10 @@ export PATH="$PATH:/usr/bin/vendor_perl"
 
 ### SSH agent 
 export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
+
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init --path)"
 #+end_src
 *** zshrc
 :PROPERTIES:
@@ -583,10 +572,26 @@ export FZF_DEFAULT_OPTS="--layout=reverse --inline-info --height=80%"
 export MAILDIR=/home/philip/.mail
 # ### other
 alias rsync="rsync -rP"                 # Always run rsync with progress and recursive
+
+# compile my thesis
+alias compilethesis="cd ~/Documents/Research/PhD-Thesis/Thesis/thesis && latexmk -pvc -shell-escape -halt-on-error  thesis"
+#####
 neofetch
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
+# pyenv
+eval "$(pyenv init -)"
+
+#+end_src
+*** zprofile
+:PROPERTIES:
+ :TANGLE_FILE_NAME: ./zsh/.zprofile 
+:END:
+#+begin_src bash
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init --path)"
 #+end_src
 ** Tmux :essential:manjaroi3:
 :PROPERTIES:
@@ -1565,31 +1570,28 @@ map <C-d> shell dragon-drag-and-drop -a -x %p
 #+end_src
 * git :full:manjaroi3:
 ** user data :crypt:
-CLOSED: [2021-02-21 So 21:21]
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./git/.gitconfig
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VARAAlr3lPkefyZoiIcf8Y9VOEmU4hNvVd4N+zMfh1P9rHerr
-vxnSfpgtM2soS243JJ3zUoKOAfxpWbfsv22u3BDZW0rmrkKlxKKh6qQu0NmUHv1O
-Zf1PT/APT8AzZAYjBX8osy1Ycsmgf181MQiQC8xZvfd0XpGG+2gHDyZysD7nnQ6I
-RCEPdXqAqMOIrzhWFANKyOi5VmWHpSecXCGkRwOKUlEInYnLXBORYzPco3EE/m5C
-w4m+W62AcPOblgs4ZS/jJURn8a5MofzJi3xMrvjwozoXzAOr5cIjKIXpvW3Xgq4v
-dSprIlr4CBKFtpPDP7D2CndBPRXcOnLe+znqZB1Z4J4h9XF928oRAr8HTxhVCKcZ
-86cjLCcZtDIX/27GxmrMdLIN/GK5B9HmWGV1udidfHV0DMVV6dR1ZduA3G1vyQ5S
-hbwTRWSs/WLoyHPJNkV7z8b7tDA4YdDQAVM7xNkhsX00JIDGtsSD5I66oEDVk5Qq
-oNpnQ/DlB0JWANYnQCFgM0tMrcd5O3yC13YFMlCmsZqoCUzhj8iOqTdjVmHBUJj6
-KkmJHKZlvuiWgSRffM+cpxDpR+o7hSzSV9mbxku5SSNTv5f5HzmUVxJczI5JAUq/
-+GcDduhviL7d6+GQO3ilIXQtzUfnVl9dh6IOFxt5vZQ5hB8Vbk8LhqLg3qwHHD3S
-wHEBK5XpfjHw+qnvygP1QBvI2sTB/9u84GBD2Kb24GcuO10+kXKaM5KOba9g1HBJ
-OLJP5vKmt3s1C0tdkEq3sFGeIStiIgNgqK6pxw22fHHp4T6FAuDRXOKqxGoIt6aq
-fKn8Db+w+CS4T/wKOXbgFCkJBDSqsayk18qzddo+A7ILuQJ5kwLK5ATLppRpqIHa
-Dx21QGw2I9tJGOJHg5OWwSmpfxtaSXgapWBbDuYonODjkcgGoFk6t9865sjEUMyd
-rR9NAayYUo8DhPSQnrQX0FvHJ58hdK/y01F6VJLxRcFP0xtLuHzFUxqsuDD/rTfV
-F9xmN3b94xG/XGhI94/csMUeF7DTW3CB8V/Nkhn+iTXZGqSn52Zux7RxZf4Qe2Ds
-PqHNAtLo9b0/C2LHKCY1xTUQgg==
-=iAJt
+hQIMA8yc76sS3P8VAQ//an9uh0jwivaPKspws699r9cbgXMfiXHG0VEfVUevELrA
+GT6F7nFgHeXGFfr8WeO/wgWZ+uVDqi9AL+PPYH8Cn4KvA3/yRY6Q+RUpJz6hwWz9
+J15In203tpBtPEFJB29OfJCRu2Z3SRTJaqGenGfwvXhUkz4i2uPtCgoEHx8kNu2r
+A3QLCkxSsaNzOxqPMicIgRKqWVMwV9CA3nVNTZM1snnL64uYvabRaBOF88Qh+zNx
+OF2v/P/cOCEAZQ0XenDgwiGDES8F5JOyaMybBJEvzqLgxf6C1ROXh/O2CxAzA2pY
+g+N8ksThFAzk0OrjK4mVOQ8uzMLdNQ3H6KVqPp2a8n4cEGlm2e4kiNYnQmxJWDVR
+ilMOYpATwNYVDqyC4NSU8h8RsfWvvBlmrwsAd6BdOF7F/aJIXvhwGP9O/fpu+E66
+aGB9HP4JZn8Lh8qnJe0waZx45u5dYpmF+BT8uYu585tx5r5D95ioVfFVNomAM4Yk
+10C+zJostL6dVoaRyyXhxhmP6q8FEILM2/aejdLJX1JyF96NYkC8iIuXgtS4/S9Q
+dck8C/dFlJ5SnJUb25ASzx4/FujYesxw7ts4N6j51/VhFWCXu6A1o/JBXd913h1g
+pZTR7+FZnzAhercFvbt23dwWeMewjsPSG2WSjs11hFVqY6KXoN7XQe1dIM3Re1/S
+wBMBEkhUt0pE6OJoUKOKjjOayNdXPmd4j2XvgIgrCVGk+YNTc36dj5xxoziodS3G
+YHdvjP+yWC5J01f/tFJKyUpC+Gok2qISfTGy4AjkC402rUrZAV2aRmXuEbyISncA
+8CmoZcJ4Ub8YAif+bK2zTPbnOXmxKNjsiyDpVKGaacxKEj6OIgrH9Q5d6BZPIyyQ
+/JbpLQDM9zbGaUIlpm79XO1xp3HaO/CrA1agp7A0OUo2dFkQvCfV9lxedeG2fbSf
+tCl/0TwweygJwMmsf4jdL/LGB0QT
+=8/fQ
 -----END PGP MESSAGE-----
 
 ** credential :crypt:
@@ -1598,24 +1600,22 @@ PqHNAtLo9b0/C2LHKCY1xTUQgg==
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ/+NxQySsnws05UDdC4a9aXzlril2hb3hUQzGRHpfmp5SuM
-XSYlkogZL5y2FaDgd3qAoq9ZhxBtVjQGkKREWvCK3hvWW/vF7PM2zM5U3ogPvOYI
-nOVdCdRSz8DFmMRzqbO3ZA+/ujRGiIdhZWVYGI8GUTGjN2xE72v0vmFCjCC+Ddvl
-KCLkonKT/shqiTgEmLV0RUzxfFgS5DJ+wsM4bjHeHABM6nY/JdkfaCXZ3/PEA13k
-sdzhReC6HiyrITGLhaCDduhY2JqTTk1bWOmGHBs42VkP9HnnhhPBrizJCXSp//69
-ZR5jJmUeLs2OKOobPrcNe06NAKMAy9vmOBnvTyztDdFQvebJn7IISIBsjCnV19wr
-obKTMgCqgNnb11EyvQEKdPt9HmQdqSd7bSks/DNrpnV9gotPctXtTYv14qAXrSFq
-+OCelNFwT+A2qEGyNrdFZ6M8B/1rItPqBmhgF2ii2mWt0xvH4K6fNn6QT3wiB+3C
-EQai+9/txdhBJmEgGqjJNzOOszoMTfhpYmSfg42FVmzU4mFfNBOZDoDAyNV+tLSb
-PISOtJnVu5OXKbPuEIXv1zsUbtKosaOzr7HXR8gJuI60zYSXh27I9y2A+eQnvXun
-RctD81I6eV7XrTUYMmMu3J0QgbVZX9lqnXAdn5zuuLkTmYDcqOCgmt1dkt4akXTS
-wDABGE9f6nYkRn8M0Kq2agPv/HZmokzlDGenzmd7xzCdGo+KNP9Bg/5co9ImjRdS
-ufBm6aDf6h38VY5BHYzR9HIj7lFkEIqE+/qDu8jobn7JYv7khPQBV5vpONlHfixo
-DODDUlS5c9l+wJNy7njRg0jkFNad0ZnndsUiSySJAJmnYTSrLccEDez8L8MQxWVy
-nJ1SyYTtJ6YYVU2n+CRf4/YF1deTLMh6Zamh5r8G18TZ/l+GeHDSUFIKVZYmbUMd
-QIKMCv60NDeBliToxA90cqYQnTzn2m5dlBNJsiZev7cIyPKQqDsnRXQGGRztNSf0
-Mkg=
-=S5Zq
+hQIMA8yc76sS3P8VARAAmPQuP8FJrOX+GQCeb06S6BqZJtxV5wXsPeq6zWn8eXb6
+IdMKRP7F6sEHzTYwXnCm1HsiCTvugTE6yt3jRpI9ck3RHMEL9soyeYNnhD604EV8
+477Ky2R7FPpUXTQ5wYTKELIgdNM5o5NqhayZXJFzwNnu5KgxYP7hNO/elcomr92q
+KjgOM68KTCrFdisxJaICqj7mmI2HL7kBAug3sQknjx48LINMOGAyW/Yg8RtXej87
+2v0/gTg+0xNqtcthqlYhd1V8ILWysxaoe2izqERDNVJ+96gCqrXRN99XrDlGSDR6
+k20E47Us/JKIu7bqUR4cPheqHKFsPPAemQhaN4ZcRukBM1AjZ7txzvctKL1dhkQg
+dvpVqMsED9iLrv/alp4X3Keg12pIYBhhaiT+onrKn7feJKj1VTLavr1rmFaRKdSM
+B3Y9jFXyHWin4v046H2i5AJ+RZ8OkTiCkGJ+adioBo7mPX3nwmp3AKmaThZ+GCdJ
+Uv/3K5IzyDwuUo6/bioD5qewCil/SOXIkZkxhwviUiRrCOAQJowYZRxBZtHW/m1b
+ZWICo7/9+w0CYkHa7o6ttfv9BYN0f+3fGAFC4QjH0ZDtwejfU0+TSgEzxmgRjOCE
+/xGs0zdLYFp0nf/7Scmnm80m2K6d/E2lp2JGiNun3RioOp9Zfh0+foLSyu6mYZrS
+lAELDjUVhjsIALgPTE5xCHvVifGb7ciGhtGyu1UbgzUvcNUbkKC1iBmn1PubfFbr
+kGh0i3T13hwsQ8ppVSdFM5/84i2U53fHsbEWdgnrZK4woRr5qNdFKXZhk+HbETlh
+53vtihtkypdJedD1FN5OukUlRpqdkzUmK8USXXUXsnxcUTRya8ZRiuAJsm8zWUIZ
+5HvfBZg=
+=rGJY
 -----END PGP MESSAGE-----
 * gpg :full:manjaroi3:
 ** gpg agent :essential:
@@ -1642,10 +1642,10 @@ no-comments
 with-fingerprint
 use-agent
 
-keyserver hkps://hkps.pool.sks-keyservers.net
-keyserver-options no-honor-keyserver-url
+keyserver hkps://keyserver.ubuntu.com
+# keyserver-options no-honor-keyserver-url
 
-auto-key-locate https://hkps.pool.sks-keyservers.net
+# auto-key-locate https://keyserver.ubuntu.com
 auto-key-retrieve
 
 cert-digest-algo SHA512
@@ -1655,24 +1655,28 @@ keyid-format 0xlong
 #+end_src
 
 ** gpg.conf :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./gpg/.gnupg/gpg.conf
+:END:
+
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ//dDNSlrhBaqOfukGV+5wssZvO5gFi2zYYRTYiw3jM8CNs
-SRnxUMIj+ZXdIpvRsIQLvWjv9JsIXg5crZuLJPz908qWh0AV5x9hqG/VsJRlETeU
-qELQ3Bb3WFHU0+a3yRgLxWv8oIq9hmT4GpySXuM/Y9dJ8wScNiet+/xsmNJTuFEI
-xXJKrXPptn/tPUtvG9ulCg83EWNnYq5GSDuywF/MdQn2IDZhjlBLoR7z8aUihVT7
-MYnEJ9NhrM1dsQsotBMY8yw+uzMKfEvFyP2VVi7cIYnBBluhRATw9e6lvu76jh1f
-jqtUjkwAlH+Kbzi9xtU9xB9gechIz9bc6KZxMXfhd2pEYwX+oaLV6P4rfWxrV4e9
-X7Dm0oTLtTPSQ9zgbaDsjaFanr99Yc931OhtlMm+/jZMjy4CUmA4fwSGMbLQwoKK
-djl0qkCwOyn3ojTx92jDnn//Hv6eF8A/fi0Ov6VSTYwJt1ntDV/KnoJzpMLTSCvm
-twxktKf2TrnFRnSDbskTKPvXS+/g0tz5lmEaIycPf6f5izUlMWW6mOwYLhMzh8Kv
-3kdC3WNhQtJLzKsspFB6ckSr/Z4yKFcJnY151vZpZmwHJ9bYD4wXGHvTxluWin54
-GEPzAQOwZeFYVCfesIkseRhLW4Wr33dqtuHV1ucn6VsRBtlyDrXF9J12o/JGFSPS
-kQE4BMgtuxeWHKXp8imYrlEHxEqCMoFxjqvL2lqERdbwurvKSIPox0iDO7xwE9DX
-neWeSyAUaEspAbx4S+VSxy9/T39x+xFN9WICw9oOX7Pfe1ilZR8s/8mAjmPliQj8
-Rx537k1dd+7RabdK7LJgbIE6xjjN7/8BT1o5kix70EkiaWrA5Z7mbDDfLEXHMax3
-hVw=
-=q+Ee
+hQIMA8yc76sS3P8VARAAkjMcMQHEAosB6C6EfjFWMh+NpN0q/9/PFvlVGNBZLjFO
+BAs577mikdZiLgXlQauD7bI/pHXr0cMkv4HujcST8F91AcC4QSYThHYTAd70XlmJ
+/8+gamUymi9HiAl2JKj9iw6tHr7JpvoUyazDLDhA/1TTW9baskPSOJYzIKpxyQ0Z
+oy2M1CEU9Bt0beQ4yVAX7TIniPFCdEr69Vsh+ge7hxH6luJT+cqbjrd1DSMBBgZ+
+P3giuPMQ6tZaF2A+CcCAqGATM6dJqp9G2dZgJE5xMWAU5WvsOIda/Bw0vkcbl98v
+9ZRRloUYnDVsKRBh8uHipCQl/NTQI8m2zvdAhn7okdSYWKyBYBHsQ5N2OKqrrHpS
+mno210y+OHfjRUram/HRwlPdTgiO6JFvbO6FMCUaP/2slK/VFJ0IxHClw8hNMNCB
+0FKs/ADAWaxzxWjKwvzAja/gkCMGNYqYrQHIbRYNKClhUcITIyRROma7yuXznsG/
+CUM8KsPBmdsQPsBjQRuSm9BKeBWisiwmxJ2qLRdyR1+EMK6s532WSUBczhkEC5eu
+b1lTMhMPHGGjKEaJeDI4eHH46vmYsDI/USaGUHljfb3uM3mKhyR4VEZBdF7wZV6z
+VO5XZKibIKYStarASMAzLODUyfAb7/ujXOmgv4jgQbOVKooeIY5Bwlr1Ehp2PkfS
+kQEogG2I264yIiRhOUEknGlrROKa/slv4wI9qB3c80nEoWa4R1TsA50mDZw7y1/J
+k9hPRHuRHrrltunsO2AVydCqQCBVeDJjbbQqVO/106l2a2O9vp3AHJv2t2CA29Ak
+g2zgeXeXYzVGRZAAIPQkJoT4ssvdz+ZO4sGaMy0e2rFNgxZPWesVChYKLl2VGZZe
+qJo=
+=OQkD
 -----END PGP MESSAGE-----
 * wm and eyecandy :full:
 ** i3 
@@ -1763,7 +1767,7 @@ bindsym $mod+Shift+q kill
 bindsym $mod+Shift+d exec dmenu_run
 bindsym $mod+d exec --no-startup-id /home/philip/.local/bin/rofi_launcher
 # bindsym $mod_next+Return exec --no-startup-id "rofi -show-icons -modi windowcd,window,drun -show drun"
-bindsym $mod+Tab exec --no-startup-id "rofi -show-icons -modi windowcd,window,drun -show window"
+bindsym $mod+Tab exec --no-startup-id "rofi -show-icons -modi windowcd#window#drun -show window -theme arthur"
  # There also is the (new) i3-dmenu-desktop which only displays applications
 # shipping a .desktop file. It is a wrapper around dmenu, so you need that
 # installed.
@@ -1961,7 +1965,6 @@ bar {
 bindsym $mod+b bar mode toggle
 
 exec_always --no-startup-id feh --bg-scale /home/philip/Pictures/wallpapers/wallpaper1.jpg /home/philip/Pictures/wallpapers/wallpaper1.jpg
-exec_always --no-startup-id setxkbmap -model latitude -layout eu -option nbsp:level2
 
 hide_edge_borders both
 
@@ -2188,12 +2191,14 @@ floating_modifier $mod
 
 # start a terminal
 bindsym $mod+Return exec terminal
+bindsym $mod+Shift+Return exec terminal -name floating
 
 # kill focused window
 bindsym $mod+Shift+q kill
 
 # start program launcher
 bindsym $mod+d exec --no-startup-id dmenu_recency
+bindsym $mod+Tab exec --no-startup-id "rofi -show-icons -modi windowcd#window#drun -show window -theme arthur"
 
 # launch categorized menu
 bindsym $mod+z exec --no-startup-id morc_menu
@@ -2227,19 +2232,22 @@ bindsym $mod+Ctrl+b exec terminal -e 'bmenu'
 bindsym $mod+F2 exec firefox
 bindsym $mod+F3 exec thunar
 bindsym $mod+Ctrl+F3 exec ranger
-bindsym $mod+$mod1+F3 exec pcmanfm_pkexec
+bindsym $mod+$mod1+F3 exec pcmanfm_pkexe
 bindsym $mod+F4 exec --no-startup-id /home/philip/.local/bin/run_emacs_client.sh
 bindsym $mod+Shift+F4 exec "emacsclient --eval '(emacs-everywhere)'"
 bindsym $mod+F5 exec terminal -e 'mocp'
 bindsym $mod+t exec --no-startup-id pkill picom
 bindsym $mod+Ctrl+t exec --no-startup-id picom -b
 bindsym $mod+Shift+d --release exec "killall dunst; exec notify-send 'restart dunst'"
-bindsym Print exec --no-startup-id i3-scrot
+bindsym Print exec --no-startup-id flameshot gui
 bindsym $mod+Print --release exec --no-startup-id i3-scrot -w
 bindsym $mod+Shift+Print --release exec --no-startup-id i3-scrot -s
 bindsym $mod+Shift+m exec xdg-open /usr/share/doc/manjaro/i3_help.pdf
 bindsym $mod+Ctrl+x --release exec --no-startup-id xkill
+bindsym $mod+Shift+d exec "~/.emacs_anywhere/bin/run"
+bindsym $mod+Ctrl+i exec terminal -name i3cheat -e /home/philip/.local/bin/i3cheatsheet.sh
 
+                             
 focus_follows_mouse no
 
 # change focus
@@ -2310,6 +2318,8 @@ bindsym $mod+minus scratchpad show
 #navigate workspaces next / previous
 bindsym $mod+Ctrl+Right workspace next
 bindsym $mod+Ctrl+Left workspace prev
+bindsym $mod+Ctrl+h workspace next
+bindsym $mod+Ctrl+l workspace prev
 
 # Workspace names
 # to display names or symbols instead of plain workspace numbers you can use
@@ -2324,7 +2334,7 @@ set $ws1 1
 set $ws2 "2:"
 set $ws3 3
 set $ws4 "4:"
-set $ws5 "5:"
+set $ws5 "5"
 set $ws6 6
 set $ws7 7
 set $ws8 8
@@ -2363,11 +2373,12 @@ bindsym $mod+Shift+8 move container to workspace $ws8; workspace $ws8
 # assign [class="Thunderbird"] $ws1
 # assign [class="Pcmanfm"] $ws3
 # assign [class="Skype"] $ws5
+assign [class="Emacs" title=" *mu4e-main* – Doom Emacs"] $ws5 
 assign [class=Emacs] $ws1
 assign [class=Navigator|firefox] $ws2
 # assign [class="Pcmanfm"] $ws3
 assign [class=urxvt] $ws3
-assign [class=Spotify|Vlc] $ws5
+# assign [class=Spotify|Vlc] $ws5
 assign [class=Gimp*|Inkscape|Scribus] $ws4
 assign [class=matplotlib] $ws8
 
@@ -2401,6 +2412,8 @@ for_window [class="(?i)virtualbox"] floating enable border normal
 for_window [class="Xfburn"] floating enable
 for_window [class="yakuake"] floating enable
 for_window [class="tilda"] floating enable
+for_window [title="i3cheatsheet.sh"] floating enable
+for_window [class="URxvt" instance="floating"] floating enable
 for_window [class="Shutter"] floating disable
 
 
@@ -2430,7 +2443,7 @@ bindsym $mod+Shift+Mod1+9 mark "kappa", move scratchpad
 bindsym $mod+Mod1+9 [con_mark="kappa"] scratchpad show 
 bindsym $mod+Mod1+m [con_mark="music"] scratchpad show
 for_window [class="Spotify"] mark "music", move scratchpad
-exec spotify
+for_window [class=keepassxc|KeePassXC] mark "epsilon", move scratchpad
   
   
 # switch to workspace with urgent window automatically
@@ -2505,6 +2518,10 @@ exec --no-startup-id start_conky_maia
 exec --no-startup-id xautolock -time 10 -locker blurlock
 exec_always --no-startup-id ff-theme-util
 exec_always --no-startup-id fix_xcursor
+exec_always --no-startup-id "setxkbmap eu"
+# exec_always --no-startup-id setxkbmap -model latitude -layout eu -option nbsp:level2
+exec keepassxc          
+exec spotify
 
 # Color palette used for the terminal ( ~/.Xresources file )
 # Colors are gathered based on the documentation:
@@ -3091,9 +3108,9 @@ ${color2}exit - ${color}mod+0
 #+end_src
 ** picom
 :PROPERTIES:
-:TANGLE_FILE_NAME: ./compton/.config/picom/picom.conf
+:TANGLE_FILE_NAME: ./picom/.config/picom/picom.conf
 :END:
-#+begin_src conf
+#+begin_src conf :mkdirp yes
 #################################
 #             Shadows           #
 #################################
@@ -3518,6 +3535,30 @@ wintypes:
   dropdown_menu = { opacity = 0.8; }
 };
 #+end_src
+** rofi :manjaroi3:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./rofi/.config/rofi/config.rasi
+:END:
+#+begin_src conf 
+configuration {
+ktheme: "arthur";
+kb-remove-to-eol: "";
+kb-accept-entry: "Control+m,Return,KP_Enter";
+kb-row-up: "Up,Control+k,Control+p,ISO_Left_Tab";
+kb-row-down: "Down,Control+j,Control+n";
+}
+#+end_src
+** qt4 :manjaroi3:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./qt4/.config/Trolltech.conf
+:END:
+I want to change qt and gtk styles simultaneously
+#+begin_src conf
+[Qt]
+style=GTK+
+#+end_src
+
+
 * latexmk :full:manjaroi3:
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./latexmk/.latexmkrc
@@ -3525,10 +3566,27 @@ wintypes:
 #+begin_src conf
 # .latexmkrc starts
 # $pdf_mode = 1;
-$pdf_previewer = 'start okular %O %S';
-# .latexmkrc ends
+$pdflatex = "pdflatex -synctex=1 -halt-on-error %O %S";   
+$pdf_previewer = "start xpdf -remote %R %O openFile\\(%S\\)";
+$pdf_update_method = 4;
+$pdf_update_command = "xpdf -remote %R -reload";
 $dvipdf = "dvipdf -dALLOWPSTRANSPARENCY %O %S %D";
 $ps2pdf = "ps2pdf -dALLOWPSTRANSPARENCY %O %S %D";
+add_cus_dep('glo', 'gls', 0, 'run_makeglossaries');
+add_cus_dep('acn', 'acr', 0, 'run_makeglossaries');
+
+sub run_makeglossaries {
+  if ( $silent ) {
+    system "makeglossaries -q '$_[0]'";
+  }
+  else {
+    system "makeglossaries '$_[0]'";
+  };
+}
+push @generated_exts, 'glo', 'gls', 'glg';
+push @generated_exts, 'acn', 'acr', 'alg';
+$clean_ext .= ' %R.ist %R.xdy';
+        
 #+end_src
 * matplotlib
 To keep it clean the style files will become  an own repo (maybe inside this one)
@@ -4231,18 +4289,27 @@ rofi -show-icons -modi windowcd,window,drun -show drun -lines 4 -width 1000 -fon
 
 ** emacs client
 :PROPERTIES:
-:TANGLE_FILE_NAME: ./scripts/.local/bin/run_emacs_client.sh
+:TANGLE_FILE_NAME: ./scripts/.local/bin/ec
 :END:
 #+begin_src bash :shebang #!/bin/bash
+# run_emacs_client.sh
+# open terminal when called on a file or without graphical ui
+# https://unix.stackexchange.com/questions/263521/running-emacsclient-with-a-script
+if [ $# -ne 0 ]; then
+  emacsclient -nw "$@"
+elif [ -n "$DISPLAY" ]; then
+  emacsclient -c -n
+else
+  emacsclient -c
+fi
 
 # Checks if there's a frame open
-emacsclient -n -e “(if (> (length (frame-list)) 1) ‘t)” 2> /dev/null | grep t &> /dev/null
-
-if [ “$?” -eq “1” ]; then
- emacsclient -a ‘’ -nqc “$@” &> /dev/null
-else
- emacsclient -nq “$@” &> /dev/null
-fi
+# emacsclient -create-frame --alternate-editor="" --no-wait "$@" &> /dev/null
+# if [ “$?” -eq “1” ]; then
+ # emacsclient -a ‘’ -nqc “$@” &> /dev/null
+# else
+ # emacsclient -nq “$@” &> /dev/null
+# fi
 #+end_src
 
 ** SC_toggle
@@ -4310,27 +4377,28 @@ rsync --progress -c -a /home/philip/Documents/PhD office_lin:/run/media/philiph/
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/backup_phd_data_hqnom
 :END:
+
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ//a51ptttqvcdy24hTxNa7ZYpm3LJLVPYAw9J7hB+DqP++
-hZic0cVy/DL5RYhQyJnAhzwq9mI/R+n4rzwW7oKNoQGdbTAY1CnZbsb0fU4/agej
-UHQsCh1KgM3x0c9P1MsWBX1rPVIrTRKAj1fEGgmaxuXXv3L9KcwgdYYGMTN27GKW
-HvelaONJk1Ni25ubRzXYGoOOp6OqQaZb3kRUCEvYrQl7IYGbliallOIcxufphLek
-oRC68U2JDMD5f/+1b1pxBxDexuPDWdGg/t2KblTD3IoSig3GIGSeOAdewA4ZiBT+
-oD3xzfqV7mLFR9m8BdYSfMKK5H7wKqAsfg7hhG/E7zJGw8+pkz3ks9L0PGWua2mR
-3gfkYAQybAbVQHfo8GI0uJXp6zTYe9tYCvsOV34YgMQqqnWc4CJtZzSv0IqIfOoI
-JoOvyqKKOL1RDcGVQ0XOe4Oix2WSj99o+iCNQU/23wVcc0sbz/Dx9IosfIQQkfaV
-Vqx94PbDFZkYAkWy1B64/DVxy9kzjVzc7vePH7Uzi26b75ArEU/VASq2DxBL7TKs
-b1bE6KcDgyrDVysRy0S+guBIYhKDYhUtlxQw+U7q4PsMi28pD31Nx9uPA3fD+/ot
-Mny/D1xkUnVN+0sz8N9LZwW2K2Bj1d0CA6dnbVItUxTeeiky4zhziAoSuJq+GeDS
-wGsBzC5nHfHaWqs24XFyFiEj3MuNX2KtBYFrPtBt/8LiSWqUIwC75G3XAlywWLo2
-ax7i0l1aSyisxOJZYXk0MauaTsP5F3BdSMPwkPrquhN8yFlHm/c2jyTrmGgAukYB
-KB9ERd+kYO7uJicgR9ncP4J+GpBz9pjVE3MvvhY4fFAORT19DxMij6RTdRg/1hx2
-ABc0zK0Vw5VdtcwGwv4k5BNffz7bSdb7HZNk1dTigvPMrb9q8sWh87gZn98FEXyn
-Z28nJXFdkFcaxqG3RiLsF0fLcGLRwJ6V/rEEG2k6hXcbFZCHEwvTvDruA+Ta6j91
-N2yqkAcL6A76fwxix1/HnD4soTPReaZs/nFT1c5WPzSoi7PCT9An02Tllg/wHsLW
-54nqcwNkW8UG2pnnGw==
-=bXsL
+hQIMA8yc76sS3P8VARAAkkQWv01YmjNjfm5CHOfXbC5Yeigrqh+1wk6hSdzbTJ+/
+8g8efYNPTQWNPCcXLiFJegG+KEH9LyuGnw1V5yM0CGNBCo68hclxxWvdUO1/cm7T
+LZV+ekvfpQZHgBALVettEJSXNKkTKPiOWiF3GnGu805Bwya6ev90Rv022iJSXbmJ
+fvu5415Dv7QvA8aU53Ww0rI8ow4QdGIcF+9Avn1M5ZYcGPpwCI913ai6AhExoD/s
+txeYIjjRELOgugLCV60P8cPUWwHPeBcY/Z/iwV9ziuG0S62PPd2kUShrg2I9qYh0
+0/QAxB2MK7i3Of8g1vXGhQf722oNHXauw9Jd3o4Otftlrur7fFA8l+//8sF5Nifp
+TsfD47F5WV2RzINLkW9DmMh0Vum0e3bbNmilGXSYW2uABk0E4ylCbcIsPL+s6BEf
+uIqMtEDvpNi9fOcLLExTl+DX3wo0UToWdx+vlrXB9017F9RQI/Z4kLM6/aWeVexR
+REVF5v/7Iulnpz9mTtKsuJF6e9LN1+OzVdXyoE6DthhFkkhWRQnLUXVwEtH8fd5Z
+sRNrDeqSyGZ6jWN6RYTWfUEWCLzj1LKtyFLx5+nKKgOzUwuOC64soDyTNYPbHL/D
+UZlD5plg1HDyWsd08vQ/xjQY4JGZkeLrFKgD+6546z9UYI8HV124gdwMGxSsDIfS
+wHIBQcEC+lfBDUTG3ulTCXLE2d9VMkBit5XLT2cqrdJh61+H8uVHfIm76PGgJGPf
+/R+7yO8dlau26Clvigs1+2FILtf9D4wjN5ioppEB0Zx5cKasiHIDZHnOzix0g7n9
+QhQ9KoumptQV+cM0KJXkjmMK1FNYWC4xLr5nJbKlZrproEG2kZ6g09xj2OEN1WK0
+MVqe3cwe6c1uVPZA2yWTe6mFiJw6hL9uPBFGIkEn6c6bgGtK8+mu4WuFcvLwmtdH
+lPXBVvzUQ7skI8RRySv6PuRBX9Xjo4wX69oDiL7N8xnbnRqXtaIGb3e1jyb1X9WD
+uxrXWSDWCsHUmvmJTlTS497rNHuWNaqjCUP9Rk+JdLwGsFIVUJ49P2k4cJVR/Zc5
+gIY49pOKxFidOSp+J/aqTuySWhE=
+=5BJW
 -----END PGP MESSAGE-----
 ** backup_phd_stick.sh
 :PROPERTIES:
@@ -4372,9 +4440,8 @@ exit
 :TANGLE_FILE_NAME: ./scripts/.local/bin/backup_system_whole
 :END:
 #+begin_src bash :shebang #!/bin/bash
-#!/bin/bash
-sudo rsync -aAXH --info=progress2 --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} / /media/veracrypt1/laptop
-
+sudo rsync -aAXH --info=progress2 --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} / /run/media/philip/laptopbackup
+sudo echo "Last completed backup: `date`" >> /run/media/philip/laptopbackup/last-backups.log 
 #+end_src
 ** backup_documents_SDD
 :PROPERTIES:
@@ -4401,23 +4468,23 @@ sudo rsync -aAXH --info=progress2 --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ/9GjUpPjNBefj6Ks4ItzQt1uTht+rsEzbkndf67KpIaNoV
-SR7HZWQjmVSJPUv8DPKnN/0zzLW3y9gl1IdOWIVSpDqVFuPeIC2nR2DhG2091djc
-NeHcEDtm0yFUj8ar8R36PQeQv6J/OZFIYYlzkuIa/JgDwEkO82/HgC9ziBQoDHZi
-PUpX3zjlTrnvO7oBZcKV2Y7O+HuyJdAEE9l3yn1ZTUoZ0+mmjmFebwvfL4iCIRMl
-ha2FBFpM1+YX5hUmgrUUFp+W4cZ56+EU8Pw7MvRd87lL8c/6MKyIWyXdFLUSyKUh
-9uVN90ZbEXXXHj7EC6EWAqT6xtFIPKa/DKa+dS7XRHd4C568Xks4cOt4rGIkJeHJ
-ZU2YWalgMdcIBgSfbkHADfPyYCQc2DoDgKw+gQzfoxoil1zsjOfzEzTvEq8uKb+j
-RMcC18dzXze/0m40+RX5s4yTA/sHy4d2h7xO9UYsYFMNrfzePgYYYoT4ZVCJ18b8
-VrYev93zjJK4kntVf28H4rd/vew887MbOfzF62V2N4/nIuBP0m7IYBXUr4D1CRnz
-7eA2j3TyToY+VS7Ygz4BqYKqtRZRKFmCkYaXR88KTcJuhUg2fZ9znGn/Yn5jqmrx
-azJwFqUA3wfzMZphpzxer0ppmE6MK9cHCcz3SbAm0PaeSYa1HjxTg5s/0dsAzgPS
-wA4B8lPyvSpXpCPT3SF+SeWf7zarraDK3b4P8iIoewchAP/dRtULJXUXtvbO5VAu
-CAMoS45MgzZzOlkUxUWlCXOA58FPoXg1/l62rj9is0R4w0hdCu3wx/wL4fu8JL+G
-hkHdqHIK+bFkhWeR1z1LDh3ffmm0bupxZJdtY9rCXgeAxfrM5HzJ2oxQXVClRwyd
-ltOUy7B8d3xZrsvAB+4H1ne7viF8tl+43VLl54fGZVFB3LWAWnKZ8mKx0rnB7Gki
-25FPoOGMv/OdCAtKh1m21g==
-=AUcB
+hQIMA8yc76sS3P8VAQ//X3LFv76IdK9uJyCEJIPvHXJn2VEkbrhyrlLTWskA597v
+O1Sunbo7tXncCMHeATcq89XmOMCN5Qke/13WXAqxLt0cFgMOIsY1+cNYpKc6CiCT
+IYjmoNxC2IVS+7xUgZmne03rZ2qMltU8JwPTznlY6nKyfRP0BfNyec9T+xn3fnR4
+dAByLKJnO86cX4gnx4yU0U0WxmtI8RkEgm5R2ohlQJPnz18IytsGyfpyHOCiHDOI
+MHPGIhnsDGlNwQoiyxS9F6EKtxoNqclaeFnJxowy3Pi9pewzqlXu0rAt0TXzvOju
+TX1iKQnBaeedyBRL4h8YUJgmkUlWslpaU2GhJwYfAEJ1yyD4nv4XjCcGY1sIZ9Ju
+77PrnPHMT3kQpE0ZzRPaTLkCSKvvAHyAJLTah3PYEsc3bUlb2p1WHajvSQu85cZO
+6bemfiqC3kLTW0ebPhWDxZNHpy6GsOEooqyBxybpBdqDIcb6dqQpnJSf1FTDr6zC
+sNqkLEJ6n7whyIviU/XXNfBR7uWCRwIthc1hMch+zQIs30AVGhDvpurAIkKche6k
+zFxaT9p2Nwsi5c/fAxfdXduDi/Sup5Zy/LcPSgrtcWhUuPHSTi1wIo2vvxj9Ii5A
+SSLnt9srVt74iU44H8ZkPJHoR+MvQ8mC9i5ov2CLLXxsR8zRQX79NQ9/4fFDpGLS
+wBgBsXZWUP++iY2AmwgzrlkW+DLXREan2Gulp6AJ31rMaxTElFor2hbiQIxepj1W
+Z667gleYdLfXqPOeyCHlbVpllPSk6K9+h9iNIz3eCpEv2wwDHg89K7M1Jq7NmX2H
+Iy3hF+MdQpokIIHxOAECrYbgSpF3Ucoh5Lp6S+FiuQ3P8gSE69CR9DtQUxMSMOMf
+HuRTQefUJLGVzTMvzj9j9GjaF6nufYWYgdaNASGMx5YlPsrLoo4EwpriO28ATAVd
+9Z12g05V4dEFlRQbo3IKqiWBEx+QKUf7oq0=
+=hx/S
 -----END PGP MESSAGE-----
 ** mount_datamanip :crypt:
 :PROPERTIES:
@@ -4425,24 +4492,24 @@ ltOUy7B8d3xZrsvAB+4H1ne7viF8tl+43VLl54fGZVFB3LWAWnKZ8mKx0rnB7Gki
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ/5AaR84s4rvP42xo9WUzauqD2r1r8emrjNEgubCw7qHJx9
-ha12abYck5VGrfdxh9C7jd2BJkIQzYzTeiquVPPBTnMs6BIpyHi39t19wa7fqa35
-kE+PeZdvpQo8Zpf2jDPr/QeSYJQVnmlOsbwaR5FoaKQy07xBdWHEqMYdgHG4Kfcf
-wfnxTheXd5+SpYNlkKh0j4DnPI0lYB8P3w1xN/urEWImUofZH5KS6BI1Cb81qRTr
-25wDdFgffAvTFTR9mvGb7WhT/PvV3SX9Ycz55w05nGZPj/ltEO7huXKQIM9UJZsy
-/0bF3srikq20nEOkxoJZ8OtVGB7TyO975WCMkUXfmLUUHUVlOi8eV84QN7C5I3oq
-1cko21kslCRzb3aOwnP0mmq94vbmCTHzCBDixl+ytfVotBPt8NYd7AIU48KjuEc8
-880sMc1/IXyNVBNMWQ3Mbr+YO6rLZfD781iA1n18Mz81k27DJlX/Ez/Yb0bvzyMB
-fuc4deHSAMOnFmC3CV/Ja8mhVlA/9egitDcqmsMl53iM5W4mtvaQVIhPjmr/QdZp
-CzfkkdnFdO29klMYSV3XTEIZJqnHWuqrWkq2x7W7maQ63ddRrW+EbpND7HWbzTF0
-vgZADPXRYi277enyDzkmmDByxejapG1b3DTqr2WZW4d1yLtYKi22r2kcqAiL+/HS
-wDkBHDgOsCZIErc0tz5Rw8lKYV/MXiBOtXAO5HnwtvkItWrgSMSXCqe/2R0RnoXP
-tJQbl/RniLt7FmPdR6MLSkquAzcvCLIegMbX7OwL/46vEvFhbyIaO0L4VWsWSkyI
-oNpuXBehe9r/ATcX8r/z5kJEeg/hOMDhx0xgMSMC451AeFX1nyG34QnBJZYlaXVw
-4loIuUmqJFFGVeWQHuTVrBFk+BVmdWPN9q+2rjVT67Wp/Gm2yaZiQ/4+du3gG8Ob
-mD46H0/M49hTl+5rPPme4CbWqLQziYgC0dDuq38QhIPKLoGvZT75N86c58jYgiph
-NSR4eg8zI9rXCdQ=
-=lD4v
+hQIMA8yc76sS3P8VAQ//a7EsAC7fg5XOXgPsvoayJoWQyw/eLNNmEa4o/DjuMktn
+A0RwzKiX7+8xmY5viEfp56VuPS18P5Vjq8xiVsv/PVFmiEA76Mr0XgbViY7So06o
+uUSxboYJfxBKWCzM172KQsJIWXF7ReONyZdRxP++6GQ8l6gcqhhc3xHNc7dkLc2H
+FO5SUAR6aH6l19u0Ch+FqDzHFzL53jdTA7qbRJGmsgU3zxy4RllTJjXK1affg79f
+pK+QiebTLNMfgSo44B0Fgv9Cseb6AEN4+D0GqU0+XkRE/y4rY5l+oGo3iXQlaFNn
+SDKch/sSxl8C+IGuul+peC/ad9ROWDIVQ6xy4ddXySrx+fnYUjPyczaZ2E8B1B4C
+9j/Q/4ic+ZRDPW5yqhNpjYuyo6jn2Oj1eumGcar9LOBTjL4ifvVTHSGdSFe5lS/p
+UPW9RkwRX+7F5VEFXOEo/DQKFF3+LcVd165Cl8CW8zwPZUhnYsQfHWuK5cq7CPXt
+OZBQYBW21CwDpzMfekhpgw6PAonEBbJJTaA+PRmx4ORdnuuN3xUDI8q6fMzMWSDT
+JTJCa5irdxMYMb8hzMPkEss/fk6ksqKR31Bm3JHEBx3W1JC7plJKvYP2Dp0SIqkV
+/p+yu05ALvdlM60DMm8UUnkEKD6EOb9Q/tj5zhiATlqA3FB5fLj7hdmzBVRAGYXS
+wEIB7BZCvSIHr7eg/WNlTxM8P6qWZIbPaePiRFcfwXJZzccCRQOFd38oOTKcO6nx
+u/noH4gVsiERN+quZgMD24TG09BzT8Xm7uXSIWTlTu/5FGVwsV5neDZb0UFf1f7A
+GK8krSnxaCkn9G46aAiu/XvOMPFUPoREctWZLCkcHZWeUNmABKbTWB1Akw/Zbkc2
+Go6NL6IDtQF1MBXJovRSzmkk5TIMJfVYIiPN6nX8wkeq2+sTFWPVi66/4CsgZqhX
+RuZdgXAkfE0S/5QRvFqS2z1dcMcYdDsP/pNdClEppadkYGT7+WaA2auYsCGvaDWe
+oYdXjZsJpikevQFludt7E2hSdYE=
+=/Byp
 -----END PGP MESSAGE-----
 ** mount_hqnom :crypt:
 :PROPERTIES:
@@ -4450,24 +4517,24 @@ NSR4eg8zI9rXCdQ=
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ//ced7GtlQWRAXE8pZKCpVCVQiaygHzo1/atTHvhaJCupF
-lEWNe+HALk9jjBae2FL2ERTYaTYX31Ojyn3ApJBanpzk65PMcQIY2+rIySN9yMt9
-bgOa6S1lxVj4NzeCHm2GCxP1+l9BvnkCiR7lO0u5fNuJ7NQd4pTRRoWrAnm6/Ma1
-68X4RWTI0qoZ7lqXD9BkPXZXsBHzJquZSoq/ttPQHUi0jduS2RDchBNZzUjlls2d
-x7h5T91b9vUj7t4OO44+rIzV94d/JSxbhCTgNgchg9zsdSIrn0xoHhRV9LZ32inZ
-AaLsPr3wzi1IECSfoR+jyW0Ze3x/A+hyAE4/W1Hr/oyZRpkAHytxmPgV8p8w7tmn
-pJWvoIXadcnHWuCNHKuGvBIJbp4emuB1j0kk1RTnxqJQwJwqVAT1Szfew93blX5x
-5JowMiCum1Nya4r3hVwig1vDb2a5rVXACSk6XNeIHuuTpn5hr3h4JP52ArXAaCIU
-xaDEuhjFax7EPoLZPD6RWf0Ly3J23HmhI7u4nUEzJkTkfzUaawbp2wz3TgkIvUH3
-3pI/tDbuSuCYgu7lqes6L8JnpNupkvzVuxiKRs2cbLXsBDRrUafZEbdOeq7ay7kD
-IDjfhNFo+60M9rvoUN+yfKjxO+c/dDy7udYJsnXH6mfpJ2BVRzrGNqMi8h97CgbS
-wC8BfpadEGyu4DYAOUcau3Hcssd/Fq43ibWz6myk/rYoilB9ejQ7wSjjVGWyxi/d
-0cS6QZ550v4VJgUjDPvThkKLMQE+1NpTy/licS+Rr6x8WnTMx7eO1KvmnRMbAlpK
-T6N7g/Qwd2+kbVsaxtNJelOXNf1MyAL8QuwyFZKu807XPbILfIBHi441u7D2yfqn
-8iXIxwpLjHi/KlTogH6euVv6ngcbry1iTSwN/uaY06s6BGsmQEDwO9DFGKsHuat5
-hrKwiYCt40xF8PPS8/GZeQSTYCDGjAsNiWLSUlwCbRKNNgX9G+gMdHfkxb4fBo4F
-Lg==
-=Qh+G
+hQIMA8yc76sS3P8VAQ//d8nht6IcOcbi4lEE8IIcJZyyEodhvOYbV1fYoqEkeg65
+GNiCf8wpIF+TOoSsmi6mGUIpkmldUn6I75b7525tRxpRxSNSygPfII3tzVqBauDW
+TqAPyF2vHveffZ5DYG6lvvaPocWp75pVPcT9yYHL3mpcx4GX0loh1192d1XTSd3l
+mQwdJvhNrjLWmN25iT379TXFO+Au8fkoHM5lNSXt0+PrYMZ/2mD+g/AbD67e4Vyy
+W2TRMJ0SDMPeaOw6cWQ6s/ZG+eyzf0QnlI5SaM+iFitJHw9/pZekFOJQxu7YLpUU
+oQabdTPHhfp60RQdXxtpyS8SPfRlxKzFQHghzReTTi+MrnHfmSI3MtZQ5fkUDuQe
+t9J1Pk7MMVfLvx2hIlBfV8x1AzhjgzSnhxMoZTEJP/vjoZjn8Nd8mwbxWxUfQcvs
+cf4Z17YhQvUG5+FGqeMBX3+dC8ynv3MI28XhGUnUHV0ZcfPMcFCoFlbdzsrAq83O
+V1FofB/IpkfTq65fNl5GPVuNcT9NhbkEUey83TR2Ssk0nxLG0Azp4ccXzLUHmI2F
+lvKJ6QXekDRhLvynawAEpyNpXumScXMqh+AuHAi4KU/HG7nhU4Nk3cBx91DubiOo
+7ysFqb9OPGzKTiBJ8IBHeo/mM2BS/GXHECx5SD3nFPpL8JeLukuMS+DwBcyVC+DS
+wDoBAsiZ9Ih5B2DI+1LZ2ZPWyerKoDdXFu2KQPFskuTDAEcY0ys+Etst8u6XhC+w
+ps4L1J/cInyPMndbv7tcJVetGuBEFEunSWRmmINvRoAn5IwX6tiefO820I6Sg3Q7
+nhzEmMraozxqPdAQ7xcnc1+bQCyoVn3BpQJEvjYWX0uGa4uBwlTVCQAOpAvOCi0I
+aJ80t9lgHGloO0XrkpRFPhz2/1XJaDO45dIWI01s6OAloMELnQtRsSiBKys/e3//
+wzH/l7UuegLD8GJIvCiod4MXuFPXxexF3Gt2GmEutWcm4mR1RMQ70viFMWNPh3GD
+K09YZt0GqUL6b6ts
+=pH44
 -----END PGP MESSAGE-----
 ** mount_hqnom.save :crypt:
 :PROPERTIES:
@@ -4475,45 +4542,45 @@ Lg==
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ/+P5q4tHEbRMEu/zakbEtCcUiNiT36hQOwY6ukuovr2RDS
-8Fh6vazIA2N6O7amHDw9fsDXGuwMP4WrS30MR2R4l7XtsoaZDD+0qtDWzkjPfwTJ
-qCi8WlxB/3lx7llTdaeR9PVwaNftSI9RaiFEVN6MLjhJ4pFq+rBVjuzjLx0c9hMu
-6GEeZwWMZg9ID7OXLwxGEiG380gJqHX8++6Bymf4XvxxLCmQGZCsWiFRdnJ8FJF0
-9Kka3T7+j+06190vQAysvJS48N6mEXE2LzEqrFo11wPhvEM8XIa/wlaMdDjnqOsC
-FQXGn8B0aWZ6Yw/06DhdNbcbE8AiniNvk5pHSW1AJ8I2phhN9jxjEXOqCGLMXZ7C
-3LaGtv/z0PIoZRUU+tQin1ffY/sHRujY/s/M07i2WgVPLbxxtuBr1J5dMFQVT3kc
-wChEpnQ8PatfboPCJLhJQWyPE1pztZMC3rDuHb3jbbC+GXrUUZHl5G4ZC4wTvgiP
-AFmfbA4wkTX2pCg09EJWNOkkVdvGQRy8rI4MVQCo4KoCblkAQDZMsON+vnk+VKTV
-8P5ThVrIyh1re+blFPeZ2BujWPvWC1fmybi9azmavPhNClMS6ngZ6Q4D7MUUVFvt
-YPeunyhHew87mE8W5UMoYjOK6MMY28arhqw7qiGipoZ+h5X8N86PZvv31aULgJrS
-wBIBnHc3zdwh3LADzzOv8GGotwRfbBQV8GIcFRwlLv7d43/sMWwhmyHYyPmfB2Yh
-wUzELeQIjqOBpDKQytd7AyCIHwZOuN6seSRC6FHdnSquCWer/MRhIONS9IRhVkg6
-A8ApRQIz5qnxn48fOBJMjiKldwwKcYoKPHD5UgLWWhprkALiY51safGnpYuKOBcU
-UODB5dbJhT79ya/UUOsr6R0l49qp1kAc5NDbB8o/NFjc1FyhVgj7MQMkm0DoRjqO
-hnvE7RtqW2dkEVZBKj3z2HKDpSg=
-=R+mF
+hQIMA8yc76sS3P8VAQ/+ID5uR4dw1NEmffSyvLCmXPttvChWmiaEnnCA2G/EODj0
+34pg+yfquUGATyNQ2tKP0b+A/PzlguoB/Hqn/vdWbwl4DWcVk0oFhEaf4qQp/ZrU
+WOHK9qcpdwCEnN3Dk6mG7BZhbY8mWSbV8Pc6GozZf+9a01uC68hcwWLLPlM5Ajvm
+YPrMYCWuGFi7E8xWyrQj5tVYBN+KQEg6QK09RdovlguPCq+T/S+O6jJAD9QpOYn9
+RDvelg1UuzlD32Sx2iCrg/hwffAAQ08NTvZmi+mIi3o6bNafkzEXzyCeje4sxJMG
+lHfEJneeNGy3/iHeBhIeOnv5vtsqXdGqBVAB1D2SKiA0Ncj5R1Sht+UhwyxHrCS9
+Vt2k5x9vqmxoXonRKfuq1JhMRRH8R+ctvsTjXm+mZbFuctK+beg5pgasjyFDgOn9
+Lr5Bw+xoMim6I+2aPg51M+M6+cf2xQQsWL531JEb8vzvomfWIqQO0xYBe23YLej0
+WmrSVB8ficKyiFQVFMowB3UIYZK3yfAezCyvJmqC3UeJXP5cT0yuDKGd4c17HDUC
+IcHD1GN0Y8SruR8PoLUzO5jr+xr689KMIXkgcVPrMEPw6RPYhLKSGiljDlJ5ynHY
+FRksDGI6MjULrXxmD1FyR4TQ+/sErQ/hexdWTAn0xIsZQkjd8zPfherc0a6f7WjS
+wBwB3xWJL2NwJvlTum8kVc+FsnjCftAyKoyVHtnqADvP+FPTBzfyZr6oZsrxmpij
+z18JVnaS61Q/H3UKMW7aVUt/DUi6HpxSEYE569E6G8qadv2q+MYIrg89lCBJH5Q4
+SAw/7qzFFKJixTAjKGUv66I8gWaUaz/ADce3Rbms1Y92DSpBcf4ZTlK35HPq/oIE
+yWl4IBj9QPMBh/d9LwsdBd8IbtJCmam6UpQjuGEsi4hjepuPXN+vGJCynDSLuyv5
+HyFCkUEmZgT3NBeZI94TEboM9tT5brl+pvcozSSc
+=v7pm
 -----END PGP MESSAGE-----
 ** mount_lab :crypt:
 -----BEGIN PGP MESSAGE-----
 
-hQILA8yc76sS3P8VAQ/4rtlSl7N6JtL5FyrGBztnq9OBX0wdQWRsMzPTqXfLfhvF
-W36AyE1wN8kMxpeG3SCLCOjXexDuIptKbORXwo1gKySAdf9AGgwrXxxnG0ZyShMk
-5tHMKSMAJkzmD0fcccwEp7qLgKuVLLQEtAKgrAm3WKIahHuddQk5d69LPBm5sLr3
-E7KLTQm8049Ffzr2uzOAxrgic/IcfFnzNICR26IEi1DYpYeeKfmVlbgwYL8GKYlD
-g8DLXKVTpk6EdXz7PJkDBO3hNGPwVzXJyq0Z0jaP2kzrkHWK+z4PQU7Lu6/2mPnT
-9V+yXjBsOS6UMbQsFfhzubrI1z205aHxcprnr8sEYYDNn/0DUGqeomSlUmN6XzYL
-4plz0AaVBut3AlELUpV3yKP/vHTxrVD0cCo2mfXeqK6tNI7s20Eb8mZsjqVqA73j
-n4uHxsQao+oiXXbroAm2Yx+dYe5+VLLLzwRr0JUM9N5Eu5VAWtkVDqU9LLFbwNk6
-O7CoFc9q4eGBwFdYJa9F7Ys25NU0MkZiWwp5VenmXfQyvkzm9Vd96NxP+J6iKGmM
-BiTIRWGhWL7ZkkKYnMThscG5LJGZ2bt3e4le2ZTJO1lRYGsjhJ5OGDAy69EMYJIu
-sSu3X5HCVqDld29NWmACj3WR6mmBzDgJEuWjyIgrsbwvPg8sGPkhvTAoZuXXntLA
-NwHobQwoptr+7cTpkdGUjUoEuYiTUxldjJj3wONnJgSTJh3p2YGViswkni5vrS9Q
-wNVU8abHTugdmJRDwhtNCB9CySpzGKoR1HRI5ZT/wntCkKD2bRis90I7Yw8Dp/5e
-2HqKuf+endDsaqGUwbk1KzXh63oKk8G/QZTqXgltjBGjoSOG3SWCCcRLAm76JJpx
-h95qnGJTxrUahY/1F9aCH3pbqooiV2AUCKpXf4E3anKZAHSrLuVcXcDNPBBF0dLg
-6q1I3pEB+eCRXbcUtUxGC0vRj4d3fzG642e6df6kiPXYlLHAothCjemOAYjzyGNJ
-QOdKKxbRT/w=
-=pyK5
+hQIMA8yc76sS3P8VAQ/9GGwmjqaRKz5T2SIqnmGSZizQSY0mQKjaIc231T9auiFH
+1KJDP/nMu0ToGxglV5gAWv3aAmYjL5tsjAoj6q+jOeKN5xBPlKUAB4ZrF2cg8Uw9
+CI6ZO6HoGIaLjStIovc99yc4JToVHpf6ub9zDti2REeYgXuoPYQ6eV7k/DvBhvlv
+CbCiy9/K/GnX5kZG5FA7t8WvmWqYISO9VibSAPHo4h/0dqKfF/XdtB6ZU38LIygB
+z3v5AgQDe9U0vvw+6WztbxgXleV1BPY0sSYLsa99y/NN4sF+ju448HYsUToVwHs2
+XNGNyi2xL3ZnKREai6PMa2mwVg69InVagbtGRNMgrqfdXyd5vvvrWfbLT52BGJ4z
+wNQ0avdEVPb6V3YYJ4wDS6yrX9mpD8+mAlu/G2jXbM5+a6Dt7CbsHCuJQJumGMuU
+rF9JAFr+mvcN7QQNGpOd37krB1VWooQ4tOjt7o2vcE2eyts01uY/RR+Ef47RRArI
+I3xupzySBWOQtUFyS2YwJS2N2z5oHWU5esR+XOtvMRjdFH+bywiR/GcgMxkWnia/
+iCM6bQ1yW4GBNVTniwh/afr5KAo6IIVzbHIDpu9h97FVUSdORgQcOAKL99d3QySH
+UMNSNeT/Es5OJFw3MhuooY3HpuuDZnRCG87g5rMXbapETUFFzc5THkEVNyCrJLHS
+wEUBSl5yPE133nI3wXJw/KxiAyDzQ1vwKDxajXVPXE7LWjaKcx2mvMgxcc/xH1BF
+/N6g8Nzfx3D1NaNuGfut7Sty2FqIFv3f6ekxmgmeii5tUbYgch+0Ihn+jFC99ya1
+gjT6JrnR+OPVqE7qp7j5gEMN9s//uCTAsqvVo0fYNNgHECNDRXUtZX2lwu+vQhAq
+mgbWnI9UU0oPLEWfgo+jz1ggPTvyt/KvFsDI7EGrGODkRwlXkoBu4gqtuR8LUMLE
+rj93JOfixatXB0yWxsvBngb+mowbV0Eta5/VFxboI/EXhhcNPCTZLYXdIENZu6Y2
+2PN7Y5z0souDCPwu9M/SbmwqjXNuYzg=
+=zEim
 -----END PGP MESSAGE-----
 ** mount_lab_local :crypt:
 :PROPERTIES:
@@ -4521,22 +4588,22 @@ QOdKKxbRT/w=
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VARAAgm0Qsklvq2rg8AeLtphdFO5nOBS0tU6tFVip7VvFYkm2
-z3yow6iDBSIds/vcN/3J8ectpDTDP3w3vhIrzlYn8r+694GUgbJMh/kXs3c1JDV1
-JgPM+wTEDB/NLEfb7O7rCJnQ8JgJ7J9d8wrNmszyvKStz6v+cyFHFlxJIz20e5zU
-t4neNgd0yX4b6qELFBF0vcqUblW7Yuy1TvOFKfdE1QoNNEwlSIEZZuQpxH3PJkvz
-kukyy7rEbKia6N6NBFmBthocVM/tHYCuU07IcdWt7o3J63BKfvGTx/fYvcVrC8GK
-n/ZfuiBjySwtS13M34x+Z+ACeMgb1Md1WHn241aZipERIM71Rz+qfEbHuigdWwlA
-BbzBemC4CW1yPMtnKqI9r4XWAt8dumYitAP0N8FGttWpVRylrbUkAHes5lZyA280
-J4IX3BWGIcrokTTlM9/4iuA4Puaqx864z0z/fVZM4q/U0PbQ7KsNHQ2osdOIBTJE
-mLfSfD8ft9AbgmV4P7CamH78YyEnQpYtBcW9x4O7Xm1TeAq59/Cf+mniQrLON0Fc
-diGMM1QnGc1zT3r9PYgcycT4Lz0MAtgzMTWCdIBbQM5aBNzlsRRwAe6vGG1hVhe1
-9gSgLY8FYfKpCLw/s5xSjmzS56aWCXRyWR4mXwFYFo42AEgPaqnBx6MPr7NThsfS
-swFFY7X8jIyZx6VU9rcM5pCwyJLy/wwpFGQB+Hf5iCRzgEh8MQec+TvqKqq+UB/j
-GGCMEa8F7BGLV10lTz3RvRi//LJvG5TiKPzOdCNHAkeOAUOIFkvpiku3DYJT93lF
-ODjomFHm5yxKz4zZWgVtzGhQQM/aMywGtpS9XV+vNzyc8ZWkPkNRWEfOfej3WeGQ
-HxFpJx6dPzjbcVsil/pkCjv0wBaXYtz1PyEkVb90pudWnqhh
-=Q3nC
+hQIMA8yc76sS3P8VAQ//ZzDMZn9eWyUQplpsVslkgKF2WRlhomnSsOyuFgqoyQS4
+hVixJjCpAhN+iuZ7qUzH+wUzIe7h8nw9jFgKNagGp3M3I4VBm19AF3LsAZ+Bq5IH
+kEXAPlLlYwsIWf6hJDdAhJJScBPrOsG12ftWcnrH9e7Y5d94Zli3VpRqspuMg9qz
+TJpdW9q1razOY87Rk/HlGBTTH7Bx9MnKcZD3JR9/Cnn+Ps/aJ/9SRFxb4Lgx2jG6
+XHpwMSrJzrl5XF1NnMM4p0AdWtFvghVp12lDJ/vk6VUmzO5V1ntMPqHvzMLC7fZ4
+IEaMwCQDvbhe7iTNJF0B5bNw1eYjQRNXX706+IC+AaiKFcfxXVAhA6YWiOr90CVU
+t8LXf6VA48aEiBAYTV9D84YQvG4+wtDvYglt1x8Rh3+B/dzizopQzA6qMmALtGPC
+GWSEspBoAFGLiqHpldcKNaHlu3OpsgrlHU1zCQdQZ3HBg6aUHR/jrVnCjx3blXo9
+WNGzTypkvjdV35f67Kaj2Tf2Kyrf+CV8BFC5rTCFmBql0EDxdc0VGj6FAOx5Fh/p
+3Oojix2Ba/gCXi/NIVxYe1d91BMZYMmOdRjqiiWMnypmnWuJO+N5U6IhdQfRZOMu
+TK9h/nWE/Qr6rO/EmteNSIoLRj7Y8rVV0m+pbgfRttf364jE8kCknhuKrqUXDWHS
+vwG9e/GeM598py2UWOVQWpCvM5BwHvZI0cusXvtiVmi9/bhQRbiCAgRlkrmimuQa
+Ycil7SQgWMVj226KkPv7DnHTpZRQglptV9h5l712i/PkQnuIdwYj/eS2Elr3gy3x
+h2f1F6Mjs5WjvuX91P1QFs/AEDDjfmeliKB2xkPAbZEk7p3uG2dj9pr09UUGqhg4
+72OQnKlD5F8lky9o03j1QG8kunWy5jbms8R8kPGwilonQW/QalReG6IKxDO9mS/s
+=dBtX
 -----END PGP MESSAGE-----
 ** mount_minion
 :PROPERTIES:
@@ -4550,25 +4617,25 @@ sshfs minion: /home/philip/mounts/minion
 ** mount_office :crypt:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ//SYQRhzPbNis6b8m196Rc7FXQpwHBlYanJ6f+MnQVrGFe
-MS0r7XvTqj0YL6lPTvRTwScKTMONGOdBVkvbKr+YrBvWqX8lM+gJAwVLIycl3oh3
-6ZwpUj3poI/B7Hcg44G6h+R5BV3SZyM/h2FAVJQCY5SLI3v6WSmmXJcVqsQidywZ
-CLWM+uwm4gNgd0Q6cTKFQDpbQmIBl1dMXNLlSrR1gWVjpvw+UTjw9C30IU86L2c/
-3OJAEBWe/uS3lzYZbYeF/+CH4iuDgGxHsyDvTmh1HYTD2XNYLKuAh2jKdCQwVr55
-3GIlMq9CFkwe4+Rro8Csr7ksgRLYGbuADP7XAFfl0+hrYsF1pTkCfn43PwaPXA4J
-PwQgOZ1Ctf76H8/P11RfqHNXb/cnd+/dXczIeQM5xqPcAg+AdoDUCoTd1YJE8D3R
-IOhUYx0nukuwEFkAv2DdHkb4r8MXz3CaVwGwJhB2ub5CCXbJY5L05Ck3sgoPr7va
-ekoOARDloAqhW8N+e76bPWvIraywGCzMi4uYf0TVRnR8jXulqTVbfs6JdNMYqLHU
-E5e6nftHEaM/LezfsTT+Fxx1NVOXnA/ztPCv4/rl00/qrLMvmhetSw+PXn2MbftL
-3quSG/sNWV4lGNa3RqaCoYCzXItf++6YVCxomduKabSUaIHxrPO5so4KROPaB3nS
-wGYBwC1B+BhdJ6OQHA05NYdMR0WwuwdoccGwRnV3zBj4+YJ938f7hkupnTDiNjw4
-1kG6PYzYmG56Xl5mgCzDFSNfYLXtrIhUguqoWPJe93bZzgJbZRR6Ko3UmSKkgy8o
-u7WfIkYv2JLApcRYiKVgnTvUoZ36S/CkEB9LjspvgIU1MKhsY1VVIqXhNDQSyl+L
-PVpQEKsQ7K7grETOALs6HVFMbYxBgh379uQYT8LX1hVt5D+qdhhGW0eyJwCvQBzQ
-m1eYpxS7qE7MIjum8eqNI8WuvAu7FbI/fTvebkQfOyekhAImOZ9BGOzY7ZLgC3Hn
-G4DyhX0g02/Rvb28R9xBGdv+7JGZLgfmKBuFSLQgs9UK+jJhx+yhNMMVkrVZuBYR
-OIyz0VIXd+c=
-=B40U
+hQIMA8yc76sS3P8VARAAk68GuffpRTcbY3GZdK/DtIy/KSydDQ6LLmhM0yNbSLHc
+7QzzaKEFqObviNJuv/ZhBI1Q3V3jPjaZ0kvHH52C5nZqNCgooe2qX1hG/K+3lgpS
+lxrYy0+gSUwo4KkmtB9pl4wlBnmLUS8+7zK3/zGlDRP+gSXYRrYr5nzSesYxlXeM
+bBCMwqRwPgC5MVtzVnfEaK7Jp+2DNg+HJavIftuvE1q8ZOcbgS+Xqm/RXdLRA7pM
+tr94Jm4/ST0xudfp8kv2enxcYwYY3iuMSPvZdDOhD+l9Gu7qwSrwe/aCFlKsPfwb
+6v4g6EG7Cy1msSTvRwhjsGliz37o/Y1XFoMk/8xnfOmd4iogGEqNq1pb7eoPwF+W
+/3wjudACde7jMQm3iaBn+uV5zMGgxsDye5SNZBBFvSF4+vVkrHdZxjoiYvgzUyZp
+hSm4QVrFdndaKVzhdeRbGMAqvBj9zTegqLwuvkD1M9g99ow7OEIQy2KyarlBKlCt
+aIHCUEyPW0eIeaQGXmQi4GiA8vSaefwi50i5dvs1Ww+c2Ko5beRVJ7Mb5h85HPyS
+u5ganOPPE8x2X/ijzuReaMnd4nQGctVcGhun2N+uXuV5DfgYVf8w+CrDAtcfnht2
+vuDVEOOdKwF7azbATm4Uy8g6D0zx+AFjT3VcDH86JnrUvJhRynf7ZNs1Z5NHH3PS
+wHMBT+ytB37HDg9PoY+zguigAwH/G8Dbe8oxSq12kQhCjWyTovnKhgER1hFChvY/
+ePNpqgop3HtDheNkcPuiFesp0nVd0Uy/Ln6T3BYvbvtcVE/+wopeMmyI464f1Xsh
+zAKCkuC7ykiiMNAPjF4S7bWyyok811yNgqnxeeTI0fZfqzXhgS9Id8fQbDwO7nGL
+lE8SfpZqeyDjGpikw2Wqe7x0u94PHCCBir7o5AXqLc/wp8mw/Xkxl8J2GciIHGnC
+mxHsBoixH4grmixCnwxYi7pz+M4ex5SL7KyhpYFrX8kuXxGAA513IkJY1nFE6nEO
+ZLlzCydoXOxvbw+Y4JsMaDAh/2sbsskU6MfXfW8oP5yTPRzwUHqY5nzMxGkyQhSx
+BAaX3RmnXyqIVbnmt5s0Zpz22u1C
+=wlE+
 -----END PGP MESSAGE-----
 ** mount_office_lin :crypt:
 :PROPERTIES:
@@ -4576,23 +4643,23 @@ OIyz0VIXd+c=
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ//f27rQE6ol1hXNRprFEySpUGYSlOPm/RqjnEBHN8qdCSg
-hD4ap//GuNoLBwtNnbS6e+MWlnp68SOPjZGGQjjPrLRq/wZTVj7tu+uTpY1J20iu
-aw83NQEPcwBnKtD1w7sh+LTsfGv/bwczBc1N0wFiIW2/Tqtz8N8IHwOc8RFBz2qC
-mySasOLXPRqekDFDrvOL1ycGKdPqfrMahFRIdE0lJQMchn4R3kRdnCQqErJJmmv5
-igWiIC4ax74oOX+a8Xkrj1u2D/DJqCvE0J2xQQjGKOkxVC4+25R645ER4bBNWrEB
-LhpFOjnUsUDCZA1PUby1BbV/RCBtv6ya+nkzsX+DyrcUayiMMwioudx7gkOTymFp
-ppQ3dkOeTljf7uVhp5p4UtVXElCMWO/Rx7tQGPm0bb4Yt20WfrBYUnfOeDnuFSII
-7ycU1FRS5irJY9/H5xfvziJXXyb/leIL4vpbqYvNtbYbtHD0u8wDKqCmrj7Ca+st
-GzQy9Q0VVKw1UaPVmEBmZro3Nq/t1o1yDYekmWq/cU0VA1TK22ejhoz+hNU9KhFj
-XCM3sIVqbmLH6zYOgHi7Ze3lwIo2RLPSPcXKvxqQI/ndSODbUKIa9XZjUTvFBAzF
-bQ6LewVWZHVxv4GdHKdKe+Glb/X5iJupDd7egQkyPPE+k/D+mKKaAvZjPZ4N2FrS
-wAABauXJcyM8kDxEi5rfzPcFkSYR4CLuzCtsKxo4/eBpkVAHIEMax8PE8RInhcZk
-aI0lkdBU1VscZ3wN4D1soVgHYvi2dTBD8iDT6t38phHYDPcyYCJo2fr6jpl48MJH
-YGHHI0UP9i4VJCEx5Tr69vi7JOKAnK0W9ZEIjeanaNgzhKwZqyU87/qN9WZiwZ0Q
-gLwEt/Bol/FyihIdE5ttW61kOPBebQ2JwKIZ0FaRBjlrqfWGRsNITZSpBU3M39NS
-qNo=
-=N90g
+hQIMA8yc76sS3P8VAQ/+LviMSVDJM6KKowsKUpmRjLdYlLJ0lqUKBmbr7hJZJsky
+mpSAt9DrEK+Tfg1j3Lgj+YTIkT7lj9ilD++nK3tqb/I3uPTcPzv9fOrZBoxj/nCx
+aQHBJKoQMxN7iw8bQ4IVeCCW5eqdD422Yhk4rpVPHwv9bdvUqDWZnlskB94i3GA0
+zxTQL6wGKSpq6A9b2OmleHNlbL2l+15RR+o1pDtOm9Rek8170tTRVJeS2gb/xjxS
+cjVZ804rrBret8izqZa8vH6Jye5AMmbmP6Eqlfk1Jc+8xz2S2A/ztDLxtxtHqMSL
+0CbKC62MqyPoCAWFqX23yipWuTTTwUxa8nTDa9pM4P0VkkLMEVL44k3Mu/BQ4SR0
+Iw7OtEROf+hLLBEhGafE6fp/ttNBMt2+aMAUgnBGZ49xGYObbM1OYMIGdb6jvGaP
+G/vFAAPf6+cWJ7xLetX397CH8QITaXxnAzBGQ9XB9P2x93KC3yVzIllPfSd6XxZw
+ll0qnZWS5xR+D41Omfcf3luDRLfQ9Dr5XB7SyzGyjU1BjJuCRtP3b2PtoleQW/HB
+LbAHM7vindvqkRkwQPaDbtl/MRmvLvU/iHcZUZH28dVjGVnzgD6Lo2PVuclqNfnQ
+Z25+RiwTRNUjT7UGotMjWN2uBNj7K3AP6Q4eqSh02ttX512vF8KnUv+v/4C6WV3S
+wAoBGj4B0W/FQPoJE2+raOx15zO+25Dy+Om5RAafITHY5J0yNE99BvRCd314Pbni
+GlhwjWwknHf1Wnq27xGODfiGH+fLgjelcVK1cXu6F3KS9y2zMnuPEiwl8hIdeBJZ
+NP1B2gONfNP38S1bzhKk7gOSFBQmQW7RX7SxqQJeSAtWek3slsSskhToOuTRT23S
+eBbJ1N+nzi2DMBDEwAjL9viefEuSbRa0R7s3CnfvSrB++TQuENLs9FIouMwuErXx
++xz8H4bUvNIWdLZB
+=ANu8
 -----END PGP MESSAGE-----
 ** mount_office_local
 :PROPERTIES:
@@ -4609,22 +4676,23 @@ sshfs -o allow_other root@10.0.0.1:/ /home/philip/neeloffice #-o sshfs_debug
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ/9EyvEJo/Xv4HFQW5V/+tRLL3nHZUtqiYP0X+lRnKEj8N8
-Ib4xW+yJDiYO+96OOIWQ0dFIrVORaw67bE7LLGihfHerpcq55wqASb4p/Wb1qzgY
-gsfufLYXp4Kv0QF9XzknyvBHBx119z7IWXkOz1s/LTK63j0/WoBvyTuYRx8GaeG8
-QtpRWrYEa5sFSnPEx56Cfl4A+lB3iVGsJkzQQ+WFCS6nr6L8GF2XxA64epWtWj6J
-FGdAkgXnBolUk8ZrSRl1jJfe1YoVuyUNi3ImW7wKKesG3UWvjv+lPYzPNeU+GnA2
-fV2g1/D1F7rHzUbBXby32XCQh5cvKschaV6PXHZ5Oe4GbphRMBbJwp547yh35Oss
-EapZJ1gnSt5eHBBI+Faij1OwDa8dlWvFeyT0cCZGMmBaMFVrgX3dW64L6SffLPUV
-mQOjzunjczpKqvMlFViUXHl/RXzIboRgpq2fjLbmLHFNt9Mv0xD7XwCOmazDQ/WN
-pN2UXccoHKht22ZoS8kqQ9VDVHfxhdzbMiLlBzuLtWinhoqldb8PxshlMIUNngpj
-xHhIJBj8nQbQEeQDiKss1y+Fv0pfGW2c4doO05cMgOZy9aR+j66Sp49OVRGVP850
-u4yKEylGESqvTWpd1v1k+sKeLldEkpO/l6Br28zNQgaZXOfRWjbiN+6SAKSZcWHS
-ugHFPKA1nQ9135OYIh9ghLwT2mO2klDENNoguAUABchA4DMNpezWyojzi9VzX3Hz
-xQrTY9rbjkcJeo7TevN+7z/OobDVBC6fBKu3jkAWblJnAe+vYZtSVa9Zblg5ooc3
-M3HygH8w2w20CP95t0qm5MglBBu309EGtR6Zt8Ydy0tmsND9Df+NiUzn40b92BZb
-HJU4NrA8K8CQrn27nULGH+ZQYlVGJvPVPxsVpt/SIzTxtF1+o6MxEionxA==
-=gD/I
+hQIMA8yc76sS3P8VAQ/+IZnd1o0rYv0coFxonNuCT3EH3+y4XTdZOfLJOUiGAt/Y
+2lzeSwTE41Xd8PVzuhQN9yVk20nkULUf4+Gl6svM36ZfPTE15x3HRbfWp7dj4Hxe
+63HjSAVtCxrQMl1Tt8LtvVi6lHaUpCGWT0R4tQ9E/XhFSWcgtPIChw8kEb9fg2EB
+85DbwJtm1Fp5fZiH7n41zkAROiv7XqkISaU2B3W/dsU5+WH0ccc1AGauTO9LpcnC
+EKybCiNh4cfXRsE/F9ABw2QS1QMUGvxGK3jD+3Va1DmHo0C/635diAMKzw5slM1A
+t4YAxTvXIkAvt4+5FPssP67Bp8I7SP44teFCqlrJ/tjEsi3Fmwkc+8ewxTFC0Fyw
+bzfflHN6hisxr5rd4EVN2L3CTA1l1s2f0kcFZntsrnn1GEuqnGSmGF+qXZ4Iy5no
+mmCiHoxjAxGnc5461jIPkg+GHNS/Mx2xpaFMn9Hb7uvJ4SIqCM42PqOSWg6slSzq
+QG9rQKDdHs3gFf2PDKnbyOir/1SJfyv9vDYEFvBSDndhU/XpKUng+CqjIfB6NesQ
+tI6Qu06lVM+xMYyq262iFVKJMNVrh/g+Mt0z3LQs2StFZF7/ppfNyQ+UZPrBL6FW
+3CWfc47ramisU6Fqey057zWYdw0kn0klbTzPOqlAD6qYI7UIrijyIwrvB/TkuOXS
+wAQBcedVTUQocpJOHNtflD2i++7KC+TZkBmmInMpzUKJrGKCSkCtXQGPRqAgBUA0
+26zBAZmtFxK5TP5lAc8EaeakotQaa+NsWAJXHSuYZpFpusjgoRot4s6r81lQl3pk
+EthDWNqVlRAw+Z4GBdUm6Y5WYtJfl9Qnefzz4xjw/pcAYyqvNkTzcwj2vTt6vSPD
+4KEdN02pFhBq/LjcAG7K8rk8OPqSdqvqjAdWVcvn047RYdUDiLF0InHHHg74jQLx
+jSTlLUKj
+=dCdI
 -----END PGP MESSAGE-----
 ** neelvpn
 :PROPERTIES:
@@ -4640,8 +4708,6 @@ sudo openfortivpn -c /etc/openfortivpn/neel
 :TANGLE_FILE_NAME: ./scripts/.local/bin/office
 :END:
 #+begin_src bash :shebang #!/bin/bash
-#!/bin/bash
-#
 # set a second screen
 xrandr --output HDMI1 --auto --right-of eDP1
 #+end_src
@@ -4661,22 +4727,22 @@ pulseaudio-equalizer-gtk
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ/+PNiX0I+YFhrjWBeYE3Tbe+GqOrQDY3Dd47A30ZwOZfnH
-Dt4FjQS3RpDQTvZZqkLPldFCe1qCiskmR54+CuI1M0NhIu8Jhvz3UwYw+kcVCG82
-I+SqhuNWWWvVRr/NAPWIMDdxJe38hU9uRd5iUBxmtcaBADreRMU0Ew2Mk0cXfhhH
-Kklqnk3yDLwJ9RT1vuUHE1+u9qHH7imKZo8NIC9EhuVbAPsl1DEXA88+yp7lXWxz
-6hP0A7zBiVQQg4IwscC5nUrwzwZO9z3fCVwbHvVAfi02Kg3Gwv/OolJg7YsGcKcu
-RI6KZhhBAGDIa4k+3Ln3c5enk9nGxrXa+Be1zZZrW1ssiIKmULLBFpzU6qAlAjfB
-uwAYNX5teczMzWkqufkhG4tKi+5QPWzGEWNxA6yIsmTzk8mju59WeF+MzGq1lDPJ
-Z10L0SOwvMPZBmEt9jp7TQAAi3FZoM10O73yh+qxzjtdS/qgW6iWNnLuSE/Z9fiy
-OLfAcS6L6R/6PlU6ZTg2CYcBk8JhZlgkZl8z+C8RwQTRMSpcB7xtbWExQSMbsjrE
-Xbv90ne5JVOzDwXK5pMxfYekjsJES84e85jcB1rxzG2arPDsuPfikyGtEC+AleM8
-DqDDOFusk71QZXgTWm/I1ayYf8xxB2hZBEx8CJZ1guSqaDuNlyFzeesEJ3fcyKvS
-lgFV+qa7B+kqFaELHS/eYedRkdKz+wrZGMMtJBACmTcRa5PibOqOs9BtZGAnqNex
-mcytMVbFoVi0bqWe0XHJnqaFU5UYX5M0gdj9CrJRepUaQFCeP5Tz0fj+JvAhjShj
-9Vf3repGhvzdFSExUKG+84elD9ikhuCC+reclcTxUWxMhUIF9LrWiJctee8l2tNA
-btw1l70GMw==
-=cp2I
+hQIMA8yc76sS3P8VAQ/+Mg7v7EDPA1KYyg7acXZObqC59Q08+3RVOBDjVXXat01c
+T/AfQNnAAJeblR0G43Xkf27cWAKFIWgKEXRi3RwoAQWG0IoZEaw0Wx7XDY0SnaI2
+HBEHjvx3OQSiQcbfb1UwkHhhNLVjnfrE+UFFIjw+04Zes7vDMznPT2dMwiYmHFJR
+bnlSOxqZNHPNC2iP9R5pWObkLW1pGeU8Cu7Wa94IVy9y3CmLyJYrLYDapWqBeTSG
+Z1OTAnhb6TFBDZFpz5rlWW+6qk6/Wgxh4yaXHrc5Q+IZ76X7e36okh3jMoGpaxuf
+wb/mTVYygKFd+p2CQzQTQ+q9fWpHGJtlbAhLUa+9XXZapCXVKB3KJ42EvQPDj0sn
+QVfuLuPmdgzSyutuF2Abinasph+GCE3cN9SUBxhxKesCUlcwur+FDrL9fAHVP1DX
+n/+0FUXNl2YnnM+vuTIGDw5QtH3mB6+6BMT8fFSdbDsPDILgv4E6vtPgylwOhWGs
+0HnKLUZEFIgZT+kH16Pe55KWJKSBRQMyFuGjecIYyWkKqledOK9IDYQEbF/FpuAG
+tsmLDPkwoUO8jov++/b8SVFH915wZz2ZeUq4tT9m/P5SmNVnKSCwPKvOqVHW32ab
+dqEznvJqyRKa+CK5/E0SbOJJ1I89OO5MCOcuwxBarB3KdScZVbNNh3f8S/hrZ4zS
+oQGxEUV0rLAF1k0RT9nav/Ssa9hkWfru3qdI2Mo3Qmqdem7BXXp6HysI/dpn4WD/
+yljzDyGrqhmsM5l3vOSjIek/krF1dtE86klG5YQXdmGlMNLVnTqvKf5+u4WBwvgo
+cl+wuTXeerS3lwyihL74A7R6QdqcWHFRKdI8+pZc6yBtlPabskhEEIcsNaybV/0F
+/ypAy+HOoEDqF9h7q8jolWZe
+=OmKD
 -----END PGP MESSAGE-----
 ** ssh_lab :crypt:
 :PROPERTIES:
@@ -4684,21 +4750,21 @@ btw1l70GMw==
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ//Rr6Prn61/OqTV/sVIytcJJaV5iuMxVGXW1QVfQIcVQQw
-5kRCG/DJqpxk03U6t3j2JXpP3qfwmwjKR0FfDf/dBco7611R5jvlsSZ2BafBGrt4
-QjJvK8XhvnGU0Q2bpf2SF/sme01XG7AKJ/aBI5CzQC4x7QB3tZ7zLteov3unQ7R9
-4GYwV33w2enjfuDe6qjKU42Meyt++BmNWZC4C4XUa/au80wmvBFCjtLcb6e9QnQi
-piBWPUK8ea6+gc2YLZoW32v9tzRsiO2vLYdY3magUmemndiwTx9l1nrRxkkRGt6u
-dYqLG5bGXspgk5dnMBEBRV/srC4eqTWRTsCf+02BPEJdX5Tdt0cy56dDgiImDjK+
-8w0WBoAKEQE20We7vqGUSkXGx/IbXtEJFLll9wkBIc8ESGJtdo7t40k2utUJOJPC
-fOQya0bk4sqm4Dd1OVOrY0N+3tAen+KGlGCZAEjvVSQQh3UiXg3jwW7gZgGUPwhs
-gnx5j0ntyC1++zvG71rOlCM0N8w5Ly6x5z24fxdqpQb04NFOClKjFLBAEHdA4oRu
-n+eOnMipCpEGLveUcyfQQ424lBJi2p7RLfTozEbvsO3ppIis3uxl6cPU/iBiZ454
-FWK1UtuARrSI92H5BJQ+N6nKkpTHP+Q23Cpqloe/kU76FJQASKqa1rLpYjt3XT3S
-ggEs1pC+bGvX5SwKKqWJqfQL7Mp1l4KVETYLR4JYVbsMU7aroqolTVOhxZy1w6NY
-D0YzGkQog61+OwlgYckh3w+uwpLNc9lpfhCwjOaa+kJBC4V65PHcMxskgO5zXHMh
-muyCPFdPfhXd0jfzxCd/0Rh+tU8T9kPUnybcL2RaKh89OZA=
-=rSWk
+hQIMA8yc76sS3P8VAQ/8Cnp0H6SAdWuuqOhy1yIfr1oEYLU40cIlqw7qyMkD+YY7
+kkjcymjOmSRIEYcsSjQp3DIP5xru2E94PNkeriI8K8nvC9Rz1ni26PqQpdWnhwbc
+4AScSCoOTNcEcWqgwT+Cuw+uddB3DQ4TFnrshzag0GS9bj5RJqFkqGP8is+rg036
+Jdzv0GbWsfTDf+e7g8VxJYaTSgVP1N8SvYLMLnBk5KUS8TmE3OOTEEsW0OmT3MCO
+LxfjtxNLMBVj6e8VqWFQAuA3WSfeKnK2JdfZrwo71zTr2Aac09d0mE7spZQ1wOGF
+Aqe3F2d0p3rxZviANbqiwTSB4Y5QBV8ersOYaRquU9wcKo1GywvbBTd76eoX6G2G
+rrDb5PM7Tr/1FwVW9l0ONmJ0tXwF65XwlqZcCQScNS5ttUqJJ7lM0uEkxE0X5bIn
+3eEtJ+JLcl2ubvPl9sz/ZZLtkW2BxjrKQuDG+nMLYSvYBAJIDTaSH/LURluq/uvc
+sroi0o7tqfMldWCWRp47rd1wD85IGmery9qJYttrNOjO/WJ39oSR1GMN9CcKQ6N6
+KElrANNZ4aAzvpC7l3et9aX3/qPJIPbepeVRN668/oXA8kl3SVEzBJgs1SppOXOW
+pE8f0veLNxNEniiStHCBLOOUzzC95y6Q48/KtKzhiWHdHYAQ/1WJRC0uJocAonHS
+jQEmj6CZMv1ERPSW/ThWrsMQyDPw5NMs8FJa3Nq8ohEF9jd0BeYVi6pjRB2yYiWS
+vB/ilkCekccl+U029pp9wflGVmQ8ZuGmCcYbMU6hpFoDQxKD3pH63x1i4YhvqjDM
+JEsPLcUagl+qfUKt5/E32YFhMBtRoZ9suPRu/jXmgdAEehAqJdSGV5SUWQ4a5A==
+=5OFt
 -----END PGP MESSAGE-----
 ** ssh_neeloffice_jupyter :crypt:
 :PROPERTIES:
@@ -4706,22 +4772,22 @@ muyCPFdPfhXd0jfzxCd/0Rh+tU8T9kPUnybcL2RaKh89OZA=
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ//YZPKPlNKaNNBWsJtJwbZZSXJl2fwMo7OzFyzCoRz/9tc
-VzYIWJN9zBi6DLlBjc1WijJFrsxipv91d84szt3Py/OP3voI0rR0wd4u6vfQbp5j
-yhNnAf79l2wHEoa/A0B1c252+C68vZw/QUKAWapTTKcvgIjCfXZutbANqFid9mP1
-UAm6FMT0Arc29VrqKfUaytwiDmow8+ZIQnHIqknE/xu0hQLL+JMDkg5f4W1HZSTt
-gX79X7DaL430T4XgD+80E4ZK+rvfiSAZ6RbUgawdIV+FsKmNhDQXKl0JJ8ys5Gn7
-PCUCVNWmrAVIuKdb/xW1tcaDjAmNBMaMHNQJOJuI/oU2thQBHaqm4WIbMmxYAVf3
-su+ZvC35rTyF7VkGAtg4IepRQfm0kSm2IIodYDgjOGHTFK8kCsOTrwGevqTMWoXL
-oezqh3fq5Bi4G9vWUOWwmWd5rb6eRbOny/T8di4blwyXYRZW++M8DYlhW9gu2obR
-ajtiAH4BZhlhpXYcPvAERa/0KPSRUB7UqPCRXJqc8/Th3K+mDOPxJKIBbZqR0Rsx
-qBZ5UHkLTbkEswizmYv09eyqO5R/sa4fw7sOtl0RsjLRRd2aoJz3rSraNJH+fSrN
-fHNo12pHc1GgUnBd2iKsWFQH3V281qAwlDB5E37vf9gdtpN38+cOrWhnMg2ggu/S
-kAE+AaRGu1+oP6YVZjEv0rl3zriGFJ6Rh/wjS38C/6QZjk91wOer7xYom1J0gafn
-hsacMuB+XllLz5KKQFXD7wSI9FfjmtZDiudfjb6XT8qXrmcJD7tFehrI9aq3M9HC
-inVleWKUHbtK8Z0a8p1jw8GwI9iGlvDM1m8t4A7JSRXH99gB+72FRapVDtxiKiUv
-ig==
-=TnLQ
+hQIMA8yc76sS3P8VAQ//SLccRzFM4jdnUKF5a9DktKHTVxZ8fq3KdkgiioA8TKCu
+cmqCFkQIgv9Mw54KYWwNg+FvalbM7h7Q+xozvLBvywW0jyQgeHD9mfL90K7TpZJr
+z3sIJFqZEnl7uJpZeMVbioj2v0KBukqHkOdH8aD/xc6lb7aMYjOyc5CrIXcwffch
++XIvDYzvfTn9bZ+bnZn9CCEhPSll9a56CWbMtGTEWdbJyZHGIlJUSk00vgXBm9qx
+CGNZx5CTydmYrVL4PrdN9UiAFJNYyUdRag/wxEXFyhFAMAxH9FIBjmOpjj63Knib
+FmQc8bDzVKYQyLBlVMzI29if+PTYLfkflWks59Gg7mflPddVBB0LmFROuN23Vp0S
+z92cnS1iBuQM6vtorLZUnSBFoCE7aArKTAXS1V4NaKE5nEPVouL5lyo0C0GvGTbQ
+yitwyPiyRm08y+P8x7vbWXZU0q6jzzeukmhqsh/VvIEmj3yZ4JZKHFf2+bZPBETG
+SPxW5ks+gsGAadKfB9JQwqk+v55fmNigTw+TdTD3+0mW9c2KsRkXFt1wF3xjjLQY
+imgKtyZvi8H05fIa9810z2iC6RlIpyc38qfvZ+qopikApTnVJSN42w1cJdDzjcc4
+XFQnEzRvIzu71DBvImTyS5Hk2didy6xOcONMQxawhYO6zVuy4cC072dIW8GyxYTS
+mwFm/uEATfDWFieby/HnlfoIQX7ExIiVYe9txYQAOeKqSRUC8B35OvHhX07zrWe7
+DFqL9s2Ki9qNCXrhu50tBpjjCyJhMsF0MKFePwsAA6AJuS8XtrOtWMpRP9PTofNT
+Vjwt0Q+xeIPfM6SyrsiADCkZtEg3v4oAANn+K9imvQuR3LiWd9Z1HHK/5EDmaOos
+jJoQGGuoR+AQEmL6
+=z4NZ
 -----END PGP MESSAGE-----
 ** ssh_neeloffice_lin :crypt:
 :PROPERTIES:
@@ -4729,21 +4795,21 @@ ig==
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VARAAlmVv/8snAM4yrf9nWw18Jz7nqBpOMw12KHGRT3rz7y5v
-IprjsJy2myanEjj2i+J1EdnkuTOQOTdI77D92lX0BtULFxi4aOIwp541qwOOWEfn
-6hLUvxfHnxcUyZbpwslZnvBJl+1Wb1eFwsrUpjGrJfSET/CSrNkRooi7jvmSHI/u
-FfPIb1inE5lMRxryYaZBFqxsnBzZmFHOEEGPCT9DlGCVY0HPtbQ0D4+89SdcBVv1
-vec+DZOGOeeoqThTNHBlddY5HN34EJTzPz7oNloG39T5PJBTmNenJYq+dMwQeDQz
-CwEM0trQvAPS1uYSoi4rTYvzf4w/6Po8e3qa44+O23eI8d+xMbb2RkBRBdetXvVz
-vK7dn6p6JdJFv2RjydfbVOe48ISo3Z6+OpvXA9l+jP7LgFLR224wF5dS7wxtYdo0
-C1K9Oy0V1R8kDEm5qCFJMzsthvJvEaAngXhgeUkQgLZCVx5ysNkR/OnB6PZMz4kT
-NVBD1KUcXAUvneZ/GH2uw9f801h6OSC22dYDMQl90D0+LLc9WVLiT6ZWhO7ulJoq
-/UoAepUJdMP4WPhifHVSdWxACUKZdSLvCAbDyTxSWkAmTs/FU1r1lrHuvaI2xJsd
-nT9ztAJnO/WbkAV0jV66qG0XmjqBZknsa6U++jO2x7GZsghuEWfo8b7TWNasnBbS
-hAH5ZLPhliEWAw/Ly+4ddWWLQOeU8J5Y9p/LVDRvbCjsDlP01yZZxWszgH/bLarq
-AKBhov1NHZL+QJC75svyXZtvfsQ3e6cVKUx6lRuFUu7+m6fFVdUxtM9ZbjSjEs+2
-L0MIOmJLiYzw/y6dBYiuWY3HBgbDnaVxPWRNL8d3eV/yEd2/Yw==
-=JEwe
+hQIMA8yc76sS3P8VAQ//bGwW2+dhCiXDQEYF2m4h4PhbEnGzOnlTu787y4sCTK2F
+FgnqLZ4QHAyI5O2xIbc2X1xhhIhzopZGIxhA9+VXGKLhu/gypphLspX7x5t+GaFH
+UpID33Shx/wET0Js4+OFyDFtk5L1eSMQdk8UM4vvZ/JJaf3PVgin3DMNPhzYkpdL
+1JdqK2k32VKXN5/sovAcgWhFMElVY7Vqa5uRvcFBU4VaJ2lCW33JsHhVZXUi0Ack
+yuNQSBnCGH+cTayStbnHX9FjKU/18MSQSc7gjTm2fl3MkjYDhDANhoMgQsaLa/Ey
+6gGTW08V5rqTSvF5cnXQD69mkFqzyM/MRM4IdnqJ9XNgJ1wdZUx0tU9judd1BZhC
+wbR65GjFTirYiA1T4SdfaJ6K1JY/p2APPQ5rs6ydg6FqMhRc7lWQ3kKTDvMPihZc
+91fm3377trwv3P2v/WHxmHLC+lbPFPG8U1oYBNsuueY1PpJwRVYt2bf6aGJRAptA
+KXh0qofUH/AZ6OD5hx/4blmvRoeu5GtwJjT9dGFuL2KVXYmO5U9MnjOJ00YDxOlm
+JU8XL3QanRqVYkcmFOY4luR1rls16QrWaP3BvMyImg3a7XLzzRCqIyfGyPnKvkwe
+shngbwdUE7aNDCrT600UKvxhvzacjHJP1D4XEtiWfQo6kitEjr0esUmlge6Xx8LS
+jwERoccFrXOy6o6edP8tYPvjViVjwFO3YZB0b+830SqvcRBydQahSI31+ITdUIRY
+phm4bqya6n/nvV5Ji2SuypbkaF++tEqmyjBE4K2Yxjji3iMDaEzWM2QDRMaTtDLs
+UC+kMUDG1Df64cFftBFNEOYIcduVK4KHEyeZV/KdK7LoqNonNIbC15Bnx5rjHU7K
+=dSky
 -----END PGP MESSAGE-----
 ** ssh_neeloffice_win :crypt:
 :PROPERTIES:
@@ -4751,21 +4817,22 @@ L0MIOmJLiYzw/y6dBYiuWY3HBgbDnaVxPWRNL8d3eV/yEd2/Yw==
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ//fYKsl0RL7OY9ep2LLn6e+rq4vHB+OZaX7nZGooxe+yv7
-9vMZ6SA2jlOYRuCeAZ+92w+H5vbHMWmHcXu2lqxKfIyk9j53RbISOAY4iiooZ4ML
-LjWQ0Ge85FUDmJXIIV97BHVMXRl/Xj6cYNS7ANcbW+8EPXgE0wGxg+F2R9x22yX+
-bvitykkrC+/FAxSIqKHQhnFDsYCTU0x0TvG0BLNC4R23Hq/Ebzx6QThNU2Nr0REo
-o2XYzPvM1EjpxIYYkbt1ZBgNuRF6RsTecYzymnqu5yLvU/Lxx3PTz2vOlcI03n2h
-I6U7T79JTteqMpB9C0Pw8394qH4UHSDCHqCbBftXBePsAWAOM2bR/8a3xfhdMY38
-joJv1eoFyeu4aJ9BqM/ud9OIcpEl3ZDG+Vxpkg2I7rGbKf9o9T6g75BCybNY0efm
-lwNfvNdVYCy4zYZn9A5TsTwkWbPPQGvdlUYaHmGOX0xIaA/NhpJHlTTMEd3C3N4L
-Tbo49cd2yOtDG5RCCkqjGIlNPGdihtvowzgAQqfzVS4maFS05GlXoSM/55oKx90m
-kvtBQf/47eEvUEQOOJkvIb1LSm4VALvksnvX4CbhbNG1zImwW7MHtMQANtXQelDK
-DDDyp7opevyKlzw9v4CiEBx+ZL2nxvuHU37wOTGD6gCNmL5cbH/pIk/QM0P4x1PS
-jgH7DGXb0fujIzm3Xs0py37zYe9s/fbOt59WJZ85a7oH6IHw3gV93NazO95bY272
-egF0uLwRlol/a8SqLVdbvMDXia8YYxjhEjHXcIvHtsJwHHWBZTpWiVVeiiyGqGlr
-5QZXEyJScHpBD+RLRzT1r4aCXXGHxgLCKHWMkYawjw7ECmAzUYU74kJ4QyYyBMU=
-=lgRJ
+hQIMA8yc76sS3P8VARAAlgEKtYG76ejlarl+YiyHUN8gi8uFL06UCEkTKgGaV1lc
+RYYEFllFcszTg5wjPL5KR1IqoRMlnUAtgLLg+GUGWhpB4fiDHv+5XAaRQfz8bXoS
+toGxO4nJ7V8cx60/GNtA+XKjKrShx5ctEb1p6ZpglrtAatMjrgSP27SXT2fG1U4r
+iKH9pIYMSZKhndWw4up+jrV/fdfjGQWXiq1Jk3ZWmMByubaoHN7hmWrRSuxQ9S5i
+0uFz9TuVXF9Awc3Lv3BOatVIzxWQYPMXlZopGKkfijJMKRKlQAPFvhamzT3Sm10s
+x/ejX6jsdvWTg7m2t95FKVmPSmw/lXzBQmHJ6wRo8AVZ9MgPJhwCTHvYq9xLFXnt
+s1RmfeAqDHVuEsY+yLVZW28p7LNzMD3VhID35Ua6hRpIx9vaehXysf2+6gYFolM7
+56JsHhe3uxxLJDFWWr/D+Oy9ez5khyccPjZO2fZizkUXzyc5KKydJBozw0U8YnlC
+s3YVI66D+LtByyzbYxXVFtqjeVA6iBWwCWbTg9Y7L2o7Y36LyOuRFp1sNUErEeSL
+Gczh6YaffcVq6lTlXhfUE5JkfgUR4IPmYxeTK8dQfpt1QCTEOmujxR2W4T9jhXv9
+oqgCBb8Ut7F3BR7uOCH2JaQat1t6VTIUBhpQkZa1v4IMsgCm/Cc5WKcuSFMLDmLS
+mQH09+h0c60BjANZtdJcQv3Ba9ICt2ZbB1pFW43a3ALO3ZkjYFRc3PUNDDwncrNn
+vxRo4Xm4zrEPPGN9T7gzoCJ/e0PxzSE65HCwC0d0UKZtprOaXUIf+a+GHDtCzGyp
+TuW/LNksspphHZrUkUcYRtRIS00AC+tWXEqY4HzZ8kgdRsNzPYPwzhmWjK2wQIqN
+mcJwudYmI3huUw==
+=66CM
 -----END PGP MESSAGE-----
 ** ssh_ubuntucalculator :crypt:
 :PROPERTIES:
@@ -4773,21 +4840,21 @@ egF0uLwRlol/a8SqLVdbvMDXia8YYxjhEjHXcIvHtsJwHHWBZTpWiVVeiiyGqGlr
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ/+K3maXNKv7vDG92Y2Cu8jzJL22OxuJuczQBuky1UMkg0O
-fufP4fwEpywGyppmrTWT/dTXvcrtktYjiF9BnF5D+3E7YVeTDjKLUOpIzEWi97JQ
-pdN9DEhSKVyj63CmeJ4bOqvP4IkJDTS4vxV3FmdqoUAAPebkGoz8vr4EBc2vNyNm
-YJUB2x6QAL/NQWTbbxXcMuzjXzvhE1SbGgocK2/T/gKozt88eLsYIzBPGsmWxcXV
-1HZfrpemDZgAeq67ZMyI3C9lxNv2HcY4i7olETMtSfwkjKe2WWYkykrfMEWmHX24
-MKAUyq4xPglFgIAR2BZm6euwcUTN/2J5688dJ4v4BL8+dZmpnkFUP2kHLDCisr5c
-pp/BvFDwcoTvtibZj5Z5h/L4xVOdSg7178VuGycyFDT3GM/SZ6Xo8Y8Y7IO28dFB
-lSW+MlxlHx/G04xMUJvqLhmGfrbkzzuLAUq8qg/C23LS+Vkj4RWqlzGcxa33bQV1
-160WFTYDot7BGpBvcXBBE+EBB1+h7//KxJdJNkFfiX3PzmBKpd70rdkOAuljBheC
-oPDyc5LkXPy8rhHa/MaLJnVOqFfpix4oVISS4/XapihM5SDC91JSecDr3yReR0k6
-QUJkHsZ5C1KMZabu0vH3rAUEtKPur0QiEkftCa+xprspIrtHyqcABV8pee28jYnS
-gwEbvtCvZlfKpgyUeTMsayzc3oyIe8X6PwxM68xvinWVuafEDWKLY+R8yei8fhwt
-5WRgmJeR0EMVolPzQnUX7T1D2tdebBxPnfvwX1BSCME0SInJs1um3Zp4OSvThW80
-2y4WZVuhFvR5SjWjAuI8ZUXMykQYCoDTcAfC6cdgfoABfOsd
-=PpU5
+hQIMA8yc76sS3P8VARAAnKGTwcYN043aSq9r9Auj98dZwoENHPAZBx6Nq8Gh7ydd
+p+saY9RDeVQMnXzqDe/CMXTqIg3aDKG10KXrPgm7Tn8iMrkWCbeHKqd+xa745DUe
+Pww7iSifCYWWURbkSWNrfgIwnKbheN+qKQhfwJRlYYAxHsMZ8ILHRwwU3mmygRu6
+wJsBkjxaiJnVCTizu+kKu0deapRrB/bEdKvJPxL9OwWF0wFyIZ5SLdG0ZJCJgxrD
+O/4+Msr9jgdhxbw8nujG+kJiR+rWBi7DGgeTB7HTeoQIbMZRwpVQi8UY2U7jxC6k
+MSZO9mfOQXnK2AyUlmkUo9MB0m+w0beeDhLGgbCv4lAju0BtzMM02ftJf1auhGI8
+R7xwC6g5nMQOFy5fm1TrwU7NQh1EcNjbG2FmXXP+6OL9BIdjuOyHwL1GAGFpDmFf
++Yv5URpHJhPLVycNQQ9nOqlKlX/PqeuBTHzf5npnYani0WDAJWs6MDUDeW5zm5bZ
+F8HfO3/CHl11H3v1gbUDNaP1koVdHVvZuBLvrDWPMdy8+0xKR00+bYhZFmbqj+H6
+CnhAMfJfEsJMr36No7/rB1y09hGyvnrG4KCX2QjbkX1aADjKK7Rk7SPhqTsKJbQm
+LpUOmlZAuFJPu4UE1rqBU+ps8hOtVz3pkgthg315Caq4mrYKqe6jzUSxD7s1YunS
+jgGGoZb1H6E/7B9EuQF08NegWVy9On64h3p5uY2j4RlnWVb5ALtX6GNYf799NSDs
+6eIDTLROQAKt7NAnHwMhCVMJa3FfMVM/psTsRTs6rVd8tchWVzIGfolGwGyXO4/Q
+pNNJ7YYyJ0TVpDdPpwjB8qCjv3wuoceRfp5DXPbAc4OUQSD/gVMuV68uAW9wObk=
+=y6tS
 -----END PGP MESSAGE-----
 ** veramount_phdstick.sh
 :PROPERTIES:
@@ -4802,6 +4869,53 @@ if [ ! -d "/mnt/veracrypt6/Research" ]; then
 veracrypt --mount /dev/sdb -p "${pw}" --slot=6
 fi
 #+end_src
+** init-mu :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/init-mu
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ//ZaXfg0iEz1sFaMctT86ot3FgDvQzIY/JHwWiTSX6edBC
+tgDCLprNMBVBRSR2UQJIKE/wlmiVYEk5kxSsXNjrwKrHl0CJP/Y3kAE17a/+bz38
+UgfpdSwcnp1vNqqB5OmExltIfabSHuOc5jVyQGQhyZQ4zxNLjQrTLCrnSg+T24wn
+r8p6zFYzjR/4VzcQCNNJHcOwO4/Vl7bCoHx25W4U4dDro2iWThQc2KEVtDSIOm8n
+2cGo9XNszDKtF6GEJZp9WpQ8tmpnorhM+9qZ5u6OK3E/G//nwo0Lcy2Bqf3BSiui
+9JShTHYlRAFQcEvNQSSX2vVpuPd4UEiG2FdiTqrbodxDzRmcIXvZca7tuYlpoHXw
+qTxt8JnEyXYmGHXCNzleTiMJcOZy3du56h9jjxriYRSSS8KQblWGt7cc5kDIGCrn
+9oBhxJlLMdfdaEfABsmx/8sJdLIchctztf5UGQ48z+PegtG86ngDV7jaH2Li+GYb
+8FaEE7pxrTjTbE3cwva0OBlDSZtzP90moFpLdKkhE/ZjS35fBOVY3Iw/FbPoOylv
+xy8Dbz+pbdOxrKmDH9LGyfOyM3tV+eyPu91jBzLLAyFUajQT3jVnKS9FyhY1Eozm
+2SJWWNX/iq/mL5TcoVNKSiRAKI3hAbB1HINraF2BqnF41UqCyGzuZjwXB4Q7UgLS
+6QH/S5HEFyoA0zI+cWzp+WAa8MqSdNEdBxm00NovcKCBIu3J51USKmqdE2ebQrza
+hdksbwtjH2jQ+Z/jD5/7NcsyLOYwwbEVyunr7UVkWUDCk0OQM97cl7PV5C3f+5E1
+PJxd1ODgknfZZFdgO4ZeBV3ZWX1LZfCx9KA4yv5l9aWA4ZytU5PI5e4jPFL8Tmfd
+gk12x/gsWVOi1N2f85GMH4uwCjdYzxDhosX26nq/whIlB/tPqjp+LvbssMkDWHKw
++wLGm8JmEbE3NAg1mECaedlct1kjQF5vOgHXJnTlnn4O0i+YEZOnP6H3vgoszejk
+KLr+w+BIx+nkoWcEuPRdX7gRDxUClVo4n+5/+42PrbeRPnQJPa7N/KpSHaT7MbYQ
+/o7/Zb7j2XYbNzdh/UpGnhaBnYnBVH66WRffWRfNol+zK+HrZ+2LYB4rAf6NA8fE
+WO4t5/cvWyuumOrf7RGeHJNW+/swfhkSFsx3DTVnso+0yekwRTaxRJ70bcUFko55
+I5h0Um2KlP+g2UEmIf9VStNoJlVUTvSQIrGYt0HBAtRj1+YTMmcL1wY/43zysFOm
+EFDrdwKDUoUvV/2cwOjOuEsWGcNuVabHql3YJVyWnNBQvTm9aR1cDY3/yglSyRQ1
+PaUXhq+GY7PQ6JaJWIIZStQAyc6pZ0A/mTL6Ipvodvs1BRqHna5W
+=P0nh
+-----END PGP MESSAGE-----
+** i3cheatsheet
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/i3cheatsheet.sh
+:END:
+Inspired from [[https://www.reddit.com/r/i3wm/comments/a00s8p/made_myself_a_pretty_popup_cheat_sheet/eadzhkb/][Made myself a pretty pop-up cheat sheet... : i3wm]]
+#+begin_src bash :shebang #!/bin/bash
+# grep '^bind' .i3/config | cut -d " " -f 2- | column -l 2|less
+sed -ne '/^bind/{
+    s/--no-startup-id //;
+    s/--whole-window //;
+    s/--release //;
+    s/exec //g;
+    s/bindsym //p}' ~/.i3/config | cut -d " " -f 1- | column -t -s " " -l 2 | less
+#+end_src 
+
+#+RESULTS:
+
 
 * digikam :full:manjaroi3:
 ** digikamrc
@@ -6689,21 +6803,21 @@ Print.EpsPS3Shading = 1; // Enable PostScript Level 3 shading
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VARAAmVP6jisWGm9WyyiXHj8/fkCpmCBtwE0he0ane2Q+wBDu
-90YprvghlPbA9gctOUmDA/9bkTLXPQALnzFgISDUn7+CHOYX+mQROfesLaQqHyLp
-GlqtSFczaRd/rAQp9SHo4I7JbRMJgQpTU1lb10Gb63nA/QJ0zOLICvsaXd1SIt4u
-MlWNW9mLjj5wmrcvntrRDwxrhjMkiAOxU802rxyh4uE9sh1o76T9b2OzzsIt37Vz
-lYuOqkW8mMb1kbLUpk2Li8d9s+I5O3YBgzdYuQTLSlcJZZeW9W+nCuTJYhpz6AQH
-77CPEVSfCRwATb95gvtqr+fxd9kEqnq2WGPhxXMljDGJFcUPNMmZ+6Mc98Kc372h
-WREQCOt3CtTNlH7e9u0tYh7JbS5/aKeh64axKfToJK2LREO27RqNj8k4/iN5qER/
-sMcf3vxXZhNS6A3mkXDbySC9Swt5DCOSZGTNU8xlmx22T9V7maXI0rIsaripLZM4
-XWJXPUtc7PbTf/Lgnj0sWTGVDoRy3MLlh1F0voYrgPWGyT5PaTwnF1m26iiFOvv6
-+PUAdiK1/N/WDsZk48ip6Fg7ifLfScYMXcgtNPisPHpBIoA4xuC/KFJxRzHP0Lsm
-HkDegsWKkZQIVHt1BPrGo6MgSgwi5N/ht0yogxQHHEr5eFee2W9P7vFdJnVrcfHS
-iwGiskEVZn+JhTLLAi7Bipuf1/1z6pbXOZmwY9ZtDXNYeFfpDiAqBUonWIRtL3KI
-iLyg0d3fDoFbXfutjM0hS/89GZLdWVDVgd0k9qx1c+ytnC/f/IA4P8NeqUKgsaqQ
-gVm1vcvba6jsTRD4Wu06UP5AMRPo9Tv14QM/ZXJdjzcoJYPYX0Te+oiq/kE=
-=89fO
+hQIMA8yc76sS3P8VAQ/+NjATcpX9n9WjTyVUeoa8QdyEgKXa+FA0G0es9/oXyrLB
+vIO2Izkz1Aj4L5tqOk5tu8OdLEi/vqKoVgleyZHScBAq62zRLirswNeeehycA8PR
+CssqZZxYiU9NRoY7hwioVgzfnE6tJB9oqyZjgXht49t8JTOXMxqbWE/wgk6Qr8k3
+xhQ+ytffMzaGcuOP2Hel1e9f/8z/bt4OD0psHISiVULGO3P+WGeVcmr9ESdlWfe6
+UR/9p4oDz8ddp+klOXX3AJ/8NLXev+97NRClmL94P2poKcT0Zdi1u9+GbtUgkVGJ
+QBMKzFP7ONxB64ImMG0EMCwezG/JwTMnecn2lf8zLHeUIymP05NcjjUufCWudt2y
+MzCHrE4RgWftkc2aJSHQLbgQTfPnZzluLEfPIUr2vDtzo/yfrBkJWGKRrwXFSOOu
+2MNfvm2MLabIfGOGdhi+I6fMOET6wvQpf8yJOsPN55X65M3rBRfD/s5z4nGtBsXb
+j3BvnH96czDv633dJ/S+Py0zIxMKG1bjVkTosjlQmtu5ZAJ9jhwRr7YkFo3yuWSs
+jYQh/mVrl2FLxn8uGTcrXdv23IMEmwp/fHaym7gDdL2WNLiFWPptKIGKRz+U7YJz
+mstjoVEYc+fii2v+DzBtX9TXSZDamQntgrdLXTrUzqPO9h1m3hNorjwwEgZprMTS
+iwG1NbRXYGDZiCpsALwS5hlvsjKoj5raHnNFdBkWfWbB5fhO2Fi15EbiF78xJY8T
+4AlWSAc6NjtEM96XPhCcQdi0xhZ4a36KQyQOmMMIT7+aWU6FWEFwqabY41JUT+HO
+CadhKCcXcw0RXTMkH7ZQzofND6TETdC/+ybFapraImS/VPQINuCbvs9xing=
+=iJI9
 -----END PGP MESSAGE-----
 ** mbsync :crypt:
 :PROPERTIES:
@@ -6711,33 +6825,34 @@ gVm1vcvba6jsTRD4Wu06UP5AMRPo9Tv14QM/ZXJdjzcoJYPYX0Te+oiq/kE=
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ//cbelAflX4yIf0sD1nQG24Ei/YlkLCTrGJjmuCMvIUiyo
-nIxvQ3cIcQCibGEL0gRViermt3klOaABa5vxLQ3XB7MAPLB9G8ALiD7CUfdBCfm6
-rfEEI3t5n3UIQ4SfJALbZcp0XScYRV9q61aYNFXZsWRjFvoJCpgjvWQ0T79JRN+1
-T1jwwHC4K9/bqGiaoBLCxSPikJXIO0D/XItlO00rDQ/4HUusTDR9bJhWLj8L9ISN
-zp9gNhjvVAyVFZpRsvjHOYyBz38OAzLrWCVWpmdBXOEgFso5CTCSzhWHHhcatf6+
-lCcDkquHECVLM5u1pPgQxAAwwuXGBcpB40Qkr4TIshS+wpd0DzPV/pI9YiA+g9nF
-NQVfS8N5861RX9li9J7iwG67grbIwZ1V9gqSK5eJ091VXFMUl0NvgLNcnB7xRdf8
-rYsdw99o1HbE2LAksh6DzGaTK4QAC/E2eKPSNn1fpOMKk4r7cuPqdUtWvIkaDge+
-w2zXYT+oIyUCyvodYHeXIHK8IUaHKc8xKFCjU9LIC3f2Oqur8+2bWTWXG4lj28hQ
-OZWQmWdD8Os7j0GmeRUN9bpJlqIVLMzVIf1CBt6gsqOGrgsbylGHI2K0vkb0p65L
-ms/FpHzDQVyS3Oo8JaRhMtBeRnJ+RQd1WusE8fHthX6RMTZVlMN0NpNS4rvFWFzS
-6QFGEhq6j4kb+KGc8eLa4lmjae71rfuWeWcYOLfkdWCCwT1k2lK2PCYfh1Y4JOYz
-EBQ2OcjFWPwallChfK6uP87C/afParRO6ZvhzTBjPrz2sYj2vyScwCYVt6gVeO08
-FWBT2X2OYWxF/1WvrL4jxgwZvkA++INrfHTP0ng2jA1JmIXvHYsK4upBvJS4MFVK
-xq/lsFjp5x7xGduj4b2M3VG47wodxnNtB/1s2yrbFIMrAQr6IKiDrkXGk9Y9zgHS
-Go0Dn/2ndw61lAV8lTNi1oj64lHkxMU8XYOyJbGEGMnGZxgRs/fdkTc162hcGK3R
-0zEeuXlyEklzK8CR08Eu94aJrk7cYxz7EHNGiLM2j6esLdORIz9kA5C1r3VPTUPS
-rOIKEaAfsY4L71guOnSvxwIwQbKK2/ND9Tbf3SAsKARagj0vX2iaXPChQKw2e0DR
-ReZBbhiGRJXT+hv01r3AZMFfdgKWjOJN6Sd+6DdkHOxYDQzOxBCdDJfPi8VCreNF
-i76xnZ3RJo/FcmERjubqt4u1w6ISX8+82XPoR7uDMGNSzrP348LnRcBdgidFtsl/
-d+COiWXI0RDvrT0DdnEyrV3aGGJoRKLSq9Rt8VrFf8uq0t1gqSomZ6pVDrxNYpJK
-1anGRix72S7put32JHbCqYPkZjAHgMdkvpZEQtX0OSiIjeZA25Ijf/js9YCgBAlp
-m4WnT4oTSOru6iRBQfh0b8sbf2z1G6uLOfukg+w5dG1MjVDkjlIUPHx0LDsVHWLl
-UhAn50NlgtvRReDxXkdTE07mRwACskgsFEbJQWkrTXLFKj6eZoIi+i/Mw7JH6O1P
-eCLqXLQ+EbXWjAlNYlcNEKXh2XYUwr9pk2LmrlccQA==
-=hVT7
+hQIMA8yc76sS3P8VARAAlxWVAzlyFb9YEltSFqqQz0ejV6RMDKPXB5Cu8uZ+fFT5
+lPMIdxJ9EZ2KxaWbglozlZi7/eK5eaSz9q6D3zyTyk1k9IOsgic7lAG4pbw7ZHTc
+gRJUegPNxXT30ZCQWE0Uh06YxwRksFr3xzGf9k4jv8nxC3R/52ZDCK15q7R5iFa6
+dzumXkkeALUKobCklncNDl4WOAolHOBkoeBxzDbJTCEMSJmIstGevLz3c5YSIND5
+rojVksMTkO6Uh1v0TbOIrv42SgJr07FYEKhJAnR4YbEjiGkI3dSBoeb5JsDP/2xM
+UG6/pjZAqgy2wkWnmLVjqVlAGWAO/BrlsjB/7s5em6de6eo2PSQCPauDY6Z+5OXq
+xXlsYwNcJzdbZYf0sWFAUVNqpngaQCh/Db/ipd41HS5/f0Hp3/U66Ihb8UF+dlCf
+h0S9CkfHvgKWmJJvQ2x5p50dSNSHYq5bk3eABJ9zTqkdyYYKMSblKZ+eMhhGcfPC
+3jVOocFWzRGCl0mgc+Xz7qyTkYOQ+P4FgG7GiEDZ9XOfhJvgdA/0JQESvEjByYor
+3fGiqzVqYP7ecWwehf1f4lAvQuqgM3Cm8ts3PrZHI56bd/iK9M3/hiwYTqKzpVWx
+/QaWAky4U7iEDa7nPT77Xkuqb8SpaUnQiZPiX1CEKkqLeXCbiPSVUEXGnl+U4ifS
+6QEdYvsRv0QJj3PkNlsIXzfHdCOACcl+kmsHZ6BO10soaPwJ5RArYiu9HbEousOU
+MLMyAwaie9K/HmgDwol1MYMQSL6/zUmgtqGKB0UTlo0DfsRxYBw//epBaFiFcU4x
+Dp6oXPFs0+o6CAkGUO1zk9e7Hbv7v1JyyEfwMrZvFRaYcP3E6ThCf7Ssgu1tfLYh
+ePEbU1gpglcNr4Igl2fQZSOFRE0qNoN/p+2Kn7Ff/gFqK5OMqX99pHSl055grNdn
+T5Pg+H3vRn2RLE2QUWvYjigUq3dFP/RkKIfXIND05vD8ZXo2WMBjKGgQoXF8lAWR
+y3iZZX+1yxqzWIz/17e8ZxI+dRjFu66wlzhzldcNC2tN0aT2+9NdU//NHz87OaMv
+Bli6nkaCGZn11B7TxQ5hNlHQryW3qqLOOmLC5NTY0Rq0JVYDres9U1Xnmzh5fCNr
+Z4wdb+8SGl3Gsfa38FwuhiGILBj4xlqvvCBUJ7LoqMs0Oqh34k8+xMN+jWDGz5eR
+6tt5e4u2Y3hu2dZp25X8yo3oIqr1LnyQ5KPo+rotgSqoUf72pHkbkjfhoI0FSNXu
+Tbi5aW+Cw6K1Bh3wUGfXSlWHTp2xO1djfex+SBVV+GWWYQiJoZbSCiffbY2mP9qR
+obWgw65V9vSaZkhfafY6QUb0Jy+Nhxt4YVqhjoseiM8ujsIukR6kfR9dT32MgPQr
+TgTE+1g434cwZsTgU+A9vCQrl7vjW5EWwuTVUuGO/K0iqcPsyY3zCRHXHPJY7ms+
+3hOr43MrbK0AorpTpactZEthwK0PcmG69CcB9u4tlEom33j+4Td16aVIz3H7ch0e
+3MJYoHtXyu0p9OTDyD0HJ9lG0yn8HFuKncQOMHHRL0A=
+=XNAw
 -----END PGP MESSAGE-----
+
 * nextcloud :full:crypt:manjaroi3:
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./nextcloud/.config/Nextcloud/nextcloud.cfg
@@ -6745,41 +6860,41 @@ eCLqXLQ+EbXWjAlNYlcNEKXh2XYUwr9pk2LmrlccQA==
 
 -----BEGIN PGP MESSAGE-----
 
-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
-=W7F5
+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
+=CILo
 -----END PGP MESSAGE-----
 * ssh :full:manjaroi3:
 ** config :crypt:
@@ -6787,29 +6902,31 @@ oCrpwyeR4sdizvlttAlXAP9JYt7ifZTxTB4lZY0mtBkwPkz/RfTTdXUpTq6jUCps
 :TANGLE_FILE_NAME: ./ssh/.ssh/config
 :END:
 -----BEGIN PGP MESSAGE-----
-hQIMA8yc76sS3P8VAQ/9HwnYn7qbF8GfC4FX7TrLhBmWNtKbVPwZgMBB95vPqfB5
-lYY2p7yuEhFP263KM8AYE9YtkU0KYDv1iGRz8hJ2eUh/r6+vRGSMPMlyfkHrtnHP
-AQHqCS0ouoDM/wQ5hGtX7FVC9at3WF3nIHzvbhQ6BIZj5oCRicHQlpsevDO2lym0
-RrQ+xfBSZG9B8aq2fBlGmNsQbgUO0m175qpTrj9Y6WII2/Ted8QQE4hF6sqc0ShI
-6+O2o8VRxMiZVrmu7jd87VCxFdii/QvJpv2ClFqnLIcq7qtrMoxAjwah5cW8opsD
-ipH6NDHzdpQw5PK8YORGSuwIh1gMYUZXGvNSAOnTLPL9AoUzhuThGhlvULZ6dmoR
-mHMs8uMXsBRjqWzG4Dvz+p51Dqgmwh4XK/qhFt1+Or0GwQa4vsYTa0DJeyARnVSp
-WwfZXRgWSV7c7W2rCj91aWUtcsBGnhBxyOBzKlsRXh54UnaXVA1WVf0JYvq4DsiO
-wDPmqjdKYik7wPuPEO94Qxbbr3RGe6tHTm5/Bh+GStCIIMUoJYesRxQGQ9sJXtWL
-KuOb3qmiB+cWrFaOnPeHnR6nI+rKETzDF+sJvQdf1E3Mot+E0+METGGKJ3tULvKt
-8Nv7C4IeleMqxG+KAzH0BrD/AlcHomXsqGDbYAVGZQE5VdNuYqspF8jAdno89unS
-6QF74ULsrlCH21uAGWmAo6gJQoRHtsqdTVyjPDOtenTdr80XCZYR53RkUbayr47z
-AMxDmXjm+yNAa84GhMoWFsDx3ZrGcTv25xHBFbWgu0sv+lFw5CmCcvUIyaESvCrA
-jZGDqDhns1ue39rcO4kTsGtsFAoNywW0jfpS3w3vxkIadbdCteZjyX7snAZ3EDc2
-NJEGjkBOWlCussxLHBUOImOY5TgbJQ0PCyJog7XX5YAOVoBwJVLHJYpjuI+lrUD6
-Iwsot0ooqJPIWVRXyxM2M14xfSmjWwD2i64TuflzeYAbadSjhOrXwB8D7qyh0n0D
-4ZH2ektIRcG8yH9f4Cix8Vv2FK6JZnjzs7mgpKxF6xAiE57sNJfeg5Xz+Ie+uFbq
-a16ny5BvjWe/Ov4Qwy1QYGUDibql6FpbYpHELeEV43W+QCeuMXjNWEUQHMqqe7Ht
-EP+cWjWOeshGJc+iW2YT/E2igk7xfczJro1tBZPdfmyurA6BNaZGSNgs6q5mIuWa
-+yDVMPPDXxkrkqqChG5dgVh0Cem+r7+hrTOpDjiyk3iHlE6uxNqGQXHYofSE/wOO
-BmxqkDGm++3YcN2QuU5edcm+yp1fyJujOH7IlUTJgxx2FieclrYhx05+mNUlyyWM
-rJujC21Hb1cAOpD2kx2xkvho+ovoEI9gNkpcCD5ar1/wJb4p2en3KYVoKpAukKwu
-GImQeuFMs7vloFQPsodxI4S3a9eO+1Q= =EsLp
+
+hQIMA8yc76sS3P8VAQ/+IoYC6nZv2P62tM1KkC2rwJY3NA+y8y+UX+4+L6MdBdQf
+/UYNEE+QkL/RgXfN1tjggsybuQ4S0M3q70c+YNl8hcdX+gXTKiE5VmSkDDvtkeun
+Wyl8WI0evn9fEEf2C0oqh2Ue+w9OKwpOW3dLJEBazyj6qjaBgs3I9VLoCrzgVeIH
+AGhAr35uckKZ8wMijd/9jxAH+isLBXrzFqKl1SpZo9iifbzJqXizhWZhnaYBQxCF
+YYLUp3Fy9NBryyru1xtpqEamfFrDjRDA6h4532sdsOoQjJj/IbQyhhN/PCUzheFv
+nNrd3fr/4n1MiX1s4aF2DYuDV9rKFoLDuHHog0PgT6jhMwKoaBSWCenHE/pgET8W
+ZDTO7GcdKNkszSYqwKS8d/JUnG4/R6CL+l4ydWhjBmvqCMhdTetfsa9oamnO0+pA
+CPyifdGAptJQcI3GQ5w1aXxJBe/ccNqdJ2Lx/auHwh8kwPZVnnznW34x5oG85Bwj
+xzYI/ZA3MPbARrf1M696bu30yPc+iVWs+RktDChVbaCvL9q+fnDxzNwXuEKDqZYB
+zCIxp+eGqeL7GLayTffNHRuOaWD5LHURH5xWHMtThNRJ36FcZgincssyUDjhp67V
+AAT0rZ4Gx4z0DqZGdq6wFXOnrTFCzei7dCQyZM0t7pmBZ1hlwV6hltj6m95N3YjS
+6QFjb+SOeRm4uRUmsG7g3kZW55YYJpm33IH8c8KzcTNhj9xvVr8YfmFu+BodO5K1
+LRkhHS8oMPlqiNN+yWJfXS5i1isW4GHXOnOJytUGqUKCv1ThAtw1mcQVtrSbm0ki
+mbXDEVwJNBQ53pQMGgHqp8Y1KP3/lHu2JVEcR5Nk0cp1H/Bd8TgIwsjslSqysOGI
+vO0AUgHCqF4PhxHOi6aTQrmm6QCZy8Co/HJoM3FsBih/3KYJLofz3XAmwtG3SQXq
+Q8YVZ3zddhMZadSCX+D6zfntI1Ae35FR3gpgsCqo8tcLZ2ZxeySJHCJTJ7V5SSC/
+DNhDoPdIf3IS8kcdOKuk3Kk9D8YCZQNCiPPP8b8quQiYH3ss8WaCrIU6zRU2a8eK
+/8WqrEdPvSZSkjbPXsAF8xvOUDiblYG7iJunp/jeZ2h5AySIYgOYz00zI5Tmr6Nj
+12r2PQjEFK7BOw8ZUDwV5+swToFIPAPZJh+Up/l4sC4reegbTqwhsbxzMTAhCJFa
+x6FtArJQvY6yGQtax1bEIbVGJltTPgRyXOCGqd90Py7wFRJYBAYyZW+S6EwX1hNl
+w533JsEF98upAVhtONIlPTN4Ypu4qwkC5QcN6RM+zFMCiOTeNzHgUMqic/o99RtE
+lZ8jvzgI+8nNpJszjnD1gFFuKHcyb6yF03AuqFJ9EewNJxN1VE76hyl+YsIwWBJK
++Reqjo/CyydRkk0xJlUtRu3XtTIzdjrcNQ==
+=aqZY
 -----END PGP MESSAGE-----
      
 ** known_hosts :crypt:
@@ -6817,60 +6934,63 @@ GImQeuFMs7vloFQPsodxI4S3a9eO+1Q= =EsLp
 :TANGLE_FILE_NAME: ./ssh/.ssh/known_hosts
 :END:
 -----BEGIN PGP MESSAGE-----
-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 kg== =7ItG
+
+hQILA8yc76sS3P8VAQ/3YEP16bvX2KmKYMrWfZncbz5XUvouL/RS06uxi3HT7Mk8
+6eM3uW5DGOv/OZYZKeGdcv/Kvb/eibfI2DtbsqfNryvRcBaXz6lFga3MPBcA9bLk
+u7k0YO1qoMPR4nuiNFuKYuRxKIdF/xieFWR49RdKgr6LtEwRhShm8qJo8Yob/A1U
+NudCMKf7617VPRm2B7lTTq75BXWPENmOhxkuXjnEKLwRy2nC2ZzBEKYWptoKslS4
+z/WUxVcdazKXhgXcgwpOVL4fNwKhrCdcZTJ5CeVzsqAp/ifnMrVyaBUK9+uGFDG6
+PNXS72n8EoS8rzroKV7HP20W4OdCT/WW16iI3VMgHGcCT5qkkPTK7hA7mpy/OLwH
+LQYlEykMZtmgwrKp15U/lcfh5POpalG88vKMDw9fd4hboZQAhrkHk5K/MNbu+pY6
+MW10ufkX4aj7p/xpcJAw5rPw6AQtJUNmsgJ/1YJY7AJ6r6ff4y9W4aF23VwUPQ92
+k7HiBaPuEEXKn19jwBuPNsSypzAbpjP5kGp3FlwtNren8+oRyuYcdnvyIhJRVy8m
+APJ0Yi637OwwvU1VN+ssUqrDXprMTuJAS5H0U0ZClFkBzqHaRYAjJA3UE4sZn1Ea
+AAAKsSguWX8Whp4v04MMt3B/0JPZHhKDsc2LYP8JNYdkxsc3VitDEj5/8cmwmNLr
+Aex+kS48FDw1PgFVUo9qvlstP82Abz04TkEjAto+ROCDi1TdNYlhOVivFX5Nor16
+HJcW6s9ExIS3sJraVSgxXuIAAHbnF8l3R6IgeslOB+MDR9waXpErVlSUvxw7pCPQ
+w+r6NMgBOPmV8y/gKIrfsgrjLI2LLM8bjHPhQEXpXy6+zT53tA79LuQPbCl28NF8
+6NnF4Z7m9FjqqZG8SyuY6KK3mjdPfij8IyOd8DDK4Wq57E/TkgcpM5Mje+fBBRq6
++h0sJyGgNkhXvNFVkiAd8bwjOyoMxlPsRLtBzXxLm5R7xXPlKtGLxJTaFDRTdymC
+V6Ei3FCB+YTyWMfyuk9yEWVJRYtFRwyd0DrSP3gjKv8FxafC758rj5z6IawArGTP
+K9Ku1JR/vZd4lJGNBCTpHopAbqWPN95lU0bJ9B/3AZRsgOgsYiOhRuSihOa10Zbt
+si4VHz2K1ZFO/QEl1A6SeLN2eqd1qDlglfmh6yM+pB1FZ7EFtVD6rGboDeRgpuyD
+Xfo82rZ1i6/93wlDBqcgtPJ2RgMM6IFcCUwe3emvbFLSNS4JgRwGlg5Si1FReZ/n
+LKLmWaVl68I+K5AgElMVeBRM644uC6Iqea+qxp12INSuqaKM6PaD836HX1eOigGD
+F773/1tcJPSeLfjUZ68RJTI+Fah9eB074K+BV/MsFBih1bj8i7HLRBYImAo8D9kF
+jvWzPSUXEpu6TfKcHQddS9Yi1Qyo3qCvKBLB4TJs7k4hv66wMsmKQnFg/ACOmD6N
+oxHomlxEahrA00mDHQsTD8suWWruvOxVhzxvmEtpblmPCzq8R5aMqBAoEHayChGL
+DZgXX/IFCriohed+yac90Im9URVFGWntpn8dCTrHAfkcK+ZHehl3XVwXbEj/n7LQ
+x8RRUF8ce+T1vMamHplJkkcU78IsBzl8jazeKqhyXIJ5K1jB3ERCkv/LB/oizvg6
+vQxC3PK+i1rU2rin9boOmaJrNkSNQb+s8U1vss8YQ6dTQEbGsLcuEESFSHmgcCYQ
+L/I1ifwo5DA+LX+ckGiBgFqGkKd+6nalVmPMRC3Tx1FLUwqwNoKFuHwn6QDMy/91
+nLRefJT8fsVLcS23u08Mhd6uUFJ+65KOy1lvrDPp+K80iRQc3dt+Jh62x02TQcXg
+Xtr5lGVMUisDvt4Um5EmdpWVyhU35SaJhus+ym6Xyf99Q7f55UG2fggQss0hfV8+
+Kut0Zm6x6nFwBnt7RmRo7Y6cJwdftkP9bGPiTdixsbMgTq2GMUH5Jmn961uhdrkG
+HnLFEJj7+Phxqupu4tLo9RTMuf+su6Gy67NZViJkW0u+pdljFM1uJ3UN+PMyXd8P
+P4KDB4+DKOQEXgg6Jhx/mal3jxPoIxmIB6gc6QZe9N6mLQJNllRbgFZ4CYOiEVF8
+hly+cgK3MXwBVl6XuE5xINQqNCdVw7rRGxllCIyqd2H9hRDZBIB7Elu1xXqDEU3r
+ZUEf4xsMwiOqhC2nx4Cl1ryH6yA4uyUiHhqWGIlVM2kNnERa9JDYdN3ZMH9bBBjq
+sUiAzwtFem+OB3DFJECbAvIOLI0/DnwXG123m8zcuJCUQBn7i983LmFS84z6Vdkx
+hY7Ji3yQLlXzWLWOHr3GLi2Mgh6eLSej5m8BDgaBx9AH7lE6oZXKB5DyW0CSHhdw
+JWC7GayRsJcoP0RAwnUdMas3d+UYXNIbe0UmX2kg4xHBn5tlK29o1E8Pbl4EVao8
+xaPJD0SVk+q0vBmnNW7hRu4MJbP8HMdAq064H9v4aebHO1NhaAqyqDSfsquoMG5P
+RlYkws7M2F1dmmlgyLYF5Au2HyQr61fcmCcO5ODoQTkYI5etzfN1T+ZELOMRMfCf
+T/niVJ7no07iWCnCquUfN/JQqpvn9G9EtVMShyTPrMaHJFPvT+hyKiPZq6l83h7K
+6/OBecwtGDTlsosYWo+F5sSoJ1PpGQhIUmPGCVVezUFnq0U3huxBeozeYFG3lqHZ
+hdyGuT1KXy8ZNxl2p2Hpyv9JKSk6sZFY8O6Bvwene1jVkUtpIog7dm26800T0wkj
+WxOfAJFb9ClNAgHKJe+hKXmHkfKoC/BPNjDI7GOt7Yy93fb1toPX283SYNii/Gdl
+g1azgt8z2D/yD3tVVLGpky3EUrKUuWFeVwPVE9q/fCJZMG/s1XjGturm1TW2YTfb
+i5i6E3RdhSWGsjAqNu0F/r2t/WI/yQYmNnxvCEGQB+fqt8oIeE9cDiv8O0qyRoTu
+qkf3HLe6e9X+cvNP89uV7WCOBB7/DL+IlgZYjVWV8Z2ll11Wv6BmeXEK0/F0eBlD
+iUyQXvrvxTW3fwL/VgjEGSFBUBMmx3cBYs5gNzIoz3l6TjXwpo+bnlJhWQRD/t2h
+Tyk5ZNeFxaXxFAb8GJ6WigsxTyQIDFICHevv2L9PdFsD1+FjZrO8VY9fLumRyNWY
+42m/aBTsj/45s8XqXTZgCzrtSbXdVR5c/BUhLSTkvxZvcibTxXsxcANVcEQjWtzE
+4wMRXg3FYSLfAghsIzfliEzgbsD3F/NMRx1A9fxNFSe855B9ZomvRtEmY4/aiwza
+kbRrB8Wu4XUrLk/mDpopiniBeZSwquKfME/1Yppxl4HTqDrzdyAc0RL25V+8bLVN
+c7jxe5DyI2ZQ+AsSN2G1gNQZFumwnFsVkxArBNyoY1KDcKGZKeeBPoYIdxYZfzph
+gY+c96yvRyi1MMtgLFVuLKdUdUuU/vlKKApT2hqTwX4SMGpccl174+g90V/pi2ED
+2t47
+=DGf7
 -----END PGP MESSAGE-----
 * x
 :PROPERTIES:
@@ -6974,4 +7094,5 @@ WantedBy=default.target
 # Local Variables:
 # org-use-property-inheritance: t
 # org-crypt-key: "0xB1625FEC99227CDB"
+# auto-save-visited-mode: 0
 # End:
