@@ -38,23 +38,9 @@ if not return 'no'."
 #+END_SRC
 
 #+RESULTS:
-: ./test.conf
-
-#+BEGIN_SRC emacs-lisp 
-(my-is-conftype "halg")
-#+END_SRC
-
-#+RESULTS:
 : no
 
-#+begin_src conf :tangle (my-is-conftype "full") 
-it works
-#+end_src
-
-#+begin_src conf :tangle (my-is-conftype "half") 
-it does not work
-#+end_src
-** making files executable
+#** making files executable
 Org tangle will export files each time with standard permissions.
 In order to make them executable after tangling I need to add the ~:shebang
 #!/bin/bash~ header argument.
