@@ -1,9 +1,11 @@
 #+TITLE: Linux Config
 #+TAGS: full(f) essential(e) crypt(c) manjaroi3(i)
-#+PROPERTY: header-args :mkdirp yes :tangle (my-tangle-if-property-in-tags "conftype")
+#+PROPERTY: header-args :mkdirp yes :tangle (my-tangle-if-property-in-tags "conftype") :comments link
 #+conftype: manjaroi3
 #+STARTUP: overview
-
+#+OPTIONS: toc:t
+#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
+# #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://orgmode.org/worg/style/worg.css"/>
 My linux configuration files tangled from a single org file. How spunky.
 
 The goal is to just track a single org file for all my configurations. Even for
@@ -64,15 +66,26 @@ Unfortunately one of the ~pre-tangle-hooks~ save the buffer before tangling. Thu
 org will miss code blocks in encrypted headings. Luckily I am not the first one
 who got to this problem and there is a solution: [[https://ag91.github.io/blog/2020/10/30/org-crypt-and-tangling-source-blocks/][Org crypt and tangling source blocks - Where parallels cross]]
 I now just need to call ~org-decrypt-entries~ and then tangle the file.
+** Other Functions
+*** Functions to generate the readme
+#+NAME: getTangleFileName 
+#+BEGIN_SRC emacs-lisp :noweb yes
+(replace-regexp-in-string "\\./\\w+/" "" (org-entry-get nil "TANGLE_FILE_NAME" t))
+#+END_SRC
 
+#+NAME: printConfigLocation 
+#+BEGIN_SRC emacs-lisp :noweb yes :results drawer :eval always
+(print (format "The %s configuration goes into ~%s~." (org-get-heading) <<getTangleFileName>>))
+#+END_SRC
 * Setup :full:
 :PROPERTIES:
  :TANGLE_FILE_NAME: ./setup.sh
 :END:
+call_printConfigLocation()
+
 The ~setup.sh~ that uses stow to create symlinks in my home folder.
 ** Head and essential modules :essential:manjaroi3:
-#+begin_src bash  :shebang #!/bin/bash
-#!/usr/bin/env bash
+#+begin_src bash  :shebang #!/bin/env/bash
 set -euo pipefail
 
 # make sure we have pulled in and updated any submodules
@@ -175,6 +188,8 @@ argument to the globally set header argument. (see [[https://emacs.stackexchange
 :PROPERTIES:
  :TANGLE_FILE_NAME: ./bash/.bashrc
 :END:
+call_printConfigLocation()
+
 **** Layout :essential:
 #+begin_src bash :shebang #!/bin/bash 
 # ~/.bashrc
@@ -408,6 +423,7 @@ export BROWSER="firefox"
 :PROPERTIES:
  :TANGLE_FILE_NAME: ./bash/.bash_profile 
 :END:
+call_printConfigLocation()
 #+begin_src bash :shebang #!/bin/bash
 #
 # ~/.bash_profile
@@ -435,6 +451,7 @@ export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
 :PROPERTIES:
  :TANGLE_FILE_NAME: ./bash/.profile 
 :END:
+call_printConfigLocation()
 #+begin_src bash :shebang #!/bin/bash
 export EDITOR=/usr/bin/nvim
 # export QT_QPA_PLATFORMTHEME="qt5ct"
@@ -453,6 +470,7 @@ eval "$(pyenv init --path)"
 :PROPERTIES:
  :TANGLE_FILE_NAME: ./zsh/.zshenv 
 :END:
+call_printConfigLocation()
 #+begin_src bash :shebang #!/bin/bash
 #### Terminal
 export TERMINAL=konsole
@@ -475,6 +493,7 @@ eval "$(pyenv init --path)"
 :PROPERTIES:
  :TANGLE_FILE_NAME: ./zsh/.zshrc 
 :END:
+call_printConfigLocation()
 **** Default file
 Default ~.zshrc~
 #+begin_src bash :shebang #!/bin/bash
@@ -604,6 +623,7 @@ cowfortune
 :PROPERTIES:
  :TANGLE_FILE_NAME: ./zsh/.zprofile 
 :END:
+call_printConfigLocation()
 #+begin_src bash
 export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
@@ -613,6 +633,7 @@ eval "$(pyenv init --path)"
 :PROPERTIES:
  :TANGLE_FILE_NAME: ./tmux/.tmux.conf
 :END:
+call_printConfigLocation()
 #+begin_src conf
 #Prefix is Ctrl-a
 unbind C-b
@@ -688,6 +709,7 @@ run '~/.tmux/plugins/tpm/tpm'
 :PROPERTIES:
  :TANGLE_FILE_NAME: ./screen/.screenrc
 :END:
+call_printConfigLocation()
 #+begin_src conf
 #
 # Example of a user's .screenrc file
@@ -851,6 +873,7 @@ rifle, scope). I'll just put the rc here
 :PROPERTIES:
  :TANGLE_FILE_NAME: ./ranger/.config/ranger/rc.conf
 :END:
+call_printConfigLocation()
 #+begin_src conf
 # ===================================================================
 # This file contains the default startup commands for ranger.
@@ -1591,23 +1614,23 @@ map <C-d> shell dragon-drag-and-drop -a -x %p
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ//STc2SrP3snmmOcjiwixFceqiS7Wkjyq0/YNFrZNk77V0
-A2rjNVbkTupn2KnLYi4KgLySHp9N0D/bnq5zz8dnPjDBOn/B7DRI2ohM9CZLu6px
-tFkVNcgYws6hz8ppvIwPKjLwOIGltr6yd8G7a4aRVx33Z/7NACQbZrzBuMJP79ur
-bRbNs4OAOCS6PR3oOAS7aanZ++DdxGjj/SJ0BNd+JaxnJ1uMzswHyS8DQMksOnQu
-M2MciZOAmxg/uGg0v/3LVl0Ek7DCF2kYesqsnoVYnI6sLGisOT7M5WKz55zNMSuk
-KLyALy0PeuJR0Sp5j4f/GftgVuLHUFHtdQ8840psL/k7JQp7xmfW6/F9uk5mUoQt
-sh36T2RxpE8LBzwZlFTPeeWOXEd1697JMj/lIEsQcYq0CmeF7YLGPZk8yYVSEo0C
-SrLHhZUY2/iBvFR+IvB5L7Ceb2CDfNiJsoSi8YNNdO7iHPoW9oYqFTKca3D7qqgr
-fBEBK85DxMYkVV0WYu2wO1o2wb03Rv6M6cYOPYRW/JZijd6Gs5s6vaPnNPvoUxND
-Cv5YNRNTkGUvdDRgUr9cZ+3vcc2i7Be8d2hZeYpbj3kBHNplPOaaN9tOJVAyd05F
-hAPZbI+zI4gXmRYgOeg2vntfQK9qvRgGLfvf04zrif8+vPye7adx37ntKqLSRwbS
-wBQBPIzUDHS7iIq7i0P3ZSp8rSiA+Z/DAmdzytQXSR/F0XUmSScs4/amnJm1jThw
-bcrlOCg+eElBYIRiDKtDw3jD0CGOtTMdSVAVJbL99vRbezeq502IKGdHCP34T+tD
-OLcGHRXOzMrQ+N1eIyTIx9WA08WtuySi97WyOUgV3M2BLVV2SDKG+Sx6a338rLin
-mAVcMLv+OcOtq3Ub2nettZzKibRB6L+7GmpxPBbiQjqyfiIakKzIISyxRjKz+3Iw
-f8Lg3R2HDBwWt/2dYpi3H47lQlYEkQ==
-=K5jx
+hQIMA8yc76sS3P8VAQ//V15fEFy6gtrVbZltLeOk8jeMqo+li5ceU3VDnHbCg9As
+aDJTPz0kaJoJEJ62DDxcPTwNqhjRU5LEKLF7pRHBnITrKtQ+1HTGwztvvpmFzVYj
+Ralun0//K3Z4D9TmwiE/YBBcX+EYXvQQLA88iP18KoV5BQBgOq0F3h2sgbjZ4qFM
+90MKqSk2gVaRE+kzmtGsuYf7a2UvQQN6DG+8rVjQbsZMLfxfZE+P0L3gp0EJpyb+
+4Xf7tgs7HOWrLVNfSiG/0HB6zCwqiCRn6pcHAq0PSbtOsS4V5DKkSTsYmWcpLgiw
+drrgLlnuQ6GqhbQs9gA7BQ5cg0QdmDQ6pMleRhlwxf6eHfMST5R93a15sJx6nyU5
+nTIqFYHSJNBaxHkvZ20P2ogwKWuP4PRUHD/0GWEnB4HgSFD9k8NW9XJLjKXYYold
+gQ8B3l9O10sdg6AF+fdV7IH5LZw3kTmdfMkHvh2lxZfHWF6ShQaz0J4LJCv/dgt/
+DMdR0kIFeSJoEPEibSUUZbu9CFKpaEbEQV5mDywhvKkqYJAeV8be2o5lmWKEywFJ
+KrArABPc8pgr2we7vpIp5LNmbsyX0NnaAcVQbbgi4d21K1vR5GQihz0Pll1o2DJ6
+BX1mc2jFpLoIKPe+4n/15jcdGwZ9ennoSpJp66EzNLGyGMy4g+Y89xFWbpL3mtzS
+wCoBlBlAPl0Z8czG3JSQORBxvc/xQy+XNuoJDF8jPJGAOgIcUQYw1wAsVXaFvvs4
+5UjofbpXwVlQ4IhRecJqUZnsRgCz0ESzjgD5dWvzUenOQVTLMzBXKvOdCV5hg3sh
+oaISnz5nR87HSDdXi0y/5KnrhjsyXvag6IqP0szef0aMwLya6N6vKcCzbv3YoBwb
+rU3JVR9RBUvjVWHDiuQpk8JodK6DlCwWW8qMf3F2ndAFOtCRx1Qvp/mnUw/lMyp1
+ROqd4AP4xV2ACllSxxxpk6XE3TPLBqbFKHaVz4V+C3eBsy49IWKGnDTiMzU=
+=3c9m
 -----END PGP MESSAGE-----
 
 ** credential :crypt:
@@ -1616,28 +1639,29 @@ f8Lg3R2HDBwWt/2dYpi3H47lQlYEkQ==
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ//SY1QaPBkNrWm/KweFy3sBD8ThDFZ1q2mAr2wxbr3I0QZ
-AMKN1CZLKBg9uQ7cnZd2ceAcAdyUE4mi/TheQSaLPo6I45Y+FdpPsiEmbEws+idC
-vTT0pc1c3PNEz3xqrpS1UffFxRhmpV09mE4GmH/nW7iwwNe19UzVNSrts34D3bS2
-+79njHtzPDUarr1ra6p0hpFe8P2f/r5IWacR2VblWBGtK5pa9kVoiK+nRN/CXrNs
-PRKngWz9kwb5mRT65VL5FPWiqjqpWYzUYM0pCsZLndIWldpTaAi36poEmI3bUHna
-s48iMys5GX2NSwM/aZIpWP5gcojdxbyWusoUaDfcU5nq7FUGoR7yzVc++cuGAclN
-yPNZTEP+p9MpFPWXoEuD/w2eTBbphuxc0Fc/wkw97T85xSt5bJI5IKmc6/1DcunU
-T6wQxlRf8a8xdiu/LbBJ+pJpi3Tx5DDXcEkTV+biVVxqbW2ADj0oOMJq1O0CgQa6
-Pa8GPKAN5Hz/6EofoJUUejB+uj4qfQzkB+0lv/TsatPOb1xCmDMsG9lMEZvVaYnO
-puR5pirTOEPnLH2fpftyDm3gQ/fvjvx53cWUfdSR7usr3cqAnrLXaTkj975mBfnn
-FkObiSopymQzMv/DESe6GScfJkhl6TzmqpvvdP/A1nmEn1PTjc23Zs7jmZHoHNrS
-lAEIOZB/XGVpNiejRf7bFdYZUNenONB/C5Y/6RC+Mvv7BBn9L19pqp6uHazQBo7L
-tts8SJffLMbXIcTYv4qfLoWja4bYTLbT3kB/34TeH25pNfl/GgTkhHYxhc+jKBlQ
-BZOw3FX/MzrLDtkCJuk8DMkiCWlXHrf+92/vWDh7mjTOV24p06hWJvRLmSh/KCpy
-TSRzuZk=
-=3ih/
+hQIMA8yc76sS3P8VAQ//SWuZ97AK7zRGt3YHiB7eNiC1VPJPqEk1ggkBiCA1ZNRr
+EzegcT+/MjqSqD5ODHsY3jzJXw5qDvlrDCRY12vls/mJEY27cTIvtLtSUn8A6fzZ
+7vGpoqgLHL6GD+6EBN7wbwo7KECj2CapEkUYwMwMJc6BFU943BQ6uf3RrPu1y1GW
+u5gdijosG6cuOdoXooG7lQk7VWB57cvWnhfsNTlP6DIu3eshW3JK4idN8wAGwlpD
+qmzAdUpzx3jif3Lxyd+XYk3vreGR+Ct/Fj3PTdq9p5tHDOOz5TprNQrVB98B6eYu
+xO73fRPSHaiC2WoG6d/DX4xAjLZN2RTNmAQa3q2HmgwcTd1VSI5LZoLHHS8w44+i
+35eVs/dskArWsT1bdccWKtBMouRYHPMQWdyjge4nIifCi2MGPyRQHSFZnl+CrrYk
+L95TiNxqe6GnfXboKEakHSJdAeys9BDZAhqxbUH7K7nFAw4WBXKdgqjTnCY+ivMK
+aask2yhyJx+WY6x7ICHs6oRXIGj1vj1+j3S+skKojg4Ums+koDyW0bOWDEq7neLV
+jrbRiGPyaS02l1HL4zVSd8oHSbGDQ3BtXFfz9blB0FSWz5d2ELHULWNZWtwKHesa
+rTyLyC2uUd7qgDPJdOl+GujT6aRwl8CNYe1cQ1lrr3ra7ooJ8pGNW9pjJGp7bxTS
+rQHcMhYEke5ZXzx8KhYvHpwBCoXAAU1dBrZiIELWyWfrTGvWAAozrkBINJVEHPEz
+rnN+yAOTjgf7afM0Tcnl6qcp9TDNlDoG78eWlsZzaaCDAuFzs7w88IpdI3ZC1H4P
+GXTX+79nZIUzAH89wEYZg+Mxy6ichjtu9YgTQAQtjdsi5RK2NDzAK8NcjBrtyezz
+jRTvXNLhB7CcBuLc9ewiZxF41+1+PnIsKdSECwbw
+=B4tG
 -----END PGP MESSAGE-----
 * gpg :full:manjaroi3:
 ** gpg agent :essential:
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./gpg/.gnupg/gpg-agent.conf
 :END:
+call_printConfigLocation()
 #+begin_src conf
 default-cache-ttl 600
 max-cache-ttl 7200
@@ -1648,6 +1672,7 @@ write-env-file
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./gpg/.gnupg/gpg.conf
 :END:
+call_printConfigLocation()
 #+begin_src conf
 
 # GnuPG config file created by KGpg
@@ -1674,25 +1699,24 @@ keyid-format 0xlong
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./gpg/.gnupg/gpg.conf
 :END:
-
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VARAAmHDDSJN5fIL3F+6076jelSD0HSM7cUu1D/d0em+Fgl+K
-JV71WdCK0tF+lLNPnOFQYoAPSw9DmSbzjGTzP6zIZyepSpIrylyzDCxM+JppYawT
-w/eofRxd9yzY9AIQHKXQ0nq9EaQ2ePDWHFvaAy3tn2ZrxSmZOYRuHyeTAy5K+M8I
-mgjmrjn7HdCGALcskr3J+FMC+ZxFAGODo8D+BFZabNorEnoJ4ragGaL8CucioDZU
-Bmx6RF5GF1IkxGP5UwCdEMQHuSxbqpzvrRmmE/dW3bESRYU3rUMvwfrZAdwXrADd
-yDZu0fTXFNRYj7l0bzbFR3p9j403dwEcNtTOAe0wXWqb5BoSm4wuk0GjxzC8X5TA
-YTzT8JYsss254FaB80nZk1eePtPa+CNYG+KCOSKKyE08Q5fF1ZLzkp+AF7Cy4Ekf
-pok3hXzukZ8T6TEJLEgGZ8IB45yj9MQTD7L9r+bPSjyC1DlcJ6xF990vU4LCoYko
-02Qv9rG89/sbsem1HRaFxgwgj30K7zTRap5sX6nOUD5oLRAo7to142Svw5/q4OeZ
-KE0mKgWmEjED+ywv6e3ZnEjL+1PutfQxXpP06mfv8HHUIe60BjM9fMl4vlag2WPK
-wbM+8IRg4UHhtfVaqNkhEUIMmN0wukWkOE3dNmj9WpJj7flv/2033MRlyHA4hsfS
-kQFQ/7EofBAygyUNVKW2lmaNlq0jwZgqQNaKSCOHGdwWzu07wEDdv9kBUTDA3g8I
-xVyY6KyyCDzDsn9bA5s17F+3cLF/lzy2kUMfhmoydka3CO2U/B6k93WT+KpeQLCZ
-eNEPjJocghYGIVK4CJ6XwfFdQ5wjVyziC+FfhVxnnEE7cz9m+iFkL9rZdIjMvIcu
-B2A=
-=QUFG
+hQIMA8yc76sS3P8VARAAmL0DRZ3IPosE/+OzkJSIp7CExiWausgsEEBpZu3pYGa4
+XZ/RHgAbiJyLMZ36G/QNiC11PRZqT+fqQrVl6y+ml0C8CRMFCzWE4FZ8j84yjL4i
+I2hJrGIH/KsYaUEI4jUv3flAij4mWSb+rIhvS4trDxpRz88v+OA01vStvV41aj0z
+dMs8kL5gAmXL95UOQR7gtcoWTjyi+UWbXG4pcj1jpFw7KZTcn9w9erXmNXavyezC
+32Ses2v59bxwCQTlAGmjaoOkkl+nC14coZZ45rDPXH1tYV9pPxsTbFLbjwQhU6FZ
+mOkgtFIZmHFdBVuNGkqHk72ODZ9XvLC4ycgC6GFi/lkm5OEzVuX/6Qagt715V7DC
+d4eVOgA5AbXutCvmk/5r6XaRTq+A2Gh0ExsF7sLEjQC2hzbyfmUFeXpUloJbqhEz
+EJE1XfITNGzmDd06TCsvoWDZFe+I9hgB2N7TOfVnUzaDUnY63+Fl5OvAcv5oZ5sB
+mfCeELdylXK2GyfIk09SvDvkdf+fZEy5/3O5I7MDEoubGOYhhFgQrEcNWhgEIALo
+BjxD0hJv4juP/othLJB0ikgabUyhciUuDKJBg5Nhsl4S+ByYQfUAq5ULwyUyGSrv
+uRGdtynHhfrFTj7E+bAgcS/qoObwwB2jWAATLPW4q9A3VJ5tZhVSNqzE1eBkREvS
+rgFq1FB6bYAztFE2TA5+Ixgy89KnAJg0h8Qyt5AmsYZVn7zcJ0kkxRP6JoXtfXHU
+Pye/ifpzS7AtLi2NTaWKAyNN7m3CGC9aURbnYgvAKXdhbdxN3rOCac4qt1tg6iJY
+vQXxjkxisXYPDBq6dSE9fU3kAa+9RgH73wn11Yxa+iwIXaPOgiEP0S6NqtWJgzLT
+a6uYs+QXjo97aGWdKU9A+23LdiDzw7PjEpIwVmRCbw==
+=S2SI
 -----END PGP MESSAGE-----
 * wm and eyecandy :full:
 ** i3 
@@ -1700,6 +1724,7 @@ B2A=
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./i3/.i3/config
 :END:
+call_printConfigLocation()
 **** full
 #+begin_src conf
 # This file has been auto-generated by i3-config-wizard(1).
@@ -2707,6 +2732,7 @@ mode "$mode_gaps_outer" {
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./i3/.config/i3/i3status
 :END:
+call_printConfigLocation()
 #+begin_src conf
 # i3status configuration file.
 # see "man i3status" for documentation.
@@ -2846,6 +2872,7 @@ xrandr {
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./i3/.i3status.conf
 :END:
+call_printConfigLocation()
 #+begin_src conf
 # i3status configuration file.
 # see "man i3status" for documentation.
@@ -2951,6 +2978,7 @@ tztime local {
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./compton/.config/.compton.conf
 :END:
+call_printConfigLocation()
 #+begin_src conf
 backend = "xrender";
 vsync = true;
@@ -3033,6 +3061,7 @@ wintypes: {
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./conky/.conkyrc
 :END:
+call_printConfigLocation()
 #+begin_src conf
 own_window_class conky
 #+end_src
@@ -3041,6 +3070,7 @@ own_window_class conky
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./conky/.config/conky
 :END:
+call_printConfigLocation()
 #+begin_src conf
 conky.config = {
     alignment = 'top_right',
@@ -3098,7 +3128,7 @@ ${voffset 5}${color2}${font Bitstream Vera Sans:size=8}${alignr}kernel: ${color}
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./conky/.config/conky_shortcuts
 :END:
-
+call_printConfigLocation()
 #+begin_src conf
 conky.config = {
     alignment = 'bottom_left',
@@ -3159,6 +3189,8 @@ ${color2}exit - ${color}mod+0
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./picom/.config/picom/picom.conf
 :END:
+call_printConfigLocation() {{{results(The test configuration goes into ~.config/picom/picom.conf~)}}} 
+
 #+begin_src conf :mkdirp yes
 #################################
 #             Shadows           #
@@ -3588,6 +3620,8 @@ wintypes:
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./rofi/.config/rofi/config.rasi
 :END:
+
+call_printConfigLocation()
 #+begin_src conf 
 configuration {
 ktheme: "arthur";
@@ -3612,6 +3646,7 @@ style=GTK+
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./latexmk/.latexmkrc
 :END:
+call_printConfigLocation()
 #+begin_src conf
 # .latexmkrc starts
 # $pdf_mode = 1;
@@ -3644,6 +3679,7 @@ To keep it clean the style files will become  an own repo (maybe inside this one
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./nvim/.vimrc
 :END:
+call_printConfigLocation()
 #+begin_src conf
 " vim-bootstrap 
 
@@ -4176,6 +4212,7 @@ A tool to use more than one emacs profile in parallel.
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./chemacs/.emacs-profile
 :END:
+call_printConfigLocation()
 This file contains the chosen emacs profile that I want to use with emacs.
 #+begin_src conf
 native-comp
@@ -4184,6 +4221,7 @@ native-comp
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./chemacs/.emacs-profiles.el
 :END:
+call_printConfigLocation()
 #+begin_src elisp
 (("default"       . ((user-emacs-directory . "~/emacs-configurations/doom28")))
  ("none"       . ((user-emacs-directory . "~/emacs-configurations/none")))
@@ -4196,6 +4234,7 @@ native-comp
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/compressPDF
 :END:
+call_printConfigLocation()
 
 #+begin_src bash :shebang #!/bin/bash
 #!/usr/bin/env bash
@@ -4246,6 +4285,7 @@ gs -sDEVICE=pdfwrite -dCompabilityLevel=1.4 -dPDFSETTINGS=/$level -dNOPAUSE -dQU
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/keyboard_light_alarm
 :END:
+call_printConfigLocation()
 #+begin_src bash :shebang #!/bin/bash
 #!/bin/bash
 echo 0 >> /sys/class/leds/dell::kbd_backlight/brightness
@@ -4330,6 +4370,7 @@ sleep 0.5
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/rofi_launcher
 :END:
+call_printConfigLocation()
 #+begin_src bash :shebang #!/bin/bash
 # rofi -show-icons -modi windowcd,window,drun -show drun -lines 3 -eh 2 -width 100 -padding 800 -opacity "85" -bw 0 -bc "#2f343f" -bg "#2f343f" -fg "#f3f4f5" -hlbg "#2f343f" -hlfg "#9575cd" -font "Noto Sans Display 18"
 # rofi -show-icons -modi windowcd,window,drun -show drun -lines 4 -width 600 -padding 800 -font "Noto Sans Display 12"
@@ -4340,6 +4381,7 @@ rofi -show-icons -modi windowcd,window,drun -show drun -lines 4 -width 1000 -fon
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/ec
 :END:
+call_printConfigLocation()
 #+begin_src bash :shebang #!/bin/bash
 # run_emacs_client.sh
 # open terminal when called on a file or without graphical ui
@@ -4365,6 +4407,7 @@ fi
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/SC_toggle
 :END:
+call_printConfigLocation()
 
 #+begin_src bash :shebang #!/bin/bash
 
@@ -4385,6 +4428,7 @@ fi
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/backup_phd.sh
 :END:
+call_printConfigLocation()
 
 #+begin_src bash :shebang #!/bin/bash
 
@@ -4415,6 +4459,7 @@ if [ ! -d “MOUNT_POINT” ] ; then
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/backup_phd_data
 :END:
+call_printConfigLocation()
 #+begin_src bash :shebang #!/bin/bash
 #!/bin/bash
 
@@ -4453,6 +4498,7 @@ adrJlm/tDQY4OR/5AH1IqF9k0Txh/8dggkPKGgHEsCC1xWgEZxUPnRyvk1E=
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/backup_phd_stick.sh
 :END:
+call_printConfigLocation()
 #+begin_src bash :shebang #!/bin/bash
 #!/usr/bin/env bash
 # set -euo pipefail
@@ -4488,6 +4534,7 @@ exit
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/backup_system_whole
 :END:
+call_printConfigLocation()
 #+begin_src bash :shebang #!/bin/bash
 sudo rsync -aAXH --info=progress2 --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} / /run/media/philip/laptopbackup
 sudo echo "Last completed backup: `date`" >> /run/media/philip/laptopbackup/last-backups.log 
@@ -4496,6 +4543,7 @@ sudo echo "Last completed backup: `date`" >> /run/media/philip/laptopbackup/last
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/backup_documents_SDD
 :END:
+call_printConfigLocation()
 #+begin_src bash :shebang #!/bin/bash
 #!/bin/bash
 rsync -aAXH --info=progress2 --exclude='*.h5' /home/philip/Documents /run/media/philip/SanDiskSSD500/Backup/
@@ -4506,6 +4554,7 @@ echo "Last completed backup: `date`" >> /run/media/philip/SanDiskSSD500/Backup/l
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/backup_system_whole_unencrypted
 :END:
+call_printConfigLocation()
 #+begin_src bash :shebang #!/bin/bash
 #!/bin/bash
 sudo rsync -aAXH --info=progress2 --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} / /run/media/philip/Elements/wholebackup
@@ -4517,23 +4566,23 @@ sudo rsync -aAXH --info=progress2 --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ//dzKQ/lFuSecJc/2BZ8YhFF0c5yPn5axBvqUnLBlzPQIc
-/G+azMX9YSJTEO+YHvfQnw0cbaQOM4PF6ltSfEAEOsuLjGNhPjDYagezFpNo+Qwz
-PX5SOgdQMFDgHLvnlbkLlrLhxHy+dUvxnBMVOCU5/phOSS4SDILioC5nW8IhmHf4
-31wgFmk1t+g16Ph7FfmKCXFhMVgjfogVz1reimordZrSU8qovtmTKJHUP5dPxG/1
-RAFrHlEhOQ/UbLvE/jV/KdvPy/xhTgG8ZAYcQ7a1HfnN0z14kTTIhY0lWrirRhjM
-bKeiPI+t0rd5ZR3hb6Da9l+A+TM5ugasPwLBXg1rKwnJwDxRaYRX5gc4Vcj2QPCr
-RcrYM2nkcOWJ+Fo+c3qwRmLqGQGx2QTIcvIR/hUXf5Z4oq3+p3I7GKeKP4gUsJ2Y
-sBtap3RA+UpjjzfrYBGpefOia6ty6kHVmwXlxCevbll6D3ey3PFEEvzH00OQWICZ
-D61DrfPRd6pRJt6JLBt8QMRyvYG4nSQBdhZNm5RvQ7B5gOck67+2x5NSKSnq396J
-ME0W1p0CUqJAbf4walyMQVI/X8dC6AB8xtJBmhhyT96pAhOvkarvIZWXAuQTQ+fo
-T+364GVgiN4hiwXg+bIkUms5vYPrn1pZM+u1Ug/kPHwHyoaB8bDDIA8G0bvtAjrS
-wBcBYwemNCWrXZHp2uhd7bVqejTBeDA7vKuVu/f9r2GxJM3pU9eGJvYlKuWGPpMb
-f2rPh0Oz83Y5P0eTnxNIdVb2CKbh4kug9Iy53odjF9qEgerP1pm/o0yPrBDZliEo
-huqmlsd5HWHuGuKjLSEGEqblavypMJtU9JiOwHN51aRoj2h7f42r2PlF2N4gjC3j
-tQchGE+ecF1KgaQz6ZY7oRKtnoVO7cyp5By0mpetUk3HgcNekWguBun1UNziv9nI
-j++rs+4s9pjji/e2jmJn1KExIyP/rFlYwA==
-=2H/j
+hQIMA8yc76sS3P8VAQ/+O+jWH0+LLMBBIEpFuW94e40dPgiIPCSNqa5CeBlU6b33
+lmxiPfOCKjCUTvNceP9qSfVb/QtLjTiDKOFsnc2liXsCt575DFyIHt33Q2ua5l1E
+iBUVK0Ap7L0MthOzfegIRGlGr9om1qOKqjcBu7Io1ZpjmpgxxZfUPqug+A54E8XE
+yFbAtjT+5Z4P26fGdzh8OFYr2rV/SFr2OYx7ErIdbt0sJqf1VY+ahuklmdWFLA8G
+D6qMVG8YhKfp0QXbMtLdj56L0YKXGfYUKGK3O3ZbKb8BbGl1illO7LEApwPKjNYr
+bW8+SJdSv7eZsskHGMxNOK5/W+5rwMx40rQFUA5YGOYtMd6ziRcpQF8mRyXYqUsU
+bktzMODXOlpoJynhga71ht7LuCp22JG7eQq2oRmxA5uR36w3Z9gefBugZGHWLYuN
+qg2UbYw5E1wZwVgmggZXaTFCU5G5U2d7HXhjosR2KnwSLqcm4+7okoF1KILIF5vH
+onemiU0khoon+qet35/NK90WXS+Aheoi3tDj62hQxZE1Q25+1UgF8joRoIjpjWs+
+XnYmZy+v2Jp8FrhmTsqkqOuGdHGVmDfKvKKxIAxJhkoSyzsh+1KorzZmKh7aHkWo
+VtaxKEtRC4AUZ3skKSE73I/8EYpDuQtcH1qFF/7OVP1zRy+mt5+jqssQI22GB1bS
+wC0BnKkYp1Y7uJLbNSMvLGSZgsuvH3kvfo6MvqTC9vpy8ZqAcTDKzUK9YD0rJtfY
+8R7vjcKt/kxfmO1HUZo5OrkkI3cuHYXXW0ckEkqMJSeFepBikFQG4wicbgaNcXnA
+BBFx2StONGcfmNlaw3cK3o58+itA4CqeMP9X7wPBU/gA9hDp9bPsTL5JaXWIGzT6
+hMYHepce2HkxEOt57W0XeG2W2lekw26hKwVWpDKUZgI5kPw4eKPuyYp9EoezEcxq
+8hfpAS1Lpd2hAVN8N8uikETFTNRTZwG13Jxg/8kpX5GYqw5/RC8w4soFFOzIlDY=
+=PJff
 -----END PGP MESSAGE-----
 ** mount_datamanip :crypt:
 :PROPERTIES:
@@ -4541,24 +4590,24 @@ j++rs+4s9pjji/e2jmJn1KExIyP/rFlYwA==
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VARAAh8FJb2gyW754lCFaSPyp4X6m8JXHEibik6hQQW8k/hkO
-/8tfoRtYNhE0GcI13Qcbers/BLf5jgP9GJRzQTpEmK+XFmtZ54pddPT7zEK3sB/V
-mn7JnADCbiBisgMUMjVApeljF4bSAp+LCEZMSrQaBGVmf5jyO0XQ26mdmis7Ms3D
-hOB0sR4VcVIYdDHP+irS4bv4Rq3W3Y7+P4wCAzqibwzoMYwoHqKhXBzdscSsbBny
-d/owOaGAwTvO+6SU3K/xqk9i04I5toBDSb247m/FBArR6g/J3cUdg1QSHNV+bDoC
-Hu9JOopzawxLj9mFmdXXaIeItLB8yvkyJ/QVTn66uLXIJU1lhG/B69E6+pD9bPu3
-uZ8SyZJKQzU2VA3XUteK+qzAPBFENmLK1TiNALxwZ+Z3iMZ46Y9uq1t8SNZP2Q0f
-iqKcV4X2R3h8QjNHVCsNHrah+gfr1dpAJm95vDNTaX9vKI6ecYTohD3j98AJzfAA
-TwS8C2qFylKDMGRajeoDAhBnzX4vq+b4EbaHDD3Yt8XC/9V4iDqKVtEy0/SCORus
-03u6KPI3Y6oXjuE+X6N5g6uIFWsPNyx4yJdSFb2P7Je3tqfrkAnmmQe2z3F5c5FM
-iD6GfeH+NLNUYgVe+jmYKKWhmHwZmghFlexmSqYsglxv4djDkLe4kr6o5tDK0AnS
-wEMB11Q+67XwmSxDEkx7NeDtX84UcbN3M4otBSbL5ft4cK5klTPFg6vIqpfCxQIN
-PwBLg92nItYp6fYZD83R3ogC0av6kGfW9BkXnOGUl8fZJHkwbP9M79Ifc+BAES+P
-qPkYqVJWa91HBO3OiL/XybBhI7uj42P9A2UG0NBCFgWFlEhrxOfcCEh/XQ+kAkoA
-Klmc+CfVks/jj84elPse1OVGKfW1ZjHKfu5vCOc5yGL91tTQch0H3Bz09UrryaAF
-dS21Ptj1M4gUy2cSgtqKtNB1L6hElqmSP1LlAqYV8g0JvcFelCExM5W+TsTtEu6O
-Ds6kQAawQeUmusFbTAFwhw2xJs7R
-=mPmM
+hQIMA8yc76sS3P8VARAAgXqjNfiAbAawPK3HrwZw+drfOWsG01PujhIqxoZRdaD2
+UMfPFU3AmAyrx/VzPe6CXIRnjXsRw3jAMH/7QEatQq1lvqqmJnjwKmfhdwZDd6em
+d2Mk3mVBMkjWmu6yAXDRkte1UFt6p3+EmezUN7yYBalc+1WlCDGsJOQLRW1weCl2
+3tDvEsBD4JT4k9qXbzR/ZxKIR8iv4awlFH7e1AE44UVxc6G3EIb7WeYc/zFNExRz
+fYLFCgob8MOTjujtjwIs7yUWVSpVYum0VaC2uRecwUqY+Im+uRdOgrStEnEnUdve
+LQB3Kczh+Us+8SHIDUwaj/2XlZ34Vn/fcW+W55AQ+/gr3AkLYM6ok8223Ue0EXtP
+bCNiKdaQrLKI9G0+pVygeJe5BOMzQax8epjJRvamfJg5pddgxXiiOISF/HkSlmB/
+cdceZrp1SDuPij+8K1YvGYlwwbx3tfkbrcz3xsyZ0hU3sQweLDAUDeugD/Ac4c0W
+KcxW0S2THr3Nx0PzuPEs9tJ4LPIxDq1PqE9kVIcGn/ZzZW5gc01Hi3/uqVOZrZ3A
+P7FBlGLaJT/waToVadiUGAm/hxZ8b+zEb93OR2IqcYqrlVTj0vNQ1FUY1xK5s7xD
+te7q82KvHuSgIlxYec/+KNfrzAV2EGV/9k1Qjy/4xZk5dGBw8LjKEwQxCBlN8kPS
+wFYBMV4NiF5YzxwRJmEf5wOZkfmLYz1wAF3anq6gDr7UlRGznPfoP5y/DkjNGeJA
+27xbV98jhcZEgDrt3zpMN6r9wU2rCodWzOyoNO1llzsXy7OI/bPGMRNZ+C4+Kx2S
+0zer4p7CFsxwJqICUgv4VFdwjML9E4ZzmR6ZtoyhyzXWal90+mSgp6sWFr8EDYAX
+LstgwtEzYCXvo7Bnrscwqt4XxO67a5KS10YZGrRin8vYCPSQtu4Nk2QwE1HPb8iY
+TAoOgrczDjhqle9mulgWbrJe72302GcCwTbOFExwTZY+2rzsqRjUTWeu2TmrLcua
+XWxAkzbQKc4NVmPnM077jrNH42H6Y3iLcu+2EQ+JCCINi7EEE0cv5w==
+=yj5Y
 -----END PGP MESSAGE-----
 ** mount_hqnom :crypt:
 :PROPERTIES:
@@ -4566,24 +4615,25 @@ Ds6kQAawQeUmusFbTAFwhw2xJs7R
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ/9HQBTQu2iqDhYf7JIglStx4Q1wXtmBlgehXnjJMl5yVHr
-EmC30wA5UNM+oFzlpzIGr2wJrvReaq3aGBCneHbpXFh+fIK6A4IarG1qlk2SYqSd
-aQh5fOiNhro5elMueu5qts/QhM66OemSzLK+qT/5Ot1KQy5uO+b8YluNxNn+6Xkq
-P8BayVanocjzUtRBACXf8QPS8LIvt5CRqQNLSMBKph0xuxkinxXdsz1VzZkexeJW
-lbmfYYZyyAqdJjBHnljvkSCLzddo88uaTOuxG0U+1kzcIFI1ToJutdhj59mTRi5L
-nw+wmq2vIOIkCdStkDcyMP/TdkX/NC9DNx65bzAHTyhmngOAZ0WyXmX8nhs2Ptfz
-7MMSkFg0Z3vj0JgpF466wLBUznb8s9/wVrDf1e7rS/9/yhLWDtysuv/R85/sAFr6
-M9NOqilmMvM2vvdEXtztonmS/dv8KVthslFCY6v0LylT+bvCwAI/Tlr5MAv0h+qB
-wuJQJpDcbHwLtfSVKGKb3BxYyAWeITBBMX6qbJO1a9a7LrHyvGCHGHEJm/XlySAe
-ODDTzO9E8Dy/IC8cLTeLt79tcxq+RJ+RQTizMrme/sUHEi8Y2DlsowJ2Q133IObn
-9R66yZTQZeUUg0rUeRSjbQEYlkof2jjGZ0wEnfWtTKxEan3ZVL7rLTnKKX+RynLS
-wFABqEB0DFCJH8IH9El4EL9x12u5aZMtct9TdIl8a2NEYYy4ztLmdcJ85kLNArN+
-YM6e7rDvOhCdfzFF63bPfj1bqAkbiK7rP/tGHHu76B8swYnvv69Q2JCjXxERk97L
-KPjls0H9HR3nQ2pb+pw2vs9/4LVvrbGsti9G/ii/OI2Q27w42Sq3IuOh5D3CK/os
-x/tqvjozvaKXjxPvUiz7e940wf2JGBPCJPq1vO8nQpJTqZm+W4qugFw589YkUe/r
-WRJkgTnhdn/IX5wbcaTZ9W3uJ2F+sp39BAQxGwac0GdhKr/M8YttAsYFcHjbHCpL
-mOytLhjiKVftvC1jK2eX91vEH5Deuzq5OkPtRsHTgS59Rg==
-=KdQH
+hQIMA8yc76sS3P8VAQ/8D0sFzhKThc3epYyq0L0jXwjlzYp+1XxwVF2yERlM4ENY
+PlIvBcZI3eCbmpOWQefK+siLYeBl4GytJIKJRIZBwlZHR0mhNJDyfjF5NIk5MGpy
+l86+GwoWuOsKLynT4nGVUmGI8TplveckEjBqW1Q7JS5XDc2MSxwQEsn0lDhFURmr
+Cf6m7yabeC2JTqL3VvhsXEFOPyu9CfdqxNzpxEFh4a0hV5KWMmQgIS9D7BQAF5nl
+wac9RftYo2btCbIaSpriq2h1sJv1wZmZm/KxaFtS7sX+ZN01TzByXA9Cr1NJwyLd
+S3auVyCsnwJLB2iqOx61bnEQJ1a6Z+uLes6MUdY+7bfhXIE5br9EsYN5RYM37foY
+bQKoAm1ggP2HLURih1YUuaaFLFnssEoPkW0AP+eIzA3ADZOJ8Au3YvJHa1zXb+uW
+6dgewZivVBdgwl6CJlpIQSR6Qgjo6mKqi5LUDLNrgvd1Vk266iNBmEWRBp+k9kkh
+ZW9yf3FdXw0kNA5yQjluof6F1aob8xc801/pHId9GabZKBwN2AA5mO7Z3HVyZjjr
+U5z/IF/T2GZgGGnerSYiLV3W4IaoNfuLPCIIxFl3Yn8NS+jluRFYEdzgHxDa+Lvv
+SvlNWGAC+msm6Uq8tEVLdb1+kpRKgTjKspEKKbLO8rbruaU+pMRO6+PAwNIQJMbS
+wGUBPfItL/0P+rOnKPefSUYKNnw05yXASJBL35vuPtHA8O4NMmWWVJwRIXoPEvvJ
+JGbH2K+gTtlFFTD36kQ/Ygl+OnhNZMeE6T1jHArFDdwakKworgmVRd4DKA/1Kdpg
+4H5qkCU1sKm3pZPG5G4uKwWYVW4i5fM2enaI2cXNoPXDViLgRmXv/HM0nCCmQKjU
+Oir14tab5s1lWXTJt5ERCbYYnzbkFOXqzRTQ0czJ69lq8d4FjZS1BE/UboVyOO3N
+hn6EiJjx72gJz4bYI2kIP80o3jCOoO9hN2w06qEh+0Uf5xMi29oNSq0NSv8WKqcV
+MzXzBzFG3uD7/BWY0WaiKp8X4P8Py72uftklyj5NtwBe+03FAYWo6IrU13+R6YIO
+JT4h2q2Xkw==
+=5wyr
 -----END PGP MESSAGE-----
 ** mount_hqnom.save :crypt:
 :PROPERTIES:
@@ -4591,23 +4641,24 @@ mOytLhjiKVftvC1jK2eX91vEH5Deuzq5OkPtRsHTgS59Rg==
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ//R6aHzrvZ66WzN1Th+p7OVHaooHZgLLy5P9neQF/7RKsL
-vYAPV6b7bB30RIzWFjEcQ9FqF1XtcfiuCzLlpZuC0JHVqTZwpNASgaBpiRPj5JTy
-jvC9YPCZSodZKW+xOkTMa3CAscQUQCrKohfPr09FxcELYR4dJqAb5q+jzh9YsGpp
-rZCl2iWLI5j0JGBBaWgGpZGnSnCLFGr8UfTiEeQLydZIrRIF//P7Zt/pvUCPY2Ab
-VwWn+rIUjTLGJPMieQGHF03eMxHttweocCDsLl7oK4xPG6hj8/+y48udH9Tpdn3B
-LeOPRPlOjJO0oHKcz/OVXBeNefWRxN43j3PWokguhBKUoK3fMc0MTR+bQnFdPna4
-zASipoA56E8q7pVgfyinpgrEJREKx8fuWcHmqzz6l4aF2QZ2yiRI1Csq/2ARTqH4
-MP02sXUtlOI+9bzqtco9HxIqjZ9jQe2T/oj6kH0WHvjfU9ifTVCsPfOZMmjHXMVn
-yu1AxJHoBIsQOYBn+bOIGRawyBHuk0+0Y5i270QQ2HulxCzpJAGytCvgcrv1Tt4I
-UlJRsF1Db6TQrmIKMe7Jac/BfYImr0UcJeVlBY8cLUVlIZpg/xkIquaykbGYiJqK
-IPv7MDzkS756F8wGSmiRR753IQQHRl0tyhHj/3oy+kV7EHlVkRknCgWg/EiBhfDS
-wB0BwlAxXGyTXgObpp3/wA2ejrEjBXjZ3VfYo6ql61yeTaKFeAM+CLNTi3U5DXnQ
-D0qMUiIeYtj6vrkKmv9G4Dkho7epkWtDn6APpwVpgoyhXQQGRaOKW35i2vK/t/Rw
-pbMTsaHSTwFwz7eKzHY55wO18DlqmXscYy0xm1UBfUI9GIKei8wBmDVN/TubdV83
-9oaHtFkM/kHorpE4+B+FQCybXrBtvs5FDwraXZIYLHaUqcyxN262Wf0StuhKFMjZ
-Inm2/A3BCNC++nmAqbXHRZsjDdD1f4XNz1jROUISPw==
-=CwrW
+hQIMA8yc76sS3P8VAQ//W3wmrTGuaSt3Ealf6vMeuzZM2lVFJcAjtXR8dl2jzvOT
+z96VtY7lVT0SGG5pelPoC239l8TzJNqMXJeJIpDSQFiXONURknUvFmGlNvihN/VP
+dACfle4P6taiQWlCvKWvhnNCI+ZfPbkTE3JoPTGTAUgSPekcL3CIC2XinxIYaNpZ
+aU8R9EsViu9uYvgm3YNclbD0h0Vcckf8JMVqC537SOZdzXdYUFkVpxreDRBjgjOF
+7mQ6TuXwocCU84jeD1G2vZYVgr5fpAg4qk97CYq1hEtQIkL7MgbIxQjV8hHCA2Yc
+BIPB4x/oCNXa8bdSQO46aqXdEx1lD4gjBWdaEkRoO6U3O4G83aVWYQrxWx9kcTyk
+YKSu8jmnCZKAbna5uewqzUdM0KTDix1e568GkVHFvJcC5Rw58b+5U6cRiXjrrbmA
+6hRauBDBg2+xELbIw/evU/9JV/ETNYqTbntiAQcAgtsx62K6iQkQhzYkWgfrsN9H
+y9J1BXoHoZl0ACnc6f+aYetvnukoxKpcYd/BuJVrqpMIgPb2831soELc71HkD4uN
+SJ6/EweykSAj+4AaKnE0NIrG+xwxGiLJXL0DE3A816MWPiIBc6/WC7iYp/35Rkqy
+dkdfp2rVdjOTmLMQMVfC2unJphBa7w5nka/Vvks75atU+YuSiVZHvtuA9CpiAhvS
+wDUBJWsEUkHP7Impqm2qy5+MMLGwQYAxrygbYc6ENun66cL/IuGTMU1GofvavE3r
+euoqPH9yuoSL6Dz18dllmE0hFz8o1A5ipch7qh7gU0GLnkFU4MyB1bSyF8YrpVn4
+3B95Z5N4bCzOgTbQybiXGNIesI13ucZVQspx1ISMbuJVqbtPTtd6fzIwXf88lbT8
+uogWvpZ6CXX0e50t7Z+gO7UMt7f9gqwO63e6x01vSNRolpwGN53E97AP33tWh98H
+asHKKyNBpXOEcfc6jo5oVxI+IQDWQLFwwnD4zdXmOxUOcsIyAJw2rdstqrEfVWEH
+HTOPCgA4sQ==
+=7yvj
 -----END PGP MESSAGE-----
 ** mount_lab :crypt:
 :PROPERTIES:
@@ -4615,23 +4666,23 @@ Inm2/A3BCNC++nmAqbXHRZsjDdD1f4XNz1jROUISPw==
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ/9EtIIPQLg8bSiJy4KYNz1ywVQT+rpNK+70RtfGLOIhcny
-HkqZ13d4MrlLvLrcEBSRyCsbhrtskWBtZYj/O/DcdNmtPTHN5q/qGy8cWBokb7fJ
-U5gRTJUIrn/sx+q8DQj41dQqIO6yhp09XehTeS5dxQYp8s43xfoIH7qHclpUn+hV
-EGeglU4nDltzyH+wqpD8emKp9VQMldVA42M7zNMaU/f7z0QpromjMLYqMfCS/o/4
-XamUKEmjqBi5zmB1QVExW4su55DdslU+g021dHdmgDr2bcHGtAnDSMuq0XX5fn8j
-/J2S9UcCBN59HjAcvX8APsWlZ7nZnOrMPALPhKUnP3yFRKoa6rn9fXMTBf/2dFwH
-DeLjJyPACfldCPi0GJ3KS4lY4yvAqRcHvFiy6dPyYtZ+yvZ/ITfx0cnnO32p9Vc4
-0DpxVnDF55IM2VyV42/DuptDedFH6vs/5g+qCinatGkF5CF/2RtonCB1unq7fC0p
-jUPNyB7JyqNKaUCN72Au8UQzDPrrmtLW/UPqxLQCH6u7Psmmx5+gjhaWdP7MVSXk
-k0YDxTUH2iUH/uGz7LV8YFU7rj0ceTIYhh9IKRkzRgK7momCUYdiNLWSUrR7pOHK
-cu7FOIKyBGDpJc4yjAgO8Q0PCOSj4dBZDm/mX61MSSn0tfQu4jvvSXFuTe6nIgLS
-wAcBJEVnqBEnZAdLPdY1zjzQ4yflpWXOqmVPMUEE3+jO8mM2sOz7yjQPc1I+/SPj
-GWbt4Tt7mQ/XdK8kmheqWIkC9+VyznUUyd2luyyDsqYVop63XhMG2CdJ6fysxcWI
-tjPzrE//yvEck/dwnxxuL48GiC0I4qy2daxSnTZLCUrBCGugcGdfw9qO5Tfks2Da
-dkphWJvFxWa5pqyiiRP2b//g9trKUlH36GOZW4FX2sBdIns/OZNW+FSdGzwNym0L
-bSm5Ga23K5OP
-=SJAk
+hQIMA8yc76sS3P8VAQ/8CIgqTyVNA+vRH36lZhqUYKsDNjEdGHDBt2gFvm9T2KkO
+isw8dctCE6fT6C9+MpAUytaUK0gkWm4OECQKJRP/xD2JQ8XpqyioZ5xSW1s5aVPV
+kj7Q+69nzC5GBVdgCHYHAScC4Cv996hSQnGxFd1lLBH4q/iU4R7yTSFZoRY28CBs
+qOnQlVMUs4emFboIqIZJNLM1YeGzXbVD3pkDqEathzPbu3qplC+LX6YsCUz/xaI0
+sAaMZofvdDXiflLoRhht4+gXGwKJjluey9oERP4o+YIY5AZ09fXbbMmQBTznzH5k
+HEnKT+gbdHj+MWY7CNDybnropuN/yPGYuszWFnld8J98JDMaclx6Yd7OCnbz8DT0
+4ALW+5/0ErltXL3+KM3kr+cTE9WZgVlR0zjxkkyGAWukiwG10jX9Ym2CxjzpU4dm
+V7Wm3athguA47yLmi8JzzO0QfEZsWrF0l/q7cxPKYEwxf/NxxeN9sivODREgIDga
+JxhAmAyPU/U+UrtS0oPnt7HrgtM18qDRfin7G3ofTm/bv3Qg6fIV4Hzx1FHMLkWe
+y7q6NKetgfNsYBy4MGktCa3ueSmopMaGwkEitF1v4FIkg08M5qPzuiwPllCi4CtA
+LaODssrPdzc9pgoTTpYeE9QqnG9AV9atYs2oMwHUGO1QMP4YVMYSlDUv+Vcsv9zS
+wCABGZda8c7yD0LAyjtqdack7SJcnOxZHo0fKk/aYKYNw1IKgb3bCAmacMkDv8WG
+59J9yz6TYUYhPe3jQZF4G0rMs3SaZKJTppIlBeiFi8Gp4qLzWJz26TNvSci4SwW0
+dzcKOE4/5pZzeytggFurjAb2zlKgH3iGL7T+IZ65E1NKA+FLWBEHTseAy+VQ1Psk
+KrUe0x44Hxg1l6BDVSUOUk0xVfwDoqx3V8TucfDYTa+3gAKHrFC+rDeCPrZ1y0pX
+ejIrwi6cM62RldgXU3pa9MUyHDmq8RRPQpfEgWXLdMl6aw==
+=TwT5
 -----END PGP MESSAGE-----
 ** mount_lab_local :crypt:
 :PROPERTIES:
@@ -4639,27 +4690,29 @@ bSm5Ga23K5OP
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VARAAgb76qb6ZpMR9kJJyNiLdPdg8iw1+nuUjporKGSIXQzaz
-LFztVaIs2a012IH/uUo8lkFgqgwPplVtghFdiwYOzikfHOTR8G5fy13DBsG8nXCJ
-y9a+TjbhO24b6IY4FZweF4sLgvZDbw+zmpVIN70dDsdcsYBgTOyWT1trii4HqgDm
-t0Pv2Ss+mie+ghubY/U0EVEZzpeFpHdvOlavUoik9GEpFYq9GUczIojx9KP8UA2J
-SqSLQQhoaA6gzok3T8E69j1XArHKxP5btq/QYW3GaB6MursBBCVIGFDqO4o5hzMe
-2e3vXDQxhTJyk8mSGP3ixBcaVBqC7dkNsbvFT7NUk3u3ZEH+2J4kT9LiVvmpQNY8
-al0s1zHgo+JHZ4rGkbmSDbTmx58mWf3NOLkiBEdYNH8JXpMx34Zxmy13OM2aEy+d
-lAYelQdU0F4VhTK74VF3WYAKOejr062vHFYi90e61c23VwuK5GNImt0g0p7vQ4z7
-bJUH+1LSwfV+VFnW24o9oUHdCHdiJeby1qS75r0wZag+HlHpIcBGMSdAsmwlUdLR
-7PI6X55HX3YBFyASR7e89oSmG41Idi8+ZIkO1FqApb1IFWhvRmji8qmt3xs7Zcf2
-CBkZkG4iq64Y9JK/1Ww1j/7C5A8PyJzYbx6i0yVw3KMXzezDNKROXvccpif1f5rS
-vwH+uBdorPtgkFhb7TCDLkoQfdl6uwsnnRHX/xyf6LoAmNHXGUeGlP/H4uIAva2j
-EaTX8o7fydVNThj4HUx8twnUg0oUs4hCkZ7VNK6X63LGtFgG0M++KwRELvk2sju7
-v/HSVAMxDPHAoRHCGj3fcHEuR8P1Hf+W8WJKSwfvLWK6wcyxoeGg6DVbu3PtFbW8
-fhsQZEIDiy0rG/OaKNnntgKYHHwauwEg95msLbC0XXf39mZCk21DWLkrjsVguZaW
-=Eudo
+hQIMA8yc76sS3P8VAQ//Uv1BGyvdARDAFYb0M5MvIe22FGucH9SI96XUf/Yuu5J7
+qY3L/hqhgA9o4lWTyK9QywHD9ejt5f2TVIyA4VSWWJVZsxRKGJvRwrjWcTAPW9R5
+h/wblsHT7vR0usycAKC/5M6r2JEXLbLaDn4TV0+HjleZDslZUgADhODZUvX4Xz0f
+ORptUJAhaPcxeIFY8LUouk8A3K1X5uKHrZmF3kJ5j4YCC/itQ/+OcWg/92bOBSU+
+tBwdqwGAZbur3muK86sJYOWYEaNQVbqG1HdlelmG8qbcJwui33M6PaeiR20oKcAq
+B0mDtLLGGhLBb+JUaoOOv2BQY+FxcgmtqcRlxG7GftHS1SgXBDJ8MvCDxwGOfcR6
+aoIQn53/MRWQfDEgYvD8Ycs+wKiTz2lwiq0R4dJDGrQUAicNpPAsWxAtvyhzbJeh
+RfImlSECV3jXCXNafWeED4jRIQ2DaSAvPm3YRQtRQK+KdqNHlN8IyjT5Yql2Yx3+
+cvAe9GmjjVb/DdmrmkDKeH6vE70Jykka5RuQnJ851nIsbTthhSEyTvzGiP8iq/r8
+274pjP1IXRRHRueGtA0Yk044pfUXAyS1SRZoOetZ7zQexoeXNeMJ0uLbRO+tiIP7
+ExT3OaAlOcDMC3X/lqyxhrb81y9EFK0En5b5wlF/1argM5WGhreL1wImRqlyMmTS
+wBMBP+XKemXhoFwSregTSWHdHhoIimXbOPbrm/gMQ1aDlODIzgJ/Xr5aZvwjxeQn
++DqMhljU4Ecn5GS57eQH5nbd4o1B2//syoJucY7Ax9zZhD7ecU0X7OLhvfHi41Xt
+nMK5uXuqST25rlTwmmXVuRvpC9i2UidpzEKrDwlwcNIMvOnFKX7u75w1CM2IO6k2
+81reGXg3TXjfSJQFawtY82P/24RfBBTCWG34BRoAI6UBm//kEzmw2C70alTIaVTE
+g3vEOun+dZwLJMzloCTbdyEZpVF6
+=hC1O
 -----END PGP MESSAGE-----
 ** mount_minion
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/mount_minion
 :END:
+call_printConfigLocation()
 #+begin_src bash :shebang #!/bin/bash
 #!/bin/bash
 fusermount -u /home/philip/mounts/minion
@@ -4669,6 +4722,7 @@ sshfs minion: /home/philip/mounts/minion
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/mount_office
 :END:
+call_printConfigLocation()
 #+begin_src bash :shebang #!/bin/bash
 #!/bin/bash
 sudo umount -l /mnt/neeloffice
@@ -4680,28 +4734,29 @@ sudo sshfs -o allow_other philip.heringlake@neel@147.173.65.220:/ /mnt/neeloffic
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ//VXmma5dDFR2BG1evflr4Ob67PNJA1seWwZWk/LEaYLW4
-3327IgK5/3TDVDmKZp66sUsDiUk4fWX+S9ehn7BTwXkQihOhdvvCQAgRsd+ZDQSM
-8mIcYbDMUtX9tzSXtq8Y0J2uEeSKD/GPY7/00NDMIwuQR2Tu7UR+tJ7p1DAUpmAv
-ybaV0mVjrwDjd3Ad49l2rVk8Oi6qFDYuiX34tAlafswBV0JIiUHdtduL0tWhsHNC
-7WSDUS0shwniVYgjVIrqrlOxzcHlP6POI+6IqXmsm6GqeCaWVh/1zcfBj+raeKug
-pQ5vDp+RjdeAgi8O6CIYNvGawiCDI5M/B0XZBqv/im9ZOy+46J3GWQqNIxlDYyVN
-E/1Uwt0Xib7OqmtoUIAdDpisDtlGkpA7sP776P/4Ptd7Hcpdi2SPomQLpv5CMpeP
-M5a09x811DeEG99AtiRirjeK/J7gnfdtZqmEyFpnHTZZxQ4jVYkNK+8RdUU6hxPj
-mXhUC4f9xPLTe/zmMbdhp9CCoW4cko9MEiSRC+i27lf1g63H8s47693EgJ1I+DQu
-53jBTO0DLs5QB5uBc0PcwtJB5M7J/Rlirsv/zmDkSK2mNmkBNIVPmIf+V32Uw6Ce
-JJEEoZwXtQuZg+k8/JCBd/kxzx5KlMI7E/lv7J+dyq9fckkceREgOzGolGW3GIPS
-wAkBrhTQpj7ixlb9qMfA4KvtntiC/ti644e2O50yLluij6d5dj0uP917L99Kj03P
-5saG10ieV/SRBMO0gyTK2NVBNvPNeqLC4ls0B1GqhZTAAM/oSwLoCEDs/fQsfQRm
-5MxC8eKkpPswtHduG4E69yzKT71BMd8/+47V2eBmjsFekisDzlsTC84XlFGPKlPV
-4nh1ycmY2jskLcEoVeehRBHhYvZ57VIB5BiTZ2HtTgm/5jy2ynu9Fd+phbz+OhBd
-myTl2hmBx2Sqmmo=
-=RrL2
+hQIMA8yc76sS3P8VAQ/+Js6cMhQRbqZ86nu5i3HcHjeuWsoQLaOWEwCUZtayUdWK
+32O+Nn2z5tUVrMn7aq5j2tlq33EbjFvN7aWnAivPl19tpUW2OvixiV+9eLISE/Nf
+Lh9bJDGffGHD0suOCjyDo8OI6uaVFDSpyIHB8xd3QfzbB8IT0p1+A3vIuBcEqg4e
+qtdD172EiIeBtTucHtz428Vms0KphWvyuophHydOBCu7aXVF+XfrnYDOfOCpvbjZ
+RgSrLpriDxzLJB04CIbWleY6gOc2P4HGi819sP2BZdYCRiWVTlo1pNHX6i9rdqu5
+Gz6ut+mW0+LSln2EokYUHiPjstP6A6ikzZXcJtOcRqkfnXzJWQydOKsOSoP9BPFo
+0GO6wcuXIEwVxjgrYkTF4FU/bQU05NVqKI0pvMwbQDcsBpMVdnq/h250NZcu9zFn
+Fjuz6TiLC41sxRn67tooJay/IIXMkJbCjBP8nNnXfBE/PUHgsn40ZY3BRaW+BzCf
+OR6VrSPsZF9QV9EN1KBFGhCxE8LgIJyH/O/WNeIESgP9DQdQplQarr/g0mRwJMEd
+unUGWDEml/2UQFzAmOgRtddWjfzjPY9wYM2hGzu7Fu+EGQXFEU16RMPtkCyeTUpx
+jaifS106dZQClrDQeWC/ciYrTQm+6wDSvMWMQYQGd5HGEE7tsS2bTOf3QCs50VLS
+wCABObvEeezjU6DQGj6AvVUqSx76B0+r9iDv+MYidxfn3SgIyg4YWrB3FPM9LKbF
+bYTPQmhRjToRijI1iq/wvYRbfzg8y3kcVzaI5sB0cQQrvqQTaQfIxTzyFh5qD0jY
+PBbrbohJE7qG6lyCRZBuGzVBWXubmlkjSOK5C2BIfXr5jd6bmqzXXOaAgdYWCQHR
+lgj1B0g3Rcg8OterUdx1hpgXALDlYdeMjtIIXG1J+hCnBg2V0gMxT38oQPc7/e21
+IpbtKXQJT2gc69I9/JeSSgpsXAX/FBCiJ4XzzYWHMycTeA==
+=TB0R
 -----END PGP MESSAGE-----
 ** mount_office_local
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/mount_office_local
 :END:
+call_printConfigLocation()
 #+begin_src bash :shebang #!/bin/bash
 #!/bin/bash
 sudo umount -l /home/philip/neeloffice
@@ -4713,28 +4768,29 @@ sshfs -o allow_other root@10.0.0.1:/ /home/philip/neeloffice #-o sshfs_debug
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ//b3r/CcX1P/mCkOrrLpLXl3KYIuhN8YseIIsUncy4oeCz
-tVqW+I0KY8RubNlXnTYVcNco6jUvLQcjmNRY8kZxyZnZH6bZALibiXqRUz2d3TIm
-lxPfJD6B+fAfiqWe1BKWuV4FI0oKpLAm0JqCESjqB+fYld3NH0tLrFqK3qJEHDpr
-lLDNxX2WS/DrWVMwiYjq7U4SMD+Ke2Ps2UcBrCFCDbujUvlz/jJyJCCopUHw8nKk
-fU2qVEZ37pC32xJHTP2CNOhWRMjoR9eLl72xQusfTuJcGqJVlKRG5E57ul5J8Jc3
-qTVPXM+z6ibWK8dAAvialHumuaZfP3DA1ytEgcN3yTWFXI3uiuELyL2PTBQmstdC
-C0UuT6VofyJnL7zDuJER+xWvKMg4zNrKHccBS8clUYjT5Lq9Bv1qIm2ZdVCVp28G
-D36Jhr6TfxIhN0CetjyHIlBzfqarkJkaBbxk+wWVQ005YIlDfVtvI17DiyJB4uuM
-yGMDuilzxSo3CXREA1VZO92L7oQi/YTc4Mc7ptA2CLOAhwGihkkUe7LU8m1izjr3
-M0OWIrtRMfEQBmfwXdlDbkHvzhg6zmuJqno4dNWVVQlMgZvMaY5dsEvuOj6w/83l
-z+nHthzVgbWGSkGR7d53zGcHv+GPoIUbYGG6lf4C+w0snW8bNOdDpYHv2s0SkYzS
-wAMBxVn5RSY0STvgzEY7dtWJUKslLoOV69UxXH8hqvUzz50g8Iuf6Dl4gFOLNoVq
-rdPgs7VeZVCZxL0L8f6Hjc+O5tPjqVC4wNPy/Zvm1uIoTASc0AJQP0CtMOp2gMOr
-zJ9CEaNM25LxsYvIrFjkq00GWoEGO3UihAdZVmi2RHbuU32GITnox9U44zvwd14q
-C1uIa2HksHvq/3IFwZoyG5C2PmskqDNN5PqcaST+Lx8AMOiuE5RDNn03eQts2/Gs
-INAl5qo=
-=PbsJ
+hQIMA8yc76sS3P8VAQ//Tq5QFp9OsOlZHcr/nAwK7oBZA3ThaSVxgnKByy0A0HdJ
+DrJF02N0lsu2ByJwScd2EIqAb1/SkzsFA9lQAm337nJQtdlwGDk74bL3RJvSaPVW
+TkoPOswGdbObmNggtrE1OieV7rR6a+UFRaNA3IN3Q4iXAspbS1iIF9xxlEPhGq3U
+JZJJVddk1wUc8zH0K1m6wBaJyXy3y6VgPpXQmiv+WWN3RJMSuxUX/9V5j3JM1/uZ
+Tq73czKgaURF/c+rIK2vCN9fSXx1brzWDLQmv22T1uWYLary854+wtrZiaRpHQvR
+gbRjWl0WbvDAyh1acyvXEsC0l/oIQZonoIy957NM0pT6Us1XCBo4K7cgrBvievdD
+kisDIjNtbx7xDnvj/qpARi8WQE/BMDQmbfu0sXbubfYw7Av4N+RlU7rfaPVdgtYS
+OJMomZhT8GKsmhTTfy8FVGKjVTZVFPjuuQego44SM25JoS2kCprm9Lx+LUJNpHRq
+OBgVnV5btDiN8I4+CwkpwGHU0dQ0ZJssX0T2rJ6JvYOs6l4bZlijK+3BbeMAEAji
+usXrL9dB1gSU7bSH9uhoSGAK4cSDkstxhNc6v+LK4IZJTejgI8s2VGwLdjenK5JK
+C+0P5a+540E1LJ5pfV0PiG2V0/5/lKvQY3zJp0BiypoWGQ1tLoxSI7EWkRTb1HHS
+wBoBjw7Fx263V3+bVcndPiFcbcEOSIRBcEQ2h+eletXc/3mg0phh9lfrlZbUN/Dq
+LoYA3Eel2qTnctZMoU66K8GrGmvNrTT0HGkuqC+qMlyumeGpekf1AG8V92NdlE38
+a3EbLkOrzyq4qSNaYvyYXaPZE7FCEf5uGFLa3olMIbSBhiYzJzp2Zk9Iq3cFBE+b
+4FbBJyZTZV70Of8ETzThcjMzuSxyLhj0RH7BA10tgiRJzuSweFP8Q7smGcYnBWkf
+ZzaUI8PCkhosqrHaAsMBNHK0uF6tKSbpSlWO4w==
+=GmAW
 -----END PGP MESSAGE-----
 ** neelvpn
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/neelvpn
 :END:
+call_printConfigLocation()
 #+begin_src bash :shebang #!/bin/bash
 #!/bin/bash
 sudo killall -s SIGKILL openfortivpn
@@ -4744,6 +4800,7 @@ sudo openfortivpn -c /etc/openfortivpn/neel
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/office
 :END:
+call_printConfigLocation()
 #+begin_src bash :shebang #!/bin/bash
 # set a second screen
 xrandr --output HDMI1 --auto --right-of eDP1
@@ -4752,6 +4809,7 @@ xrandr --output HDMI1 --auto --right-of eDP1
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/pulseaudio_pyenv.sh
 :END:
+call_printConfigLocation()
 #+begin_src bash :shebang #!/bin/bash
 #!/usr/bin/env bash
 set -euo pipefail
@@ -4764,22 +4822,22 @@ pulseaudio-equalizer-gtk
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ/9HL3ONTBNfdMO/w8TGLozdNFZNtKNasOujAfstyglshAr
-btHZJvo1GeI8SNwVynl4SjBd7SIrge6U1EsLasNE4rOkK7ltW1fgqewZIehCzFFH
-4FgQkg5pyRpAHHU2R+7Jw1ca06IOHaeiAs10yxXyoaggjMxxXJgeDw/s787XSonK
-F0Ip3FetlS/VjrQmGwHtnF9VnDwPBTxlCRNUZ1Qq5W+N0he8s5lelKyaUGv/bMPM
-DGZp1OrTVTenW+t1lpFk+ojZaNrVCWHutl5ZIc0FbawNvzYypJ6lf+h4EF/QcduH
-QVAIXB9GY2fNRuJ39bpvFsn1Yg9JtrSKAbwCvoVw8+TynpnHfWBKoIF8/FdKUmN8
-mIilbhZIwTafGlG2yZAl1uwpw1sHEdNpQAQjB5YMVlPWdNgLion9Ga4B94GoL6VL
-egY+Ckwr4SqL49c1Hdj/dADtXSfc2R1uW+iJNhtSVwWT3l9aBpsB+VbvDBTo73GO
-l9Ewmgz95U+SJ9L/MhbEHtGJhJvI0qumoqgYLC3xAjbYhJEaPdJj6+jDdZtv95KU
-RoSUX3XVnZEVJ8jpN+5anwx0AhAfxZyQatb1Pd3iJNocTqbWpn36z6nXxnOgryL9
-HY6jvbLvVJ/S50/Xfq9vRD8ymv2s875a84xfkhKEac8V4D0yWDSpHxjoU5N84GjS
-oQETp3v2F6LZlzQvEHPmMSkrcB+B5lw9Vyvd6oRSPytxyaXNTRTUtGJUqSBT0kf7
-0KMAWOEJk2MavGpep0F2Bt4ZisTSTQJvT9+YRiBCNSSr+iCMhNqQbEd8UJxS4mTY
-pnINVTaCCnWm6k/VoEjIsNKyMAzNBCn4vm/9IHPJ51XA9YDE8YrmA6p76Gy0qG9n
-1qEjVAR29hG+1dNqt7RZXZvg
-=qwJd
+hQIMA8yc76sS3P8VAQ/8DBcKnYblI5ePQkaiK78S3TwQ4ggOGkytZ17xyhfECm2X
+15va4YTYzKxhpW4p0LJApEhAPUntDw8piaTG4biDM13clC7JBOyKypPlQTVXIQm5
+QvqOh4miwY+KzQ0uqNonaHd2k0qaPSCMdZC41rWTysh9vSjRO1+mnbVn4gebOpQa
+9Qg/9NZRuFHIbunjHjpugGmAF5HsqAr0OkBKnJ9LCrFe8IyL0mRY73gkzaDaZSy2
+ztzW5TK9EtXqf8XJ1eonNAsBCeF4eECxoyPBh3qWuQOnnRTHLcNx8/qiopGTsGPq
+UQkYYc5BQZ+W1XDokwURUnpldFpbD2J+2tf95knSAyEP7jYarg+zShcdOkvs/Dw0
+VYYjltJ3uJ3oYohCWTZkGlrle3leSx1Un5UHb4xxnVAz0i344MQ4/YQ/3kVfqZEX
+kOe0VqdmIgRgAou5GyavETDa/YoG8vAQC4QfpsX2ikxFS/dQ0My7qLLoXY+xB+IH
+f4mUUdPpzT9zN+zTBExIAusOfOwgJBv4bQIfkOMLhqap5hZcbzvU7oqKvYz6RB4R
+u+HA79MHwMoHqU/rJvFV3a82AX4Lz8MExHdyD7sH1g08O95y3zuBNE8nOzlwJbp5
+Mv7FtVKOL0aqESQjS9drMuw/t5xoDNEv63S2yvZ0JYjnm/tdRO9cMnz/JRe53jfS
+uQHvExGaGRDDiwJeD9ylpjJst34xgSRRnuGLrUUeW3N7p2FSfpSu2fozFdFM0nRU
+rhbP7axieIku3QMuFSPQj2dd3wzWOjG0aourUekM9payS8L3WEYT2lvv5OdNRdaM
+dkbFOG1ejg/R9nHxLlB4y5RhS0QVusb8Pyo8/Uh+cjV/WD/4zj2aVjlDzpV0h+bd
+QxNFs6jVVrBNRMAF8enXpdGCzDpMI/VuvIBFwba0fGwWO39b1M3io4nD
+=u8/f
 -----END PGP MESSAGE-----
 ** ssh_lab :crypt:
 :PROPERTIES:
@@ -4787,21 +4845,22 @@ pnINVTaCCnWm6k/VoEjIsNKyMAzNBCn4vm/9IHPJ51XA9YDE8YrmA6p76Gy0qG9n
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ//ZBi6pjoldOTdDALDhJbkcyRjrmiUTSG6x9g6mJURO7V7
-apoykphMtfZtAPg2s1KgThRmCDjeXuuQ768GhQ1tCPrUn4mSKIbFUmIZfiYpiTXt
-kPAdV17hyL4/P+p+sP0yU2CvIr2e8Cx34oZj165sWDYJIAoX4PlPYT74DvSIMBa5
-QWqslE/D5GyhG9V/Ei5S5BbjJ4G+f16Q/+VYup6PFau1N3EQ8zCiq5Y8ujlJo6KO
-g4+aT+K2lvPsi1b+ryvP/iTeXbHBXcj/FVbJyn7/ifkOnoC5KEABW2HXNrHPN0M4
-1pQfNwEYUdUQP3yg1c4LrpCbuVxsWlfZXnGhGUEqOl+MlV9aOSFvyotlCQPDWpbd
-AdUHWVKKZjA50isVFW4SE1Io7L/F+pIH5RNcYUPITEw7pzzCU3V7hda0eOsSnftQ
-fVkL0x7WIQkSKBj02iCzQwBYnPXej6WwI3x+V9HWT1HfALM0WOODlRgOxEu9Au1e
-/yUP4mQ9LcQiKfIVMoOzXgJ1gcycNopEDjaAH8/KexSQSLk6VWMJcyIUgNJgaSBK
-MKOFA53J93wRvuy8ugHrHz/0tQzu3OyqGIJLM/LoNeKcrQTre0u8wjdaRY4P8xOa
-vIgVw33R38qayM7wSKqP053OlxWenDdlx/V4oWk83MB/5Bxjydv+EFhaj4BdM4/S
-jQHkAxZZQMdNZioDW+gsq9Ty6G4LBW/jxeJis3xTlyO9E36w7FfeSJ+ZKNoqapGY
-4+bKh5M2FAK27/K1bgkxV4eDkKGjHCXQJY/tbrVOq2jN4zmdxZhrKGfaXzYRhKS3
-mc8dQymGilb6H8QNT3XeYYPMyuR0EnlhcFhoL1dR0eFw6XnDiUqlwDnAINEkmQ==
-=zmxM
+hQIMA8yc76sS3P8VAQ/9EHFOOX+6o7LWDR9jP3HPFFrc5im3gwCDHaemKQkafHfZ
+gtTafH7butk3rgBGWwlg9Mki+yvIsQcEtAjXd/LFT1VVKEiiv/x6aY2aw4uYRBSU
+dKHlGZjJBqwHM5M/b3k+vso5sJ6nfhgYgXbcwuWbXjDEzDCTJidw0Gsdz/p9uxk6
+/3V1bGsshUzfbp1bhRiFKHyMRTDsr3DqrlBqVWwOTeEWwfA3EnHifc05c0PrLkfz
+5MQYl4N9mWnP0O1fgrayb984+T24eDAjicN9//tB4V3eWNTz7BDEHoV2oKr33/tt
+jWGcpZnghO3fDGAjOJCFS5s2WCqwJA4UITxtsgOHRYc5WdUyedikbn0dChNlx487
+lAkL4+kwT/+2nLxH6BfLimj0vHgugZDyMVh5X6UOtsEbkReQfw0zZyoFDrJSBi0b
+KgAu91r+/zejdHM+nNOsIj/65pJnY30gsEpPRVVJGuw3boQORs7ZlXzsg4nHx6N6
+s3IlroFdu9CT61P/waga3HV1+TiSyBoYAK+gAps5UDFxt1bOQ8MLjR4pLnT1yWRh
+2nWsH/jPrvLqV9gcLI8mq04MfNR8lJ+GNEYhErLbDsmgnfbAXUsu/JQYgDQhIQYV
+a2Bdg+K0An8TUpOAI7AIBTPwuy5NFHJDAt9jtFmdQ/EtKlKtGgP7C+p2UBLpTanS
+qAFrE5NDNnB/Hu5QCDJH6ofToz7QfwibqTm1OafBSVYJNxzKF1eohJm3UggxxYx8
+uO6xIf66zCToRK1yjSCfzYRq6fjezHqQqE3l/gmhdfzGduZJOqxZat3Z+npybw5b
+hJ3AisKtNZfTP0oDW4qNmn7Op2tX3BauczCQxbbMgy9S5zqVKh107ZLMc6xiS9+j
+oCrSet4yNuklNPA/1pXqx+QG4neR9cxR0g==
+=eZn0
 -----END PGP MESSAGE-----
 ** ssh_neeloffice_jupyter :crypt:
 :PROPERTIES:
@@ -4897,373 +4956,7 @@ nHn//DgQd6Id5BORF8MZCiSBlnnq+t1NcIxFbqwHD8SqhhxAkWmLYc7Hz/MeZn8=
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/veramount_phdstick.sh
 :END:
-#+begin_src bash :shebang #!/bin/bash
-#!/usr/bin/env bash
-# set -euo pipefail
-
-pw=`pass others/phdusb`
-if [ ! -d "/mnt/veracrypt6/Research" ]; then
-veracrypt --mount /dev/sdb -p "${pw}" --slot=6
-fi
-#+end_src
-** init-mu :crypt:
-:PROPERTIES:
-:TANGLE_FILE_NAME: ./scripts/.local/bin/init-mu
-:END:
------BEGIN PGP MESSAGE-----
-
-hQIMA8yc76sS3P8VAQ//S1Cz8hxbXH16Lne0LVq4xZPqE3IXBzOWjfEEOzXeVeGL
-za9vbnyM8wz04REf38hcmmQXuwz41wi2obO0QO/ItxpKE9rzrc4H/IoSsXLYP8nt
-vcF8UPS6IJ7sRldLI65qZhOMOxsx+W/l+wTC7iQ5No1eOcXdWvJnMqChoedp89Mz
-aRZeN4uAMjDJeYsQmv7+/wkJq70OsiPS/xsHs+UU8AXEBwEtgrJAzMZ/42HyzhKF
-qI0adJ84TuFIdhvW/MhrDJt0PckTzphSqPcf2/8fx8jIktClVSLPLOnNbiMqst9y
-eJpb5P3HddPBWrqErFZzaPtDP47rdU41SoIwOv9DtbhZR42LQ3FynOblSUZu6ACy
-SCE69PpLQzLBSej7ZQWsVHfKIZnFAqjhm1D+5ziENnPsUIp6Dw5/AlQUmUBXpqcu
-uZpiZ2kJbKdtihtyzOKEJrYYvYmnqs42c3UUIVKs8cyJTeuAYBnoKI2FsqfOLnrH
-w9o64o0VABJCBMxIDahSXopUZhWc3r/oOYB91fWw4owQtDtuvsqeyYCtWpTkcLQV
-YacB1oswKhzfi0SaPQ/YfFeXpBHAIGCJZJd8AOql32D4ZJDWIsNAw4Ht7q2vTj6a
-H3PKvDS1IYXOYRe1fjDJZOpzhVygHcflikbUsKXNtQU3GuVlAVN1OQPrg1e3Sr7S
-6QGpWxmIA/o0nuZFDsDZP9ie1CXQ4ggtPEq3/0xxweaWLz/VEpdEGVCkRAgHBOlN
-2/uGn+O+eSk+nxLFJYK1GtTVzB79Nm4acT9J+ngDsEBAvYKln4XZjQGCaA+4z5xg
-nOS61q1njG+ux3UNp5ic1jWHwg4/Bn1PDFNQ2pl9XVq87zMMcbel+sYkJZM93mrL
-sWqJuUEA9ayXw6bPjfeTQ5P2y3xet2LBeN+4FloN55k9+wVWlbaZCWFXwcxxGrKW
-JQgJGlLXD7Xir1YCFlpk9vbUhV3OwhDJHYWy0G+pJO2aP6BlWUXOFD1IYoU1ZzIt
-TL3UbdJyk7eKtyYtGOg+iVN1AEPzFWcQLj0vjb4+qzFjgxhGYTMjLtrJMg04j5cT
-tw3Ee5moRPhpdID2d0O3IPbeo+E3YgDw4UC3quYA2rbdVnvUntXTH6+gGHvg7PW1
-GybU7oljkDPxfhgHS19kbAYn/dsp3vZrImY8yGX+8GStxFEWsb/dAa5euwcARjmX
-x7b3YfYP37d1Cm0Qrc2vLfn7P38FZ4QplZN06euW1f41bW4ekP2N9+WehWwyvfPI
-57PjJwbD6AoFew+9iTZcVGbbLb83Pp7UvUx9qv9NJ6Rgs3WcoLmryG15JqIQWj9Y
-ghNgflZF+SrQYctiQfZoK032own2jPTk317E2eqB6vEdBC71Ay8=
-=mZ58
------END PGP MESSAGE-----
-** i3cheatsheet
-:PROPERTIES:
-:TANGLE_FILE_NAME: ./scripts/.local/bin/i3cheatsheet.sh
-:END:
-Inspired from [[https://www.reddit.com/r/i3wm/comments/a00s8p/made_myself_a_pretty_popup_cheat_sheet/eadzhkb/][Made myself a pretty pop-up cheat sheet... : i3wm]]
-#+begin_src bash :shebang #!/bin/bash
-# grep '^bind' .i3/config | cut -d " " -f 2- | column -l 2|less
-sed -ne '/^bind/{
-    s/--no-startup-id //;
-    s/--whole-window //;
-    s/--release //;
-    s/exec //g;
-    s/bindsym //p}' ~/.i3/config | cut -d " " -f 1- | column -t -s " " -l 2 | less
-#+end_src 
-
-#+RESULTS:
-
-** disable laptop keyboard
-:PROPERTIES:
-:TANGLE_FILE_NAME: ./scripts/.local/bin/fk
-:END:
-#+begin_src bash :shebang #!/bin/bash
-id=$(xinput list --id-only 'AT Translated Set 2 keyboard')
-notify-send "Float (disable) internal keyboard"
-xinput float $id
-#+end_src 
-
-
-** mount_office :crypt:
------BEGIN PGP MESSAGE-----
-
-hQIMA8yc76sS3P8VAQ/+OMcj6kgIsgCMUIw32JFkPM2txAm/whnOjBVS7LafavdC
-cBD8wpM2gQrnYaK9Iwihx0RGyva+DoI4rn4KbIQMHTKjcRwCPbjcprtGfn8WeKPJ
-G9u1hQ9kqai2lUSN/3dAOwaPVYxsOCXOQGJC+PsI07CDlkQBuyaerkTrg2R8Entq
-6W+BjPNJvzLMkQsJpx+eqxL7IeLqnx3TbswlmtIUE74sSXZTGc2Jib6JIh37nffP
-8B00mVNKoB54p3QaTUUYE+zEN95KySnJT+f8k6nVV4kzS5ckbPDbRR81WXS1LZEy
-HVGZRs0qt37NZ/8JIxCMEKWLPlNz+AbQxCKA9Y/d5t/6XfEEgzEc87VXI+4r41wM
-Uw98UYiNKAiVlxFEHaTGeOeoIlRdJBaw3Cwagfg2LrrgZi7L5cmjx3Gp1GE9f63M
-12pTtfvJd/QpW4eAg3AVX/o96aDvfLKURc/S5kF3NwWRhM/D8QidyuQlVFhle8uf
-b6EZIo6Rrcbj5NYh5mZjT9O5zXmCigzMY/gmZXW59493OM6Hjw3CNKSl+YXw9n7s
-YxjP7qQT/roG932s80r6957ao/b7hlG3KWBT1hqBTTSztOxLxu5DbFrSI0KTQd1i
-USqphHcbogeRuOlws0fYemVi3GcglZ98I8L/uO/oADaYJJm0K54V6TSOE8FUCAjS
-wE4Bo2ZY9CE4hS2uSLSSTcF3P9x//As2EcxMd8E3zEUcnxYqRm62wtTaDYnFQToY
-D3N9negkXLMhCArN/MvRbeKX67RHA514TTNCAlnvRZSlfcZI2oOKzT7VyyHsCELn
-VS/igvqI/2bOlj/wnIopKnxS+jEy4mWwTGp3ZZl5eVY7fG+uc0SsqLjjnWIWMPYm
-lFoiihT3N5m6vuTXcZpnVB7icLyS+WD/rgFwxjwFGranTbj3NHjzIOHVNDBrZSqf
-rZHlPIgmJph1IahFywRmQnN++iAPsYC+966Vsq9gyPzbUdljHWQ+tXkyxQeu4UKa
-Fjjf2ylG8Gt+wIovEnW+HNDLFSdFyyNjRj2rFOR8uX4=
-=hnsh
------END PGP MESSAGE-----
-** mount_lab_local :crypt:
-:PROPERTIES:
-:TANGLE_FILE_NAME: ./scripts/.local/bin/mount_lab_local
-:END:
------BEGIN PGP MESSAGE-----
-
-hQIMA8yc76sS3P8VARAAgb76qb6ZpMR9kJJyNiLdPdg8iw1+nuUjporKGSIXQzaz
-LFztVaIs2a012IH/uUo8lkFgqgwPplVtghFdiwYOzikfHOTR8G5fy13DBsG8nXCJ
-y9a+TjbhO24b6IY4FZweF4sLgvZDbw+zmpVIN70dDsdcsYBgTOyWT1trii4HqgDm
-t0Pv2Ss+mie+ghubY/U0EVEZzpeFpHdvOlavUoik9GEpFYq9GUczIojx9KP8UA2J
-SqSLQQhoaA6gzok3T8E69j1XArHKxP5btq/QYW3GaB6MursBBCVIGFDqO4o5hzMe
-2e3vXDQxhTJyk8mSGP3ixBcaVBqC7dkNsbvFT7NUk3u3ZEH+2J4kT9LiVvmpQNY8
-al0s1zHgo+JHZ4rGkbmSDbTmx58mWf3NOLkiBEdYNH8JXpMx34Zxmy13OM2aEy+d
-lAYelQdU0F4VhTK74VF3WYAKOejr062vHFYi90e61c23VwuK5GNImt0g0p7vQ4z7
-bJUH+1LSwfV+VFnW24o9oUHdCHdiJeby1qS75r0wZag+HlHpIcBGMSdAsmwlUdLR
-7PI6X55HX3YBFyASR7e89oSmG41Idi8+ZIkO1FqApb1IFWhvRmji8qmt3xs7Zcf2
-CBkZkG4iq64Y9JK/1Ww1j/7C5A8PyJzYbx6i0yVw3KMXzezDNKROXvccpif1f5rS
-vwH+uBdorPtgkFhb7TCDLkoQfdl6uwsnnRHX/xyf6LoAmNHXGUeGlP/H4uIAva2j
-EaTX8o7fydVNThj4HUx8twnUg0oUs4hCkZ7VNK6X63LGtFgG0M++KwRELvk2sju7
-v/HSVAMxDPHAoRHCGj3fcHEuR8P1Hf+W8WJKSwfvLWK6wcyxoeGg6DVbu3PtFbW8
-fhsQZEIDiy0rG/OaKNnntgKYHHwauwEg95msLbC0XXf39mZCk21DWLkrjsVguZaW
-=Eudo
------END PGP MESSAGE-----
-** mount_minion
-:PROPERTIES:
-:TANGLE_FILE_NAME: ./scripts/.local/bin/mount_minion
-:END:
-#+begin_src bash :shebang #!/bin/bash
-#!/bin/bash
-fusermount -u /home/philip/mounts/minion
-sshfs minion: /home/philip/mounts/minion
-#+end_src
-** mount_office :crypt:
------BEGIN PGP MESSAGE-----
-
-hQIMA8yc76sS3P8VAQ/8DNWRPNglFJERU14xkl4Xrhxup44AhH872V/NgbNy/wxJ
-lcR0LCxvwtqkWaJpjVKA27FYDkEaVhjPlH2cjI9gjdXAbvb669nN431GZiuWIyry
-82teuy4i7GdXXwME7efFmw9eP9PTsxaC6tr8WaRZ+xQ2fuuOy2YbjDZEG3HMXaf5
-Q0N0OJ85f3dZtlpWL3gb2OdrFt4G4v33eVfLjTXHF1mOmDqCmjAG7H8RaLqZhH9B
-fscGIM/N/jKXWem3wvXV1kOwx+AparikPO0q8S+9rPXLXZnGVdfDSGLBjSqlYHSI
-MbChOXs2oOGo9wIT6yYLx9VdFPGcuHlHff7JmqHvxOIzRzV/k5N4ANhDVkEDtsqx
-Ue3Tdggstv62SbA+eP1/HjAgkUyyLxftHdMHNVj9muFlhse4b2Lpt9/Ne7IxgnVG
-uUiRRUNIFAzrKzoP4ru2PR4odnlYZqp7GZ7X6OXXCoW91DXUBxhosv2r3GWjhHQe
-R5UpOy/+Rdhqm5hJzmnoTgcCtTM3VrKke87FuwdjE1xnFHHxhT6EHbMoe47rYNFp
-Si/5xL3juatIdHDGSNA0kh7aAnyFgCFsm/y4pXKFefnwvJbWBirq7LwBxQIflSrj
-EnI1ubSUn9a4hGfZwyy6hZdvhpwzcQ2Nw47pPFjBgmO2WWIfGANthNbL2cTeZf/S
-wHIB1CyZycOYvrEzK7GfPxlr0pVNFS1xOKgtmk2CnNn4GqpoSuw+kSBi+irrfFyU
-20IU7417Rj/EW20Simnam7B/7aePC0NP6a9xwPGVyqQ+rd/w+7um6gT2xdq/QS9I
-Xo4Aunb57x6QUhAnr82qs3LIkhy2hWBgNh7DtW76XhLma5fUkaB/fOUP9c6IDKI1
-9haYDMb5M5FSui8NNqh99rYPXgxmHKlhQKtEyLZ1TNOmqQXv/jehh7OweycXSHAS
-mpdMJw09i3+I1qD7LVzKKBH8y6aIJIRjJvY8fYiCHkKSd85Y5SARD95cNX2HqsOr
-oijh1iHJxrbN1cTs4wQbpym4NtjyR6LCkYTxj8rdmxO0lSdBPxhWrSm2uAhr6CNV
-a2WfgAfbYBl2oWk6o6XCZBbQW80=
-=Pdeu
------END PGP MESSAGE-----
-** mount_office_lin :crypt:
-:PROPERTIES:
-:TANGLE_FILE_NAME: ./scripts/.local/bin/mount_office_lin
-:END:
------BEGIN PGP MESSAGE-----
-
-hQIMA8yc76sS3P8VAQ//VXmma5dDFR2BG1evflr4Ob67PNJA1seWwZWk/LEaYLW4
-3327IgK5/3TDVDmKZp66sUsDiUk4fWX+S9ehn7BTwXkQihOhdvvCQAgRsd+ZDQSM
-8mIcYbDMUtX9tzSXtq8Y0J2uEeSKD/GPY7/00NDMIwuQR2Tu7UR+tJ7p1DAUpmAv
-ybaV0mVjrwDjd3Ad49l2rVk8Oi6qFDYuiX34tAlafswBV0JIiUHdtduL0tWhsHNC
-7WSDUS0shwniVYgjVIrqrlOxzcHlP6POI+6IqXmsm6GqeCaWVh/1zcfBj+raeKug
-pQ5vDp+RjdeAgi8O6CIYNvGawiCDI5M/B0XZBqv/im9ZOy+46J3GWQqNIxlDYyVN
-E/1Uwt0Xib7OqmtoUIAdDpisDtlGkpA7sP776P/4Ptd7Hcpdi2SPomQLpv5CMpeP
-M5a09x811DeEG99AtiRirjeK/J7gnfdtZqmEyFpnHTZZxQ4jVYkNK+8RdUU6hxPj
-mXhUC4f9xPLTe/zmMbdhp9CCoW4cko9MEiSRC+i27lf1g63H8s47693EgJ1I+DQu
-53jBTO0DLs5QB5uBc0PcwtJB5M7J/Rlirsv/zmDkSK2mNmkBNIVPmIf+V32Uw6Ce
-JJEEoZwXtQuZg+k8/JCBd/kxzx5KlMI7E/lv7J+dyq9fckkceREgOzGolGW3GIPS
-wAkBrhTQpj7ixlb9qMfA4KvtntiC/ti644e2O50yLluij6d5dj0uP917L99Kj03P
-5saG10ieV/SRBMO0gyTK2NVBNvPNeqLC4ls0B1GqhZTAAM/oSwLoCEDs/fQsfQRm
-5MxC8eKkpPswtHduG4E69yzKT71BMd8/+47V2eBmjsFekisDzlsTC84XlFGPKlPV
-4nh1ycmY2jskLcEoVeehRBHhYvZ57VIB5BiTZ2HtTgm/5jy2ynu9Fd+phbz+OhBd
-myTl2hmBx2Sqmmo=
-=RrL2
------END PGP MESSAGE-----
-** mount_office_local
-:PROPERTIES:
-:TANGLE_FILE_NAME: ./scripts/.local/bin/mount_office_local
-:END:
-#+begin_src bash :shebang #!/bin/bash
-#!/bin/bash
-sudo umount -l /home/philip/neeloffice
-sshfs -o allow_other root@10.0.0.1:/ /home/philip/neeloffice #-o sshfs_debug
-#+end_src
-** mount_ubuntucalculator :crypt:
-:PROPERTIES:
-:TANGLE_FILE_NAME: ./scripts/.local/bin/mount_ubuntucalculator
-:END:
------BEGIN PGP MESSAGE-----
-
-hQIMA8yc76sS3P8VAQ//b3r/CcX1P/mCkOrrLpLXl3KYIuhN8YseIIsUncy4oeCz
-tVqW+I0KY8RubNlXnTYVcNco6jUvLQcjmNRY8kZxyZnZH6bZALibiXqRUz2d3TIm
-lxPfJD6B+fAfiqWe1BKWuV4FI0oKpLAm0JqCESjqB+fYld3NH0tLrFqK3qJEHDpr
-lLDNxX2WS/DrWVMwiYjq7U4SMD+Ke2Ps2UcBrCFCDbujUvlz/jJyJCCopUHw8nKk
-fU2qVEZ37pC32xJHTP2CNOhWRMjoR9eLl72xQusfTuJcGqJVlKRG5E57ul5J8Jc3
-qTVPXM+z6ibWK8dAAvialHumuaZfP3DA1ytEgcN3yTWFXI3uiuELyL2PTBQmstdC
-C0UuT6VofyJnL7zDuJER+xWvKMg4zNrKHccBS8clUYjT5Lq9Bv1qIm2ZdVCVp28G
-D36Jhr6TfxIhN0CetjyHIlBzfqarkJkaBbxk+wWVQ005YIlDfVtvI17DiyJB4uuM
-yGMDuilzxSo3CXREA1VZO92L7oQi/YTc4Mc7ptA2CLOAhwGihkkUe7LU8m1izjr3
-M0OWIrtRMfEQBmfwXdlDbkHvzhg6zmuJqno4dNWVVQlMgZvMaY5dsEvuOj6w/83l
-z+nHthzVgbWGSkGR7d53zGcHv+GPoIUbYGG6lf4C+w0snW8bNOdDpYHv2s0SkYzS
-wAMBxVn5RSY0STvgzEY7dtWJUKslLoOV69UxXH8hqvUzz50g8Iuf6Dl4gFOLNoVq
-rdPgs7VeZVCZxL0L8f6Hjc+O5tPjqVC4wNPy/Zvm1uIoTASc0AJQP0CtMOp2gMOr
-zJ9CEaNM25LxsYvIrFjkq00GWoEGO3UihAdZVmi2RHbuU32GITnox9U44zvwd14q
-C1uIa2HksHvq/3IFwZoyG5C2PmskqDNN5PqcaST+Lx8AMOiuE5RDNn03eQts2/Gs
-INAl5qo=
-=PbsJ
------END PGP MESSAGE-----
-** neelvpn
-:PROPERTIES:
-:TANGLE_FILE_NAME: ./scripts/.local/bin/neelvpn
-:END:
-#+begin_src bash :shebang #!/bin/bash
-#!/bin/bash
-sudo killall -s SIGKILL openfortivpn
-sudo openfortivpn -c /etc/openfortivpn/neel
-#+end_src
-** office
-:PROPERTIES:
-:TANGLE_FILE_NAME: ./scripts/.local/bin/office
-:END:
-#+begin_src bash :shebang #!/bin/bash
-# set a second screen
-xrandr --output HDMI1 --auto --right-of eDP1
-#+end_src
-** pulseaudio_pyenv.sh
-:PROPERTIES:
-:TANGLE_FILE_NAME: ./scripts/.local/bin/pulseaudio_pyenv.sh
-:END:
-#+begin_src bash :shebang #!/bin/bash
-#!/usr/bin/env bash
-set -euo pipefail
-export PYENV_VERSION=system
-pulseaudio-equalizer-gtk
-#+end_src
-** ssh_calcmaitre :crypt:
-:PROPERTIES:
-:TANGLE_FILE_NAME: ./scripts/.local/bin/ssh_calcmaitre
-:END:
------BEGIN PGP MESSAGE-----
-
-hQIMA8yc76sS3P8VAQ/9HL3ONTBNfdMO/w8TGLozdNFZNtKNasOujAfstyglshAr
-btHZJvo1GeI8SNwVynl4SjBd7SIrge6U1EsLasNE4rOkK7ltW1fgqewZIehCzFFH
-4FgQkg5pyRpAHHU2R+7Jw1ca06IOHaeiAs10yxXyoaggjMxxXJgeDw/s787XSonK
-F0Ip3FetlS/VjrQmGwHtnF9VnDwPBTxlCRNUZ1Qq5W+N0he8s5lelKyaUGv/bMPM
-DGZp1OrTVTenW+t1lpFk+ojZaNrVCWHutl5ZIc0FbawNvzYypJ6lf+h4EF/QcduH
-QVAIXB9GY2fNRuJ39bpvFsn1Yg9JtrSKAbwCvoVw8+TynpnHfWBKoIF8/FdKUmN8
-mIilbhZIwTafGlG2yZAl1uwpw1sHEdNpQAQjB5YMVlPWdNgLion9Ga4B94GoL6VL
-egY+Ckwr4SqL49c1Hdj/dADtXSfc2R1uW+iJNhtSVwWT3l9aBpsB+VbvDBTo73GO
-l9Ewmgz95U+SJ9L/MhbEHtGJhJvI0qumoqgYLC3xAjbYhJEaPdJj6+jDdZtv95KU
-RoSUX3XVnZEVJ8jpN+5anwx0AhAfxZyQatb1Pd3iJNocTqbWpn36z6nXxnOgryL9
-HY6jvbLvVJ/S50/Xfq9vRD8ymv2s875a84xfkhKEac8V4D0yWDSpHxjoU5N84GjS
-oQETp3v2F6LZlzQvEHPmMSkrcB+B5lw9Vyvd6oRSPytxyaXNTRTUtGJUqSBT0kf7
-0KMAWOEJk2MavGpep0F2Bt4ZisTSTQJvT9+YRiBCNSSr+iCMhNqQbEd8UJxS4mTY
-pnINVTaCCnWm6k/VoEjIsNKyMAzNBCn4vm/9IHPJ51XA9YDE8YrmA6p76Gy0qG9n
-1qEjVAR29hG+1dNqt7RZXZvg
-=qwJd
------END PGP MESSAGE-----
-** ssh_lab :crypt:
-:PROPERTIES:
-:TANGLE_FILE_NAME: ./scripts/.local/bin/ssh_lab
-:END:
------BEGIN PGP MESSAGE-----
-
-hQIMA8yc76sS3P8VAQ//ZBi6pjoldOTdDALDhJbkcyRjrmiUTSG6x9g6mJURO7V7
-apoykphMtfZtAPg2s1KgThRmCDjeXuuQ768GhQ1tCPrUn4mSKIbFUmIZfiYpiTXt
-kPAdV17hyL4/P+p+sP0yU2CvIr2e8Cx34oZj165sWDYJIAoX4PlPYT74DvSIMBa5
-QWqslE/D5GyhG9V/Ei5S5BbjJ4G+f16Q/+VYup6PFau1N3EQ8zCiq5Y8ujlJo6KO
-g4+aT+K2lvPsi1b+ryvP/iTeXbHBXcj/FVbJyn7/ifkOnoC5KEABW2HXNrHPN0M4
-1pQfNwEYUdUQP3yg1c4LrpCbuVxsWlfZXnGhGUEqOl+MlV9aOSFvyotlCQPDWpbd
-AdUHWVKKZjA50isVFW4SE1Io7L/F+pIH5RNcYUPITEw7pzzCU3V7hda0eOsSnftQ
-fVkL0x7WIQkSKBj02iCzQwBYnPXej6WwI3x+V9HWT1HfALM0WOODlRgOxEu9Au1e
-/yUP4mQ9LcQiKfIVMoOzXgJ1gcycNopEDjaAH8/KexSQSLk6VWMJcyIUgNJgaSBK
-MKOFA53J93wRvuy8ugHrHz/0tQzu3OyqGIJLM/LoNeKcrQTre0u8wjdaRY4P8xOa
-vIgVw33R38qayM7wSKqP053OlxWenDdlx/V4oWk83MB/5Bxjydv+EFhaj4BdM4/S
-jQHkAxZZQMdNZioDW+gsq9Ty6G4LBW/jxeJis3xTlyO9E36w7FfeSJ+ZKNoqapGY
-4+bKh5M2FAK27/K1bgkxV4eDkKGjHCXQJY/tbrVOq2jN4zmdxZhrKGfaXzYRhKS3
-mc8dQymGilb6H8QNT3XeYYPMyuR0EnlhcFhoL1dR0eFw6XnDiUqlwDnAINEkmQ==
-=zmxM
------END PGP MESSAGE-----
-** ssh_neeloffice_jupyter :crypt:
-:PROPERTIES:
-:TANGLE_FILE_NAME: ./scripts/.local/bin/ssh_neeloffice_jupyter
-:END:
------BEGIN PGP MESSAGE-----
-
-hQIMA8yc76sS3P8VAQ/8CyxwGeqlHOb7DKE1ZWyaKsNZxRZRKf+6upnjlSOMKsFw
-aiAyOx/yA9NuoTR4PdY4wU9F4juAoBraNaJbiTNkBfEM9hxFQbfR6lYuOKmeaL+3
-O92N9DCyUmeULeOutAdJB958mijLu+HXjj4Vcq1WzE1ZcHoxRRV2Pst3JIFZHqTf
-/3nHeqqumMpBHYumNA6setYRJM25XM3AXc+xwE5Y5daZsVtA+Hfjq3SYZV+wU6jo
-pJkyT7KLI6oI3EDYVshFj1g8maQaPwn9LevxVfHPXjWKCuAYvZ0/NCeOq0JyqQ6u
-RJT5EQFnB+S7yw5OUrZcSmJOKyZuTYOKXCMFFaDgZbfKtRmkfz06l4p5FC4aQb8C
-oJWj2anD4bdvMh398WBpagCnm5Cqehu+Hoq39Semdnnf1VOQdu5KbApProcUyApr
-xXVKLAinsZuhw5Ve5RLzYC/zSTz25OFNi42/YKhJjNce2jp0siLmAaqdD8kPFBOV
-ZWMoNyIcELMFzbvdGu5JJ0d1dIdZk1+itbF15GYynwWGIGRnO7v9IeiVSWZDlxLg
-wggudEIYS9UPP/1UwVzHNlSUk5RCe/RQo5kg7NgIBFfPbOzrVJcm9azd+nV8VXkf
-H2og6Bal+cY/ykhFvFFsZHpSkIePGvzokP4us2S4boXc96XQMUUE6u3iBeqbCznS
-mwFBDSoZCoYve2LURNrKljepliyTmHNxCh0AZQZ2mh+85Z+76uLsPUExRM1KOwbM
-gjSBdddYJhkjNvxcnwzBJuKh5DOcldR5b7T0Hv7pX2YDeo7B12ABY41kqWi+kjlC
-QEKTuD44fq8CrsCL5ZJp+yEGuxWEKfNZvsPpm27heeOuiPIQ4HYMjvMEZAdxgR/h
-WN8D3HuWOvU22bZ/
-=HRss
------END PGP MESSAGE-----
-** ssh_neeloffice_lin :crypt:
-:PROPERTIES:
-:TANGLE_FILE_NAME: ./scripts/.local/bin/ssh_neeloffice_lin
-:END:
------BEGIN PGP MESSAGE-----
-
-hQIMA8yc76sS3P8VAQ/+LN98e1yJ+GZuU2wY9rkFQEI1yp2S4Z/iZ8Riduu7jwgJ
-evEtftwHqH4Bqtwenls9ZtRsYKAviBfUfk/Vzhbt5+WvUXDsR238Su1fS58Ib8fX
-n4YdacNOHCY3D6dcIF6wOkSH/Pyrpyta2+hUt4ef6tr53eALsbUBuUz4ptuEkev4
-x4sqQxLmSdDpryKIXRiCWxbfaYV827xRNRH1a+9JyRsWSSZQPhMvd9bXaCwjql42
-ZZNKOgOzegAvnV0iVXs1E9Z4h9IyTxZRMe39GdD/sjxE7DicNJ3tqxbupkJsgnAe
-5IlXlv4ZanOVayoJylmohiJF/BDQY0fm0E6bYgTjya23nC8Sh7b123KXSLoPiayd
-XcCkS/PrFXRhsNfCgftqZNsMQMw5rkgeuuRXHqjkv/f0OPwfsYt//EncpDn/863C
-O+wqy4s4C/PjgZB7czActdTT8NWBxjBuMrlJWqto1s9hdFeqZcOLdrxqDAQR2qpM
-L1eG8N2xd2dFgLeN7lXhIS+ZHrofPG3MOKkhWTrTYjK34wh88/feGYlxfrzztbp3
-HBxmMVBwUff32wLfL5Cw034dL4RwPW8rzKbxv7z3fUeFCjyCizuN5rOy2WOhLO0b
-9E3bq7KfM9YF2hy9lJ7IyojyxBF4VZiCFupLV+7P8gG82yfyUAohfbhgvyD3PGPS
-jwFlf9DngZZGZyU0aAb0P7dmrYv+GcT4cUdyq/JOU7xv+A2JoHqeD77MY5INv0yb
-D4XfgyURUplGBMkQ/Y2A3FGwXZKFSIzP6LeF+3ALN/9cbYFGjaNe8pstkS1LDDGV
-J4bUb4y2NvWEBCxloHSOg3ZSuxq8iImcl9TdHvcJMcSYZDlbY4drF8kGu4U5+LnO
-=SRpO
------END PGP MESSAGE-----
-** ssh_neeloffice_win :crypt:
-:PROPERTIES:
-:TANGLE_FILE_NAME: ./scripts/.local/bin/ssh_neeloffice_win
-:END:
------BEGIN PGP MESSAGE-----
-
-hQIMA8yc76sS3P8VAQ//cdxngz8NKyAoYOzqDM/YDCvI/jJWtaVo6p2zGNKaJT0I
-ar1hd1YxRj/Gi8T07SogNl8tkUG3LFM1AaN1BfaKeqKaXeJeynuN7GBgbAoveQWC
-fg5HwiJl6et/wzfugNVzLbEr2yPio+sHYY6zb3qNVRErh/CltQVXr2DiHrCIwPG5
-nSK1LlQdgJtHbGR/mgkSNm1QgPLhFVwlkrWQKFKNcw1T1ssWqMLlKK3MGBi7M1DF
-8Cmu9chMadwvCjG8N51iQuG6FftAMO9uQlgOT4/iaJtnyIDBQvjx3y01MfhycZtF
-Irks5B96VsnGoQqh2cmqCatEraK0EfdCQE0YDaoM6maFBtJeZvtkgrOptoMKqA+J
-8P5CDLQTHHDLlRsD83ZAzkbpqWkZKTOX58JxsxOaZWf6S6GVhMxWtVmG1aUzd07o
-AFG8z8gzJpJjin5eToAf4bf5jU5Qjfa/rnPSH0+GUIJXMCbr7ngT2YpVKiP5DRkM
-Hy9sNUtkwj3PTIt7osjfsuVqMED/JFf3tfXMYm6TvnJ5chzTvgwXOIxNXgVnH3A0
-22/Lbx8n/QNYfPTgoOGXYBKZ7OU5BdnhIABHGPCC8CeoY8U0dxerBurhY1Tp+PnP
-Dvt22HoT89dx+vYrjQxwMRm6LBeTJB27kWU2ImPFpIwqDhSzlDNGWeMOkdbEH77S
-mQHVT/oD5Tfps4f6xb64MyFfNv3MsuxaVGJDnejHHd+xZKEWTVYLY58/Fc3Qg8QH
-HNCBzXn8RfO1hGIVoBO69ct6DPoXMEfusNkvg3EYni1Ao/z5dqxz2E7u1nZCCmAZ
-pVX0DLGM1dQzjM2Lm+c29H+eQGx2G4ff0erwEa3luYSVJMj1g6NJUc4OMkgj0Ph6
-8ksBiVqGEyq7aQ==
-=BlHm
------END PGP MESSAGE-----
-** ssh_ubuntucalculator :crypt:
-:PROPERTIES:
-:TANGLE_FILE_NAME: ./scripts/.local/bin/ssh_ubuntucalculator
-:END:
------BEGIN PGP MESSAGE-----
-
-hQIMA8yc76sS3P8VAQ/+MY62+PwT7Jq8CkEOdkEIN+4lWGD2KzfWcibUuEc9d1jZ
-3/CogyzOd/fJ6Ls6oBuOnBodRNFhkci//CPA4+f0t+Mi0fDvQFzhdQ9EgUI0LLUG
-O/ARzx+xOoPRPPikKK9+aY2q8yeKyrlAHeRr/2YfSobVmBt88B0A7Lybdvr73EDe
-G0R/PTOE476sZ9tZl1h25ohtu6XXeNV1DiPgPq/GdN1Q+YsOOQHVvsbcdUFLt3Nj
-wMdR1jEbTQVGYVX0U0AZzRIPtD4sihTJERfqeTvr2NQxsUWsbZvt+aeFOZC4TKCG
-2ASBjw6OSDf4OjdjLyV6W6K5u9GpM6Qepb+I+7hQ5VXQJRiNxTO+42cBOFYh8kjr
-SU5Q7PgljIpT1LEW88mwQlw6bXS2/1AsTPSZm71K5xqDKa4oVlMUIpvCyxZC0Zj/
-AdCHiKGWwgMbPnuvc0+0FneO9vlAptwpRDF1ZCyQ4VoUVma5z35wspt/WF7C/nzN
-nid2P8+OadmYbNOPILZ33MBSx9x3P5jZXg6trLub/v1dDwfAJMDWyn2H5j8306IY
-FOF4Ypw6q7yjq3ofZfTRNnv/RMnGp7z55l1xUGc/bMxpIJk6OwU/Xo3AW4GULqVX
-s1RtcKS3XG0aILuVqP3TKcjdaw/3YzKfXM9HrNV1p/sgMKjrvE6QW5X3ytrf+dHS
-jgECyw7BaxdZKHS6LndfeK9/PMlDL5M4MYSJggTrQgbQxXw2hzhjQp5o+gEDFmUf
-rmp1Hym37fCeFqItLnKSVga257dwyIawEGV3D7a/x1tbAokAEs/iuRvgegqBRPdY
-nHn//DgQd6Id5BORF8MZCiSBlnnq+t1NcIxFbqwHD8SqhhxAkWmLYc7Hz/MeZn8=
-=yaQr
------END PGP MESSAGE-----
-** veramount_phdstick.sh
-:PROPERTIES:
-:TANGLE_FILE_NAME: ./scripts/.local/bin/veramount_phdstick.sh
-:END:
+call_printConfigLocation()
 #+begin_src bash :shebang #!/bin/bash
 #!/usr/bin/env bash
 # set -euo pipefail
@@ -5336,6 +5029,7 @@ xinput float $id
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./digikam/.config/digikamrc
 :END:
+call_printConfigLocation()
 
 
 
@@ -7192,6 +6886,7 @@ NSettings=0
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./gmsh/.gmsh-options
 :END:
+call_printConfigLocation()
 #+begin_src conf
 // Gmsh Option File
 //
@@ -7315,6 +7010,7 @@ QFzvBxvbGZy1FRE/FbTfNwWHzyk7Y9G8IBNLG12+JvhDh5ffyO9pm/5Z
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./ssh/.ssh/config
 :END:
+call_printConfigLocation()
 #+begin_src conf
 AddKeysToAgent yes
 
@@ -7544,6 +7240,7 @@ ToFo
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./x/.xinitrc
 :END:
+call_printConfigLocation()
 #+begin_src conf
 #!/bin/sh
 #
@@ -7624,6 +7321,7 @@ exec $(get_session)
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./x/.Xresources
 :END:
+call_printConfigLocation()
 
 #+begin_src conf
 Xft.dpi:       96
@@ -7870,6 +7568,7 @@ URxvt.keysym.Shift-Control-Down:  \033[1;6B
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./x/.config/xthemes/tomorrow.light
 :END:
+call_printConfigLocation()
 #+begin_src conf  :mkdirp yes
 ! special
 *.foreground:   #373b41
@@ -7916,6 +7615,7 @@ URxvt.keysym.Shift-Control-Down:  \033[1;6B
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./systemd/.config/systemd/user/emacs.service
 :END:
+call_printConfigLocation()
 #+begin_src conf
 [Unit]
 Description=Emacs server daemon
@@ -7934,6 +7634,7 @@ WantedBy=default.target
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./desktop/.local/share/applications/org-protocol.desktop
 :END:
+call_printConfigLocation()
 #+begin_src 
 [Desktop Entry]
 Name=Org-Protocol
@@ -7948,4 +7649,5 @@ MimeType=x-scheme-handler/org-protocol
 # org-use-property-inheritance: t
 # org-crypt-key: "0xB1625FEC99227CDB"
 # auto-save-visited-mode: 0
+# after-save-hook: (lambda nil (when (org-html-export-to-html) (rename-file "linux-config.html" "index.html" t)))
 # End:

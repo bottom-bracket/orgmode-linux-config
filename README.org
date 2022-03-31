@@ -54,4 +54,14 @@ Unfortunately one of the ~pre-tangle-hooks~ save the buffer before tangling. Thu
 org will miss code blocks in encrypted headings. Luckily I am not the first one
 who got to this problem and there is a solution: [[https://ag91.github.io/blog/2020/10/30/org-crypt-and-tangling-source-blocks/][Org crypt and tangling source blocks - Where parallels cross]]
 I now just need to call ~org-decrypt-entries~ and then tangle the file.
+** Other Functions
+*** Functions to generate the readme
+#+NAME: getTangleFileName 
+#+BEGIN_SRC emacs-lisp :noweb yes
+(replace-regexp-in-string "\\./\\w+/" "" (org-entry-get nil "TANGLE_FILE_NAME" t))
+#+END_SRC
 
+#+NAME: printConfigLocation 
+#+BEGIN_SRC emacs-lisp :noweb yes :results drawer :eval always
+(print (format "The %s configuration goes into ~%s~." (org-get-heading) <<getTangleFileName>>))
+#+END_SRC
