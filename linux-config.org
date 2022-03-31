@@ -281,6 +281,7 @@ alias more=less
 alias rsync="rsync -rP"                 # Always run rsync with progress and recursive
 alias gmsh="gmsh -fontsize 12"
 alias pwp="pyenv which python"          # Quick access to current python executable
+alias vim="nvim"
 #+end_src
 
 ??
@@ -589,6 +590,16 @@ eval "$(pyenv init -)"
 [[ ! -r /home/philip/.opam/opam-init/init.zsh ]] || source /home/philip/.opam/opam-init/init.zsh  > /dev/null 2> /dev/null
 
 #+end_src
+***** use nvim
+
+#+begin_src bash :shebang #!/bin/bash
+alias vim="nvim"
+#+end_src
+***** quotes:
+#+begin_src bash :shebang #!/bin/bash
+cowfortune
+#+end_src
+
 *** zprofile
 :PROPERTIES:
  :TANGLE_FILE_NAME: ./zsh/.zprofile 
@@ -2245,9 +2256,9 @@ bindsym $mod+t exec --no-startup-id pkill picom
 bindsym $mod+Ctrl+t exec --no-startup-id picom -b
 bindsym $mod+Shift+d --release exec "killall dunst; exec notify-send 'restart dunst'"
 bindsym Print exec --no-startup-id flameshot gui
-bindsym $mod+Print --release exec --no-startup-id i3-scrot -w
-bindsym $mod+Shift+Print --release exec --no-startup-id i3-scrot -s
-bindsym $mod+Shift+m exec xdg-open /usr/share/doc/manjaro/i3_help.pdf
+bindsym Shift+Print --release exec --no-startup-id i3-scrot -w
+bindsym Ctrl+Shift+Print --release exec --no-startup-id i3-scrot -s
+# bindsym $mod+Shift+m exec xdg-open /usr/share/doc/manjaro/i3_help.pdf
 bindsym $mod+Ctrl+x --release exec --no-startup-id xkill
 bindsym $mod+Shift+d exec "~/.emacs_anywhere/bin/run"
 bindsym $mod+Ctrl+i exec terminal -name i3cheat -e /home/philip/.local/bin/i3cheatsheet.sh
@@ -2268,10 +2279,15 @@ bindsym $mod+Up focus up
 bindsym $mod+Right focus right
 
 # move focused window
-bindsym $mod+Shift+h move left
-bindsym $mod+Shift+j move down
-bindsym $mod+Shift+k move up
-bindsym $mod+Shift+l move right
+# -> use i3-layout commands
+# bindsym $mod+Shift+h move left
+bindsym $mod+Shift+h exec i3l move left
+# bindsym $mod+Shift+j move down
+bindsym $mod+Shift+j exec i3l move down
+# bindsym $mod+Shift+k move up
+bindsym $mod+Shift+k exec i3l move up
+# bindsym $mod+Shift+l move right
+bindsym $mod+Shift+l exec i3l move right
 
 # alternatively, you can use the cursor keys:
 bindsym $mod+Shift+Left move left
@@ -2373,6 +2389,32 @@ bindsym $mod+Shift+5 move container to workspace $ws5; workspace $ws5
 bindsym $mod+Shift+6 move container to workspace $ws6; workspace $ws6
 bindsym $mod+Shift+7 move container to workspace $ws7; workspace $ws7
 bindsym $mod+Shift+8 move container to workspace $ws8; workspace $ws8
+################### 
+#######   use dynamic layouts ############
+# exec i3-layouts
+exec_always ~/.pyenv/shims/i3-layouts --debug > ~/i3-layouts.log 2>&1
+# assing layouts to certain workspaces
+set $i3l 3columns to workspace 0.5 0.5 2 left $ws3
+
+bindsym $mod+p mode "$mode_layouts"
+set $mode_layouts (v)stack, (h)stack, (s)piral, (3)columns, (2)columns, (c)ompanion, (a)utosplit, (n)one
+mode "$mode_layouts" {
+    bindsym v exec i3l vstack 0.66 right && notify-send 'Layout vstack'
+    bindsym h exec i3l hstack 0.6 down && notify-send 'Layout hstack'
+    bindsym s exec i3l spiral 0.5 inside && notify-send 'Layout spiral'
+    bindsym 3 exec i3l 3columns 0.5 0.4 2 left && notify-send 'Layout 3columns'
+    bindsym 2 exec i3l 2columns right && notify-send 'Layout 2columns'
+    bindsym c exec i3l companion 0.3 0.35 down && notify-send 'Layout companion'
+    bindsym a exec i3l autosplit && notify-send 'Layout autosplit'
+    bindsym n exec i3l none 0.6 && notify-send 'Layout none'
+
+    # exit system mode: "Enter" or "Escape"
+    bindsym Return mode "default"
+    bindsym Escape mode "default"
+}
+
+bindsym $mod+Shift+m exec i3l swap container with previous
+################### 
 
 # Open applications on specific workspaces
 # assign [class="Thunderbird"] $ws1
@@ -2577,7 +2619,7 @@ bar {
 	strip_workspace_numbers yes
 
     colors {
-        background #222D31
+        background $term_background
         statusline #F9FAF9
         separator  #454947
 
@@ -4568,26 +4610,381 @@ Inm2/A3BCNC++nmAqbXHRZsjDdD1f4XNz1jROUISPw==
 =CwrW
 -----END PGP MESSAGE-----
 ** mount_lab :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/mount_lab
+:END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ//dH1XR8GO+fKHh9oXttR8bx2l9GgljjHupyvG4nvPBpP7
-k8LgH7ca78Y4HdCy3paTtUPxwzQ6o51n9m6Ap4MehXSUrMLebC7U+Z7nN8Yu4AF1
-vGuytpRqZFYc3VzrUYU9vbAegNwdyhMGVvRLfcPmAgumI+YxwSvNftauVNeTREI3
-+4l58B44Mv5wewTcbsGj9w9CRHyfIMPkLQQq1ogrLLPACM8fI9lICeldLaL68+Wv
-PK7uz8TZ5dHsRiQ2klTRamnJ4diT1/jCiBNlxtDWGr2h6gebN4SZpgDxRu7Vsdy0
-n08JA/m/Dr3ok3O3BI5xqdjeNRTHHpZFLG4FvS+BjCn4b5qBVBb01RCTH9OZXGv4
-A6NUGo99GPTpyrRjXMD5cSsJKsZ3lW9vPIPxvN5z5y2HMmHxFME/3xQERXlA4CTw
-ZsY9EJLL+Y40aKRuoWE9QkOdiVSQ96yegtu4IzwJgFsLE62OB2N2dDwTmF/oEKwL
-OcM+HytJAIYYCV/+fiChk6L1nglrKPCNYoZhT8pO8SbPZ3lb86RKS/XnaefkOnmq
-CH9sJ703x/Mta2H37QJ6mFt5e14VQMY4qq22DNLC2v778F77mY6Sb0tOWf4YwBhQ
-CYsYfYl/S89OIIohPZJxymAGsFBKnUpheX8QW60kZhhx+S7JohOfFIUo4OnnSADS
-wEUBUhSEsqM8OreddL0cqnr5K46d9TzT1q7ZNH+cI+At9fH70cYdmqHJztqLUwPN
-Jz82M3M+AUP5XmCeovCc6EmgKUyOwQZ1hFv5MzpaVVGDl2Sz6stLO1a/ENq2921d
-1Mdd08jKl727Jf2S/0U9k71p+o11NJIhtId8WgfM2zUMhkab+28xZChtgJ3TjrBg
-HWCH9xytoiytpMgHpWlkqBPPRCitw/YrJrQRoNWVkGKIejR1DOGbzTTHxcNqRQJy
-+pB583VUE36Kc4qyeCa90Ns0olho0nt7Q+YLnprOiDoVmv+o5HM5v3nUYgUpqRz3
-ku9icH9jSAYoebIf6yn1uGNQ9xLNVfY=
-=QHIP
+hQIMA8yc76sS3P8VAQ/9EtIIPQLg8bSiJy4KYNz1ywVQT+rpNK+70RtfGLOIhcny
+HkqZ13d4MrlLvLrcEBSRyCsbhrtskWBtZYj/O/DcdNmtPTHN5q/qGy8cWBokb7fJ
+U5gRTJUIrn/sx+q8DQj41dQqIO6yhp09XehTeS5dxQYp8s43xfoIH7qHclpUn+hV
+EGeglU4nDltzyH+wqpD8emKp9VQMldVA42M7zNMaU/f7z0QpromjMLYqMfCS/o/4
+XamUKEmjqBi5zmB1QVExW4su55DdslU+g021dHdmgDr2bcHGtAnDSMuq0XX5fn8j
+/J2S9UcCBN59HjAcvX8APsWlZ7nZnOrMPALPhKUnP3yFRKoa6rn9fXMTBf/2dFwH
+DeLjJyPACfldCPi0GJ3KS4lY4yvAqRcHvFiy6dPyYtZ+yvZ/ITfx0cnnO32p9Vc4
+0DpxVnDF55IM2VyV42/DuptDedFH6vs/5g+qCinatGkF5CF/2RtonCB1unq7fC0p
+jUPNyB7JyqNKaUCN72Au8UQzDPrrmtLW/UPqxLQCH6u7Psmmx5+gjhaWdP7MVSXk
+k0YDxTUH2iUH/uGz7LV8YFU7rj0ceTIYhh9IKRkzRgK7momCUYdiNLWSUrR7pOHK
+cu7FOIKyBGDpJc4yjAgO8Q0PCOSj4dBZDm/mX61MSSn0tfQu4jvvSXFuTe6nIgLS
+wAcBJEVnqBEnZAdLPdY1zjzQ4yflpWXOqmVPMUEE3+jO8mM2sOz7yjQPc1I+/SPj
+GWbt4Tt7mQ/XdK8kmheqWIkC9+VyznUUyd2luyyDsqYVop63XhMG2CdJ6fysxcWI
+tjPzrE//yvEck/dwnxxuL48GiC0I4qy2daxSnTZLCUrBCGugcGdfw9qO5Tfks2Da
+dkphWJvFxWa5pqyiiRP2b//g9trKUlH36GOZW4FX2sBdIns/OZNW+FSdGzwNym0L
+bSm5Ga23K5OP
+=SJAk
+-----END PGP MESSAGE-----
+** mount_lab_local :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/mount_lab_local
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VARAAgb76qb6ZpMR9kJJyNiLdPdg8iw1+nuUjporKGSIXQzaz
+LFztVaIs2a012IH/uUo8lkFgqgwPplVtghFdiwYOzikfHOTR8G5fy13DBsG8nXCJ
+y9a+TjbhO24b6IY4FZweF4sLgvZDbw+zmpVIN70dDsdcsYBgTOyWT1trii4HqgDm
+t0Pv2Ss+mie+ghubY/U0EVEZzpeFpHdvOlavUoik9GEpFYq9GUczIojx9KP8UA2J
+SqSLQQhoaA6gzok3T8E69j1XArHKxP5btq/QYW3GaB6MursBBCVIGFDqO4o5hzMe
+2e3vXDQxhTJyk8mSGP3ixBcaVBqC7dkNsbvFT7NUk3u3ZEH+2J4kT9LiVvmpQNY8
+al0s1zHgo+JHZ4rGkbmSDbTmx58mWf3NOLkiBEdYNH8JXpMx34Zxmy13OM2aEy+d
+lAYelQdU0F4VhTK74VF3WYAKOejr062vHFYi90e61c23VwuK5GNImt0g0p7vQ4z7
+bJUH+1LSwfV+VFnW24o9oUHdCHdiJeby1qS75r0wZag+HlHpIcBGMSdAsmwlUdLR
+7PI6X55HX3YBFyASR7e89oSmG41Idi8+ZIkO1FqApb1IFWhvRmji8qmt3xs7Zcf2
+CBkZkG4iq64Y9JK/1Ww1j/7C5A8PyJzYbx6i0yVw3KMXzezDNKROXvccpif1f5rS
+vwH+uBdorPtgkFhb7TCDLkoQfdl6uwsnnRHX/xyf6LoAmNHXGUeGlP/H4uIAva2j
+EaTX8o7fydVNThj4HUx8twnUg0oUs4hCkZ7VNK6X63LGtFgG0M++KwRELvk2sju7
+v/HSVAMxDPHAoRHCGj3fcHEuR8P1Hf+W8WJKSwfvLWK6wcyxoeGg6DVbu3PtFbW8
+fhsQZEIDiy0rG/OaKNnntgKYHHwauwEg95msLbC0XXf39mZCk21DWLkrjsVguZaW
+=Eudo
+-----END PGP MESSAGE-----
+** mount_minion
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/mount_minion
+:END:
+#+begin_src bash :shebang #!/bin/bash
+#!/bin/bash
+fusermount -u /home/philip/mounts/minion
+sshfs minion: /home/philip/mounts/minion
+#+end_src
+** mount_office :ncrypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/mount_office
+:END:
+#+begin_src bash :shebang #!/bin/bash
+#!/bin/bash
+sudo umount -l /mnt/neeloffice
+sudo sshfs -o allow_other philip.heringlake@neel@147.173.65.220:/ /mnt/neeloffice -o IdentityFile=/home/philip/.ssh/id_rsa.neel -odebug,sshfs_debug,loglevel=debug
+#+end_src
+** mount_office_lin :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/mount_office_lin
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ//VXmma5dDFR2BG1evflr4Ob67PNJA1seWwZWk/LEaYLW4
+3327IgK5/3TDVDmKZp66sUsDiUk4fWX+S9ehn7BTwXkQihOhdvvCQAgRsd+ZDQSM
+8mIcYbDMUtX9tzSXtq8Y0J2uEeSKD/GPY7/00NDMIwuQR2Tu7UR+tJ7p1DAUpmAv
+ybaV0mVjrwDjd3Ad49l2rVk8Oi6qFDYuiX34tAlafswBV0JIiUHdtduL0tWhsHNC
+7WSDUS0shwniVYgjVIrqrlOxzcHlP6POI+6IqXmsm6GqeCaWVh/1zcfBj+raeKug
+pQ5vDp+RjdeAgi8O6CIYNvGawiCDI5M/B0XZBqv/im9ZOy+46J3GWQqNIxlDYyVN
+E/1Uwt0Xib7OqmtoUIAdDpisDtlGkpA7sP776P/4Ptd7Hcpdi2SPomQLpv5CMpeP
+M5a09x811DeEG99AtiRirjeK/J7gnfdtZqmEyFpnHTZZxQ4jVYkNK+8RdUU6hxPj
+mXhUC4f9xPLTe/zmMbdhp9CCoW4cko9MEiSRC+i27lf1g63H8s47693EgJ1I+DQu
+53jBTO0DLs5QB5uBc0PcwtJB5M7J/Rlirsv/zmDkSK2mNmkBNIVPmIf+V32Uw6Ce
+JJEEoZwXtQuZg+k8/JCBd/kxzx5KlMI7E/lv7J+dyq9fckkceREgOzGolGW3GIPS
+wAkBrhTQpj7ixlb9qMfA4KvtntiC/ti644e2O50yLluij6d5dj0uP917L99Kj03P
+5saG10ieV/SRBMO0gyTK2NVBNvPNeqLC4ls0B1GqhZTAAM/oSwLoCEDs/fQsfQRm
+5MxC8eKkpPswtHduG4E69yzKT71BMd8/+47V2eBmjsFekisDzlsTC84XlFGPKlPV
+4nh1ycmY2jskLcEoVeehRBHhYvZ57VIB5BiTZ2HtTgm/5jy2ynu9Fd+phbz+OhBd
+myTl2hmBx2Sqmmo=
+=RrL2
+-----END PGP MESSAGE-----
+** mount_office_local
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/mount_office_local
+:END:
+#+begin_src bash :shebang #!/bin/bash
+#!/bin/bash
+sudo umount -l /home/philip/neeloffice
+sshfs -o allow_other root@10.0.0.1:/ /home/philip/neeloffice #-o sshfs_debug
+#+end_src
+** mount_ubuntucalculator :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/mount_ubuntucalculator
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ//b3r/CcX1P/mCkOrrLpLXl3KYIuhN8YseIIsUncy4oeCz
+tVqW+I0KY8RubNlXnTYVcNco6jUvLQcjmNRY8kZxyZnZH6bZALibiXqRUz2d3TIm
+lxPfJD6B+fAfiqWe1BKWuV4FI0oKpLAm0JqCESjqB+fYld3NH0tLrFqK3qJEHDpr
+lLDNxX2WS/DrWVMwiYjq7U4SMD+Ke2Ps2UcBrCFCDbujUvlz/jJyJCCopUHw8nKk
+fU2qVEZ37pC32xJHTP2CNOhWRMjoR9eLl72xQusfTuJcGqJVlKRG5E57ul5J8Jc3
+qTVPXM+z6ibWK8dAAvialHumuaZfP3DA1ytEgcN3yTWFXI3uiuELyL2PTBQmstdC
+C0UuT6VofyJnL7zDuJER+xWvKMg4zNrKHccBS8clUYjT5Lq9Bv1qIm2ZdVCVp28G
+D36Jhr6TfxIhN0CetjyHIlBzfqarkJkaBbxk+wWVQ005YIlDfVtvI17DiyJB4uuM
+yGMDuilzxSo3CXREA1VZO92L7oQi/YTc4Mc7ptA2CLOAhwGihkkUe7LU8m1izjr3
+M0OWIrtRMfEQBmfwXdlDbkHvzhg6zmuJqno4dNWVVQlMgZvMaY5dsEvuOj6w/83l
+z+nHthzVgbWGSkGR7d53zGcHv+GPoIUbYGG6lf4C+w0snW8bNOdDpYHv2s0SkYzS
+wAMBxVn5RSY0STvgzEY7dtWJUKslLoOV69UxXH8hqvUzz50g8Iuf6Dl4gFOLNoVq
+rdPgs7VeZVCZxL0L8f6Hjc+O5tPjqVC4wNPy/Zvm1uIoTASc0AJQP0CtMOp2gMOr
+zJ9CEaNM25LxsYvIrFjkq00GWoEGO3UihAdZVmi2RHbuU32GITnox9U44zvwd14q
+C1uIa2HksHvq/3IFwZoyG5C2PmskqDNN5PqcaST+Lx8AMOiuE5RDNn03eQts2/Gs
+INAl5qo=
+=PbsJ
+-----END PGP MESSAGE-----
+** neelvpn
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/neelvpn
+:END:
+#+begin_src bash :shebang #!/bin/bash
+#!/bin/bash
+sudo killall -s SIGKILL openfortivpn
+sudo openfortivpn -c /etc/openfortivpn/neel
+#+end_src
+** office
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/office
+:END:
+#+begin_src bash :shebang #!/bin/bash
+# set a second screen
+xrandr --output HDMI1 --auto --right-of eDP1
+#+end_src
+** pulseaudio_pyenv.sh
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/pulseaudio_pyenv.sh
+:END:
+#+begin_src bash :shebang #!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
+export PYENV_VERSION=system
+pulseaudio-equalizer-gtk
+#+end_src
+** ssh_calcmaitre :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/ssh_calcmaitre
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ/9HL3ONTBNfdMO/w8TGLozdNFZNtKNasOujAfstyglshAr
+btHZJvo1GeI8SNwVynl4SjBd7SIrge6U1EsLasNE4rOkK7ltW1fgqewZIehCzFFH
+4FgQkg5pyRpAHHU2R+7Jw1ca06IOHaeiAs10yxXyoaggjMxxXJgeDw/s787XSonK
+F0Ip3FetlS/VjrQmGwHtnF9VnDwPBTxlCRNUZ1Qq5W+N0he8s5lelKyaUGv/bMPM
+DGZp1OrTVTenW+t1lpFk+ojZaNrVCWHutl5ZIc0FbawNvzYypJ6lf+h4EF/QcduH
+QVAIXB9GY2fNRuJ39bpvFsn1Yg9JtrSKAbwCvoVw8+TynpnHfWBKoIF8/FdKUmN8
+mIilbhZIwTafGlG2yZAl1uwpw1sHEdNpQAQjB5YMVlPWdNgLion9Ga4B94GoL6VL
+egY+Ckwr4SqL49c1Hdj/dADtXSfc2R1uW+iJNhtSVwWT3l9aBpsB+VbvDBTo73GO
+l9Ewmgz95U+SJ9L/MhbEHtGJhJvI0qumoqgYLC3xAjbYhJEaPdJj6+jDdZtv95KU
+RoSUX3XVnZEVJ8jpN+5anwx0AhAfxZyQatb1Pd3iJNocTqbWpn36z6nXxnOgryL9
+HY6jvbLvVJ/S50/Xfq9vRD8ymv2s875a84xfkhKEac8V4D0yWDSpHxjoU5N84GjS
+oQETp3v2F6LZlzQvEHPmMSkrcB+B5lw9Vyvd6oRSPytxyaXNTRTUtGJUqSBT0kf7
+0KMAWOEJk2MavGpep0F2Bt4ZisTSTQJvT9+YRiBCNSSr+iCMhNqQbEd8UJxS4mTY
+pnINVTaCCnWm6k/VoEjIsNKyMAzNBCn4vm/9IHPJ51XA9YDE8YrmA6p76Gy0qG9n
+1qEjVAR29hG+1dNqt7RZXZvg
+=qwJd
+-----END PGP MESSAGE-----
+** ssh_lab :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/ssh_lab
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ//ZBi6pjoldOTdDALDhJbkcyRjrmiUTSG6x9g6mJURO7V7
+apoykphMtfZtAPg2s1KgThRmCDjeXuuQ768GhQ1tCPrUn4mSKIbFUmIZfiYpiTXt
+kPAdV17hyL4/P+p+sP0yU2CvIr2e8Cx34oZj165sWDYJIAoX4PlPYT74DvSIMBa5
+QWqslE/D5GyhG9V/Ei5S5BbjJ4G+f16Q/+VYup6PFau1N3EQ8zCiq5Y8ujlJo6KO
+g4+aT+K2lvPsi1b+ryvP/iTeXbHBXcj/FVbJyn7/ifkOnoC5KEABW2HXNrHPN0M4
+1pQfNwEYUdUQP3yg1c4LrpCbuVxsWlfZXnGhGUEqOl+MlV9aOSFvyotlCQPDWpbd
+AdUHWVKKZjA50isVFW4SE1Io7L/F+pIH5RNcYUPITEw7pzzCU3V7hda0eOsSnftQ
+fVkL0x7WIQkSKBj02iCzQwBYnPXej6WwI3x+V9HWT1HfALM0WOODlRgOxEu9Au1e
+/yUP4mQ9LcQiKfIVMoOzXgJ1gcycNopEDjaAH8/KexSQSLk6VWMJcyIUgNJgaSBK
+MKOFA53J93wRvuy8ugHrHz/0tQzu3OyqGIJLM/LoNeKcrQTre0u8wjdaRY4P8xOa
+vIgVw33R38qayM7wSKqP053OlxWenDdlx/V4oWk83MB/5Bxjydv+EFhaj4BdM4/S
+jQHkAxZZQMdNZioDW+gsq9Ty6G4LBW/jxeJis3xTlyO9E36w7FfeSJ+ZKNoqapGY
+4+bKh5M2FAK27/K1bgkxV4eDkKGjHCXQJY/tbrVOq2jN4zmdxZhrKGfaXzYRhKS3
+mc8dQymGilb6H8QNT3XeYYPMyuR0EnlhcFhoL1dR0eFw6XnDiUqlwDnAINEkmQ==
+=zmxM
+-----END PGP MESSAGE-----
+** ssh_neeloffice_jupyter :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/ssh_neeloffice_jupyter
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ/8CyxwGeqlHOb7DKE1ZWyaKsNZxRZRKf+6upnjlSOMKsFw
+aiAyOx/yA9NuoTR4PdY4wU9F4juAoBraNaJbiTNkBfEM9hxFQbfR6lYuOKmeaL+3
+O92N9DCyUmeULeOutAdJB958mijLu+HXjj4Vcq1WzE1ZcHoxRRV2Pst3JIFZHqTf
+/3nHeqqumMpBHYumNA6setYRJM25XM3AXc+xwE5Y5daZsVtA+Hfjq3SYZV+wU6jo
+pJkyT7KLI6oI3EDYVshFj1g8maQaPwn9LevxVfHPXjWKCuAYvZ0/NCeOq0JyqQ6u
+RJT5EQFnB+S7yw5OUrZcSmJOKyZuTYOKXCMFFaDgZbfKtRmkfz06l4p5FC4aQb8C
+oJWj2anD4bdvMh398WBpagCnm5Cqehu+Hoq39Semdnnf1VOQdu5KbApProcUyApr
+xXVKLAinsZuhw5Ve5RLzYC/zSTz25OFNi42/YKhJjNce2jp0siLmAaqdD8kPFBOV
+ZWMoNyIcELMFzbvdGu5JJ0d1dIdZk1+itbF15GYynwWGIGRnO7v9IeiVSWZDlxLg
+wggudEIYS9UPP/1UwVzHNlSUk5RCe/RQo5kg7NgIBFfPbOzrVJcm9azd+nV8VXkf
+H2og6Bal+cY/ykhFvFFsZHpSkIePGvzokP4us2S4boXc96XQMUUE6u3iBeqbCznS
+mwFBDSoZCoYve2LURNrKljepliyTmHNxCh0AZQZ2mh+85Z+76uLsPUExRM1KOwbM
+gjSBdddYJhkjNvxcnwzBJuKh5DOcldR5b7T0Hv7pX2YDeo7B12ABY41kqWi+kjlC
+QEKTuD44fq8CrsCL5ZJp+yEGuxWEKfNZvsPpm27heeOuiPIQ4HYMjvMEZAdxgR/h
+WN8D3HuWOvU22bZ/
+=HRss
+-----END PGP MESSAGE-----
+** ssh_neeloffice_lin :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/ssh_neeloffice_lin
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ/+LN98e1yJ+GZuU2wY9rkFQEI1yp2S4Z/iZ8Riduu7jwgJ
+evEtftwHqH4Bqtwenls9ZtRsYKAviBfUfk/Vzhbt5+WvUXDsR238Su1fS58Ib8fX
+n4YdacNOHCY3D6dcIF6wOkSH/Pyrpyta2+hUt4ef6tr53eALsbUBuUz4ptuEkev4
+x4sqQxLmSdDpryKIXRiCWxbfaYV827xRNRH1a+9JyRsWSSZQPhMvd9bXaCwjql42
+ZZNKOgOzegAvnV0iVXs1E9Z4h9IyTxZRMe39GdD/sjxE7DicNJ3tqxbupkJsgnAe
+5IlXlv4ZanOVayoJylmohiJF/BDQY0fm0E6bYgTjya23nC8Sh7b123KXSLoPiayd
+XcCkS/PrFXRhsNfCgftqZNsMQMw5rkgeuuRXHqjkv/f0OPwfsYt//EncpDn/863C
+O+wqy4s4C/PjgZB7czActdTT8NWBxjBuMrlJWqto1s9hdFeqZcOLdrxqDAQR2qpM
+L1eG8N2xd2dFgLeN7lXhIS+ZHrofPG3MOKkhWTrTYjK34wh88/feGYlxfrzztbp3
+HBxmMVBwUff32wLfL5Cw034dL4RwPW8rzKbxv7z3fUeFCjyCizuN5rOy2WOhLO0b
+9E3bq7KfM9YF2hy9lJ7IyojyxBF4VZiCFupLV+7P8gG82yfyUAohfbhgvyD3PGPS
+jwFlf9DngZZGZyU0aAb0P7dmrYv+GcT4cUdyq/JOU7xv+A2JoHqeD77MY5INv0yb
+D4XfgyURUplGBMkQ/Y2A3FGwXZKFSIzP6LeF+3ALN/9cbYFGjaNe8pstkS1LDDGV
+J4bUb4y2NvWEBCxloHSOg3ZSuxq8iImcl9TdHvcJMcSYZDlbY4drF8kGu4U5+LnO
+=SRpO
+-----END PGP MESSAGE-----
+** ssh_neeloffice_win :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/ssh_neeloffice_win
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ//cdxngz8NKyAoYOzqDM/YDCvI/jJWtaVo6p2zGNKaJT0I
+ar1hd1YxRj/Gi8T07SogNl8tkUG3LFM1AaN1BfaKeqKaXeJeynuN7GBgbAoveQWC
+fg5HwiJl6et/wzfugNVzLbEr2yPio+sHYY6zb3qNVRErh/CltQVXr2DiHrCIwPG5
+nSK1LlQdgJtHbGR/mgkSNm1QgPLhFVwlkrWQKFKNcw1T1ssWqMLlKK3MGBi7M1DF
+8Cmu9chMadwvCjG8N51iQuG6FftAMO9uQlgOT4/iaJtnyIDBQvjx3y01MfhycZtF
+Irks5B96VsnGoQqh2cmqCatEraK0EfdCQE0YDaoM6maFBtJeZvtkgrOptoMKqA+J
+8P5CDLQTHHDLlRsD83ZAzkbpqWkZKTOX58JxsxOaZWf6S6GVhMxWtVmG1aUzd07o
+AFG8z8gzJpJjin5eToAf4bf5jU5Qjfa/rnPSH0+GUIJXMCbr7ngT2YpVKiP5DRkM
+Hy9sNUtkwj3PTIt7osjfsuVqMED/JFf3tfXMYm6TvnJ5chzTvgwXOIxNXgVnH3A0
+22/Lbx8n/QNYfPTgoOGXYBKZ7OU5BdnhIABHGPCC8CeoY8U0dxerBurhY1Tp+PnP
+Dvt22HoT89dx+vYrjQxwMRm6LBeTJB27kWU2ImPFpIwqDhSzlDNGWeMOkdbEH77S
+mQHVT/oD5Tfps4f6xb64MyFfNv3MsuxaVGJDnejHHd+xZKEWTVYLY58/Fc3Qg8QH
+HNCBzXn8RfO1hGIVoBO69ct6DPoXMEfusNkvg3EYni1Ao/z5dqxz2E7u1nZCCmAZ
+pVX0DLGM1dQzjM2Lm+c29H+eQGx2G4ff0erwEa3luYSVJMj1g6NJUc4OMkgj0Ph6
+8ksBiVqGEyq7aQ==
+=BlHm
+-----END PGP MESSAGE-----
+** ssh_ubuntucalculator :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/ssh_ubuntucalculator
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ/+MY62+PwT7Jq8CkEOdkEIN+4lWGD2KzfWcibUuEc9d1jZ
+3/CogyzOd/fJ6Ls6oBuOnBodRNFhkci//CPA4+f0t+Mi0fDvQFzhdQ9EgUI0LLUG
+O/ARzx+xOoPRPPikKK9+aY2q8yeKyrlAHeRr/2YfSobVmBt88B0A7Lybdvr73EDe
+G0R/PTOE476sZ9tZl1h25ohtu6XXeNV1DiPgPq/GdN1Q+YsOOQHVvsbcdUFLt3Nj
+wMdR1jEbTQVGYVX0U0AZzRIPtD4sihTJERfqeTvr2NQxsUWsbZvt+aeFOZC4TKCG
+2ASBjw6OSDf4OjdjLyV6W6K5u9GpM6Qepb+I+7hQ5VXQJRiNxTO+42cBOFYh8kjr
+SU5Q7PgljIpT1LEW88mwQlw6bXS2/1AsTPSZm71K5xqDKa4oVlMUIpvCyxZC0Zj/
+AdCHiKGWwgMbPnuvc0+0FneO9vlAptwpRDF1ZCyQ4VoUVma5z35wspt/WF7C/nzN
+nid2P8+OadmYbNOPILZ33MBSx9x3P5jZXg6trLub/v1dDwfAJMDWyn2H5j8306IY
+FOF4Ypw6q7yjq3ofZfTRNnv/RMnGp7z55l1xUGc/bMxpIJk6OwU/Xo3AW4GULqVX
+s1RtcKS3XG0aILuVqP3TKcjdaw/3YzKfXM9HrNV1p/sgMKjrvE6QW5X3ytrf+dHS
+jgECyw7BaxdZKHS6LndfeK9/PMlDL5M4MYSJggTrQgbQxXw2hzhjQp5o+gEDFmUf
+rmp1Hym37fCeFqItLnKSVga257dwyIawEGV3D7a/x1tbAokAEs/iuRvgegqBRPdY
+nHn//DgQd6Id5BORF8MZCiSBlnnq+t1NcIxFbqwHD8SqhhxAkWmLYc7Hz/MeZn8=
+=yaQr
+-----END PGP MESSAGE-----
+** veramount_phdstick.sh
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/veramount_phdstick.sh
+:END:
+#+begin_src bash :shebang #!/bin/bash
+#!/usr/bin/env bash
+# set -euo pipefail
+
+pw=`pass others/phdusb`
+if [ ! -d "/mnt/veracrypt6/Research" ]; then
+veracrypt --mount /dev/sdb -p "${pw}" --slot=6
+fi
+#+end_src
+** init-mu :crypt:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/init-mu
+:END:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ//S1Cz8hxbXH16Lne0LVq4xZPqE3IXBzOWjfEEOzXeVeGL
+za9vbnyM8wz04REf38hcmmQXuwz41wi2obO0QO/ItxpKE9rzrc4H/IoSsXLYP8nt
+vcF8UPS6IJ7sRldLI65qZhOMOxsx+W/l+wTC7iQ5No1eOcXdWvJnMqChoedp89Mz
+aRZeN4uAMjDJeYsQmv7+/wkJq70OsiPS/xsHs+UU8AXEBwEtgrJAzMZ/42HyzhKF
+qI0adJ84TuFIdhvW/MhrDJt0PckTzphSqPcf2/8fx8jIktClVSLPLOnNbiMqst9y
+eJpb5P3HddPBWrqErFZzaPtDP47rdU41SoIwOv9DtbhZR42LQ3FynOblSUZu6ACy
+SCE69PpLQzLBSej7ZQWsVHfKIZnFAqjhm1D+5ziENnPsUIp6Dw5/AlQUmUBXpqcu
+uZpiZ2kJbKdtihtyzOKEJrYYvYmnqs42c3UUIVKs8cyJTeuAYBnoKI2FsqfOLnrH
+w9o64o0VABJCBMxIDahSXopUZhWc3r/oOYB91fWw4owQtDtuvsqeyYCtWpTkcLQV
+YacB1oswKhzfi0SaPQ/YfFeXpBHAIGCJZJd8AOql32D4ZJDWIsNAw4Ht7q2vTj6a
+H3PKvDS1IYXOYRe1fjDJZOpzhVygHcflikbUsKXNtQU3GuVlAVN1OQPrg1e3Sr7S
+6QGpWxmIA/o0nuZFDsDZP9ie1CXQ4ggtPEq3/0xxweaWLz/VEpdEGVCkRAgHBOlN
+2/uGn+O+eSk+nxLFJYK1GtTVzB79Nm4acT9J+ngDsEBAvYKln4XZjQGCaA+4z5xg
+nOS61q1njG+ux3UNp5ic1jWHwg4/Bn1PDFNQ2pl9XVq87zMMcbel+sYkJZM93mrL
+sWqJuUEA9ayXw6bPjfeTQ5P2y3xet2LBeN+4FloN55k9+wVWlbaZCWFXwcxxGrKW
+JQgJGlLXD7Xir1YCFlpk9vbUhV3OwhDJHYWy0G+pJO2aP6BlWUXOFD1IYoU1ZzIt
+TL3UbdJyk7eKtyYtGOg+iVN1AEPzFWcQLj0vjb4+qzFjgxhGYTMjLtrJMg04j5cT
+tw3Ee5moRPhpdID2d0O3IPbeo+E3YgDw4UC3quYA2rbdVnvUntXTH6+gGHvg7PW1
+GybU7oljkDPxfhgHS19kbAYn/dsp3vZrImY8yGX+8GStxFEWsb/dAa5euwcARjmX
+x7b3YfYP37d1Cm0Qrc2vLfn7P38FZ4QplZN06euW1f41bW4ekP2N9+WehWwyvfPI
+57PjJwbD6AoFew+9iTZcVGbbLb83Pp7UvUx9qv9NJ6Rgs3WcoLmryG15JqIQWj9Y
+ghNgflZF+SrQYctiQfZoK032own2jPTk317E2eqB6vEdBC71Ay8=
+=mZ58
+-----END PGP MESSAGE-----
+** i3cheatsheet
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/i3cheatsheet.sh
+:END:
+Inspired from [[https://www.reddit.com/r/i3wm/comments/a00s8p/made_myself_a_pretty_popup_cheat_sheet/eadzhkb/][Made myself a pretty pop-up cheat sheet... : i3wm]]
+#+begin_src bash :shebang #!/bin/bash
+# grep '^bind' .i3/config | cut -d " " -f 2- | column -l 2|less
+sed -ne '/^bind/{
+    s/--no-startup-id //;
+    s/--whole-window //;
+    s/--release //;
+    s/exec //g;
+    s/bindsym //p}' ~/.i3/config | cut -d " " -f 1- | column -t -s " " -l 2 | less
+#+end_src 
+
+#+RESULTS:
+
+** disable laptop keyboard
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/fk
+:END:
+#+begin_src bash :shebang #!/bin/bash
+id=$(xinput list --id-only 'AT Translated Set 2 keyboard')
+notify-send "Float (disable) internal keyboard"
+xinput float $id
+#+end_src 
+
+
+** mount_office :crypt:
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ/+OMcj6kgIsgCMUIw32JFkPM2txAm/whnOjBVS7LafavdC
+cBD8wpM2gQrnYaK9Iwihx0RGyva+DoI4rn4KbIQMHTKjcRwCPbjcprtGfn8WeKPJ
+G9u1hQ9kqai2lUSN/3dAOwaPVYxsOCXOQGJC+PsI07CDlkQBuyaerkTrg2R8Entq
+6W+BjPNJvzLMkQsJpx+eqxL7IeLqnx3TbswlmtIUE74sSXZTGc2Jib6JIh37nffP
+8B00mVNKoB54p3QaTUUYE+zEN95KySnJT+f8k6nVV4kzS5ckbPDbRR81WXS1LZEy
+HVGZRs0qt37NZ/8JIxCMEKWLPlNz+AbQxCKA9Y/d5t/6XfEEgzEc87VXI+4r41wM
+Uw98UYiNKAiVlxFEHaTGeOeoIlRdJBaw3Cwagfg2LrrgZi7L5cmjx3Gp1GE9f63M
+12pTtfvJd/QpW4eAg3AVX/o96aDvfLKURc/S5kF3NwWRhM/D8QidyuQlVFhle8uf
+b6EZIo6Rrcbj5NYh5mZjT9O5zXmCigzMY/gmZXW59493OM6Hjw3CNKSl+YXw9n7s
+YxjP7qQT/roG932s80r6957ao/b7hlG3KWBT1hqBTTSztOxLxu5DbFrSI0KTQd1i
+USqphHcbogeRuOlws0fYemVi3GcglZ98I8L/uO/oADaYJJm0K54V6TSOE8FUCAjS
+wE4Bo2ZY9CE4hS2uSLSSTcF3P9x//As2EcxMd8E3zEUcnxYqRm62wtTaDYnFQToY
+D3N9negkXLMhCArN/MvRbeKX67RHA514TTNCAlnvRZSlfcZI2oOKzT7VyyHsCELn
+VS/igvqI/2bOlj/wnIopKnxS+jEy4mWwTGp3ZZl5eVY7fG+uc0SsqLjjnWIWMPYm
+lFoiihT3N5m6vuTXcZpnVB7icLyS+WD/rgFwxjwFGranTbj3NHjzIOHVNDBrZSqf
+rZHlPIgmJph1IahFywRmQnN++iAPsYC+966Vsq9gyPzbUdljHWQ+tXkyxQeu4UKa
+Fjjf2ylG8Gt+wIovEnW+HNDLFSdFyyNjRj2rFOR8uX4=
+=hnsh
 -----END PGP MESSAGE-----
 ** mount_lab_local :crypt:
 :PROPERTIES:
@@ -6919,13 +7316,56 @@ QFzvBxvbGZy1FRE/FbTfNwWHzyk7Y9G8IBNLG12+JvhDh5ffyO9pm/5Z
 :TANGLE_FILE_NAME: ./ssh/.ssh/config
 :END:
 #+begin_src conf
-
 AddKeysToAgent yes
 
 Host calcmaitre
     User    pheringlake
     Port    22
-    Hostname    calc-maitre.grenoble.cnrs.fr
+    # Hostname    calc-maitre.grenoble.cnrs.fr
+    Hostname 147.173.23.140
+    HostKeyAlgorithms=+ssh-dss
+    ForwardAgent yes
+    ForwardX11 yes
+
+Host cartoline
+    User    pheringlake
+    Port    22
+    identityfile ~/.ssh/id_rsa.neel
+    # Hostname    cartoline.neel.cnrs.fr
+    Hostname 147.173.23.143
+    HostKeyAlgorithms=+ssh-dss
+    ForwardAgent yes
+    ForwardX11 yes
+    ProxyCommand ssh neel -W %h:%p
+
+Host cartolinehq
+    User    hqnom
+    Port    22
+    # Hostname    cartoline.neel.cnrs.fr
+    Hostname 147.173.23.143
+    identityfile ~/.ssh/id_rsa.neel
+    HostKeyAlgorithms=+ssh-dss
+    ForwardAgent yes
+    ForwardX11 yes
+
+Host cartolinehqhop
+    User    hqnom
+    Port    22
+    # Hostname    cartoline.neel.cnrs.fr
+    Hostname 147.173.23.143
+    identityfile ~/.ssh/id_rsa.neel
+    HostKeyAlgorithms=+ssh-dss
+    ForwardAgent yes
+    ForwardX11 yes
+    ProxyCommand ssh neel -W %h:%p
+    
+Host cartolineh
+    User    heringlake
+    Port    22
+    # Hostname    cartoline.neel.cnrs.fr
+    Hostname 147.173.23.143
+    identityfile ~/.ssh/id_rsa.neel
+    HostKeyAlgorithms=+ssh-dss
     ForwardAgent yes
     ForwardX11 yes
 
@@ -6964,6 +7404,13 @@ Host hop_rp_lab_67
     identityfile ~/.ssh/id_rsa.neel
     ProxyJump lab_forces
 
+Host office
+    User    philip.heringlake@neel
+    Port    22
+    Hostname    147.173.65.220
+    ForwardAgent yes
+    ForwardX11 yes
+    
 Host office_lin
     User    philiph
     Port    22 
@@ -7016,9 +7463,17 @@ Host rp65
     User root
 
 Host raspi_loc
-    Hostname 192.168.1.33
-    User pi
+    Hostname 192.168.0.30
+    User philip
     forwardx11 yes
+    identityfile ~/.ssh/id_rsa
+
+Host raspi_rem
+    Hostname muesli.hopto.org
+    Port 25
+    User philip
+    forwardx11 yes
+    identityfile ~/.ssh/id_rsa
 #+end_src
      
 ** known_hosts :crypt:
@@ -7085,6 +7540,7 @@ ToFo
 =93Y6
 -----END PGP MESSAGE-----
 * x
+** xinitrc
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./x/.xinitrc
 :END:
@@ -7162,6 +7618,298 @@ get_session(){
 exec $(get_session)
 
 #+end_src
+* xresources :full:manjaroi3:
+** base
+*** Non theme
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./x/.Xresources
+:END:
+
+#+begin_src conf
+Xft.dpi:       96
+Xft.antialias: true
+Xft.hinting:   true
+Xft.rgba:      rgb
+Xft.autohint:  false
+Xft.hintstyle: hintslight
+Xft.lcdfilter: lcddefault
+
+XTerm*background:        #222D31
+XTerm*foreground:        #d8d8d8
+XTerm*pointerColor:      #1ABB9B
+XTerm*faceName:          Fixed
+XTerm*faceSize:          11
+XTerm*reverseVideo:      on
+XTerm*selectToClipboard: true
+
+*background:                      #222D31
+*foreground:                      #d8d8d8
+*fading:                          8
+*fadeColor:                       black
+*cursorColor:                     #1ABB9B
+*pointerColorBackground:          #2B2C2B
+*pointerColorForeground:          #16A085
+
+!! black dark/light
+*color0:                          #222D31
+*color8:                          #585858
+
+!! red dark/light
+*color1:                          #ab4642
+*color9:                          #ab4642
+
+!! green dark/light
+*color2:                          #7E807E
+*color10:                         #8D8F8D
+
+!! yellow dark/light
+*color3:                          #f7ca88
+*color11:                         #f7ca88
+
+!! blue dark/light
+*color4:                          #7cafc2
+*color12:                         #7cafc2
+
+!! magenta dark/light
+*color5:                          #ba8baf
+*color13:                         #ba8baf
+
+!! cyan dark/light
+*color6:                          #1ABB9B
+*color14:                         #1ABB9B
+
+!! white dark/light
+*color7:                          #d8d8d8
+*color15:                         #f8f8f8
+
+Xcursor.theme: xcursor-breeze
+Xcursor.size:                     32
+
+URxvt.font:                       9x15,xft:TerminessTTFNerdFontMono
+
+! alternative font settings with 'terminus':
+! URxvt.font:      -xos4-terminus-medium-r-normal--16-160-72-72-c-80-iso10646-1
+! URxvt.bold.font: -xos4-terminus-bold-r-normal--16-160-72-72-c-80-iso10646-1
+!! terminus names see end of file!
+
+URxvt.depth:                      32
+! URxvt.background:                 [100]#222D31
+URxvt*scrollBar:                  false
+URxvt*mouseWheelScrollPage:       false
+URxvt*cursorBlink:                true
+URxvt*background:                 black
+URxvt*foreground:                 grey
+URxvt*saveLines:                  5000
+
+! for 'fake' transparency (without Compton) uncomment the following three lines
+! URxvt*inheritPixmap:            true
+! URxvt*transparent:              true
+! URxvt*shading:                  138
+
+! Normal copy-paste keybindings without perls
+URxvt.iso14755:                   false
+URxvt.keysym.Shift-Control-V:     eval:paste_clipboard
+URxvt.keysym.Shift-Control-C:     eval:selection_to_clipboard
+!Xterm escape codes, word by word movement
+URxvt.keysym.Control-Left:        \033[1;5D
+URxvt.keysym.Shift-Control-Left:  \033[1;6D
+URxvt.keysym.Control-Right:       \033[1;5C
+URxvt.keysym.Shift-Control-Right: \033[1;6C
+URxvt.keysym.Control-Up:          \033[1;5A
+URxvt.keysym.Shift-Control-Up:    \033[1;6A
+URxvt.keysym.Control-Down:        \033[1;5B
+URxvt.keysym.Shift-Control-Down:  \033[1;6B
+! Rxvt.perl-ext-common:             ...,clipboard
+! URxvt.keysym.M-C-c:               perl:clipboard:copy
+! URxvt.keysym.M-v:                 perl:clipboard:paste
+! URxvt.keysym.M-C-v:               perl:clipboard:paste_escaped
+! URxvt*termName:                   string
+! URxvt*geometry:                   geometry
+! URxvt*chdir:                      string
+! URxvt*loginShell:                 boolean
+! URxvt*multiClickTime:             number
+! URxvt*jumpScroll:                 boolean
+! URxvt*skipScroll:                 boolean
+! URxvt*pastableTabs:               boolean
+! URxvt*scrollstyle:                plain
+! URxvt*scrollBar_right:            boolean
+! URxvt*scrollBar_floating:         true
+! URxvt*scrollBar_align:            mode
+! URxvt*thickness:                  number
+! URxvt*scrollTtyOutput:            boolean
+! URxvt*scrollTtyKeypress:          boolean
+! URxvt*scrollWithBuffer:           boolean
+! URxvt*tintColor:                  !7DA55
+! URxvt*blurRadius:                 HxV
+! URxvt*fading:                     number
+! URxvt*fadeColor:                  color
+! URxvt*utmpInhibit:                boolean
+! URxvt*urgentOnBell:               boolean
+! URxvt*visualBell:                 boolean
+! URxvt*mapAlert:                   boolean
+! URxvt*meta8:                      boolean
+! URxvt*tripleclickwords:           boolean
+! URxvt*insecure:                   boolean
+! URxvt*cursorUnderline:            boolean
+! URxvt*pointerBlank:               boolean
+! URxvt*color0:                     color
+! URxvt*color1:                     color
+! URxvt*color2:                     color
+! URxvt*color3:                     color
+! URxvt*color4:                     color
+! URxvt*color5:                     color
+! URxvt*color6:                     color
+! URxvt*color7:                     color
+! URxvt*color8:                     color
+! URxvt*color9:                     color
+! URxvt*color10:                    color
+! URxvt*color11:                    color
+! URxvt*color12:                    color
+! URxvt*color13:                    color
+! URxvt*color14:                    color
+! URxvt*color15:                    color
+! URxvt*colorBD:                    color
+! URxvt*colorIT:                    color
+! URxvt*colorUL:                    color
+! URxvt*colorRV:                    color
+! URxvt*underlineColor:             color
+! URxvt*scrollColor:                color
+! URxvt*troughColor:                color
+! URxvt*highlightColor:             color
+! URxvt*highlightTextColor:         color
+! URxvt*cursorColor:                color
+! URxvt*cursorColor2:               color
+! URxvt*pointerColor:               color
+! URxvt*pointerColor2:              color
+! URxvt*borderColor:                color
+! URxvt*iconFile:                   file
+
+! URxvt*font:                       fontname
+! URxvt*boldFont:                   fontname
+! URxvt*italicFont:                 fontname
+! URxvt*boldItalicFont:             fontname
+! URxvt*intensityStyles:            boolean
+! URxvt*inputMethod:                name
+! URxvt*preeditType:                style
+! URxvt*imLocale:                   string
+! URxvt*imFont:                     fontname
+! URxvt*title:                      string
+! URxvt*iconName:                   string
+! URxvt*buffered:                   boolean
+! URxvt*depth:                      number
+! URxvt*visual:                     number
+! URxvt*transient-for:              windowid
+! URxvt*override-redirect:          boolean
+! URxvt*hold:                       boolean
+! URxvt*externalBorder:             number
+! URxvt*internalBorder:             number
+! URxvt*borderLess:                 true
+! URxvt*lineSpace:                  number
+! URxvt*letterSpace:                number
+! URxvt*skipBuiltinGlyphs:          boolean
+! URxvt*pointerBlankDelay:          number
+! URxvt*backspacekey:               string
+! URxvt*deletekey:                  string
+! URxvt*print-pipe:                 string
+! URxvt*modifier:                   modifier
+! URxvt*cutchars:                   string
+! URxvt*answerbackString:           string
+! URxvt*secondaryScreen:            boolean
+! URxvt*secondaryScroll:            boolean
+! URxvt*perl-lib:                   string
+! URxvt*perl-eval:                  perl-eval
+! URxvt*perl-ext-common:            string
+! URxvt*perl-ext:                   string
+! URxvt*iso14755:                   boolean
+! URxvt*iso14755_52:                boolean
+! URxvt*xrm:                        string
+! URxvt*keysym.sym:                 keysym
+! URxvt*background.border:          boolean
+! URxvt*background.expr:            string
+! URxvt*background.interval:        seconds
+! URxvt*bell-command:               string
+! URxvt*kuake.hotkey:               string
+! URxvt*matcher.button:             string
+! URxvt*matcher.launcher:           string
+! URxvt*matcher.launcher.*:         string
+! URxvt*matcher.pattern.*:          string
+! URxvt*matcher.rend.*:             string
+! URxvt*remote-clipboard.fetch:     string
+! URxvt*remote-clipboard.store:     string
+! URxvt*searchable-scrollback:      string
+! URxvt*selection-autotransform.*:  string
+! URxvt*selection-pastebin.cmd:     string
+! URxvt*selection-pastebin.url:     string
+! URxvt*selection.pattern-0:        string
+! URxvt*tab-bg:                     colour
+! URxvt*tab-fg:                     colour
+! URxvt*tabbar-bg:                  colour
+! URxvt*tabbar-fg:                  colour
+! URxvt*url-launcher:               string
+
+! The Terminus font uses the following X-names:
+! -xos4-terminus-medium-r-normal--12-120-72-72-c-60-iso10646-1
+! -xos4-terminus-medium-r-normal--14-140-72-72-c-80-iso10646-1
+! -xos4-terminus-medium-r-normal--16-160-72-72-c-80-iso10646-1
+! -xos4-terminus-medium-r-normal--20-200-72-72-c-100-iso10646-1
+! -xos4-terminus-medium-r-normal--22-220-72-72-c-110-iso10646-1
+! -xos4-terminus-medium-r-normal--24-240-72-72-c-120-iso10646-1
+! -xos4-terminus-medium-r-normal--28-280-72-72-c-140-iso10646-1
+! -xos4-terminus-medium-r-normal--32-320-72-72-c-160-iso10646-1
+! -xos4-terminus-bold-r-normal--12-120-72-72-c-60-iso10646-1
+! -xos4-terminus-bold-r-normal--14-140-72-72-c-80-iso10646-1
+! -xos4-terminus-bold-r-normal--16-160-72-72-c-80-iso10646-1
+! -xos4-terminus-bold-r-normal--20-200-72-72-c-100-iso10646-1
+! -xos4-terminus-bold-r-normal--24-240-72-72-c-120-iso10646-1
+! -xos4-terminus-bold-r-normal--28-280-72-72-c-140-iso10646-1
+! -xos4-terminus-bold-r-normal--32-320-72-72-c-160-iso10646-1
+
+#+end_src
+*** standard theme
+**** bright
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./x/.config/xthemes/tomorrow.light
+:END:
+#+begin_src conf  :mkdirp yes
+! special
+*.foreground:   #373b41
+*.background:   #ffffff
+*.cursorColor:  #373b41
+
+! black
+*.color0:       #1d1f21
+*.color8:       #969896
+
+! red
+*.color1:       #cc6666
+*.color9:       #cc6666
+
+! green
+*.color2:       #b5bd68
+*.color10:      #b5bd68
+
+! yellow
+*.color3:       #f0c674
+*.color11:      #f0c674
+
+! blue
+*.color4:       #81a2be
+*.color12:      #81a2be
+
+! magenta
+*.color5:       #b294bb
+*.color13:      #b294bb
+
+! cyan
+*.color6:       #8abeb7
+*.color14:      #8abeb7
+
+! white
+*.color7:       #c5c8c6
+*.color15:      #ffffff
+#+end_src
+** themes
+
 * systemd :full:
 
 ** emacs client :manjaroi3:
