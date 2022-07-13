@@ -1967,6 +1967,8 @@ for_window [class=".*"] title_format " %title"
 for_window [class="(?i)System-config-printer.py"] floating enable border normal
 for_window [class="(?i)arandr"] floating enable
 for_window [class="yakuake"] floating enable
+for_window [class="matplotlib"] floating enable
+for_window [title="Figure *"] floating enable
 for_window [class="kdeconnect.damon"] floating enable
 for_window [class="kcalc"] floating enable border pixel 1
 for_window [class="fiji-Main"] floating enable border pixel 1
@@ -2471,6 +2473,8 @@ for_window [class="GParted"] floating enable border normal
 for_window [title="i3_help"] floating enable sticky enable border normal
 for_window [class="Lightdm-settings"] floating enable
 for_window [class="Lxappearance"] floating enable sticky enable border normal
+for_window [class="matplotlib"] floating enable
+for_window [title="^Figure " class="^ $"] floating enable
 for_window [class="Manjaro-hello"] floating enable
 for_window [class="Manjaro Settings Manager"] floating enable border normal
 for_window [title="MuseScore: Play Panel"] floating enable
