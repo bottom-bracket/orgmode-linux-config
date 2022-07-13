@@ -52,7 +52,7 @@ if not return 'no'."
 #+RESULTS:
 : no
 
-#** making files executable
+** making files executable
 Org tangle will export files each time with standard permissions.
 In order to make them executable after tangling I need to add the ~:shebang
 #!/bin/bash~ header argument.
@@ -4356,7 +4356,7 @@ main = do
 #+END_SRC
 
 
-*** colors
+*** colors :manjaroi3:
 **** DoomOne
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./xmonad/lib/Colors/DoomOne.hs
