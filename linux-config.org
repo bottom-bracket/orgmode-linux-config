@@ -35,7 +35,7 @@ The tags are searched recursively, so it's recommended to tag
 the last subheading level. If it matches return the property
  value of the TANGLE_FILE_NAME or ('yes' by default)
 if not return 'no'."
-  (if (member (+org-get-global-property property-name) (org-get-tags))
+  (if (member (org-global-prop-value property-name) (org-get-tags))
         (let ((positive-return (org-entry-get nil "TANGLE_FILE_NAME" t)))
              (if positive-return positive-return "yes"))
     "no")
@@ -186,13 +186,13 @@ Bash setup
 Each file is under a different header that has a property defining the filename.
 Note that the ~header-args~ property needs to be set with ~:+:~ in order to add the
 argument to the globally set header argument. (see [[https://emacs.stackexchange.com/questions/60219/how-to-set-org-mode-header-properties-globally][How to set org-mode header properties globally? - Emacs Stack Exchange]])
-*** Bashrc
+*** Bashrc :manjaroi3:
 :PROPERTIES:
  :TANGLE_FILE_NAME: ./bash/.bashrc
 :END:
 call_printConfigLocation()
 
-**** Layout :essential:
+**** Layout :essential:manjaroi3:
 #+begin_src bash :shebang #!/bin/bash 
 # ~/.bashrc
 #
@@ -231,7 +231,7 @@ colors() {
 
 # Change the window title of X terminals
 case ${TERM} in
-	xterm*|rxvt*|Eterm*|aterm|kterm|gnome*|interix|konsole*)
+	xterm*|urxvt*|rxvt*|Eterm*|aterm|kterm|gnome*|interix|konsole*)
 		PROMPT_COMMAND='echo -ne "\033]0;${USER}@${HOSTNAME%%.*}:${PWD/#$HOME/\~}\007"'
 		;;
 	screen*)
@@ -287,7 +287,7 @@ fi
 unset use_color safe_term match_lhs sh
 #+end_src
 
-**** Aliases :essential:
+**** Aliases :essential:manjaroi3:
 #+begin_src bash :shebang #!/bin/bash
 alias cp="cp -i"                          # confirm before overwriting something
 alias df='df -h'                          # human-readable sizes
@@ -394,14 +394,10 @@ ranger() {
 #+end_src
 **** defaults
 #+begin_src bash :shebang #!/bin/bash
-#### Editor
-export EDITOR="/home/philip/.local/bin/emacsclient -t -a=\"\""
 
 #### QT5 Theming
 # export QT_QPA_PLATFORMTHEME=gtk2
 export QT_QPA_PLATFORMTHEME=qt5ct
-#### Terminal
-export TERMINAL="konsole"
 #### Emacs
 # PATH=$HOME/git/emacs28/src:$PATH
 alias emacs-restart="systemctl restart --user emacs"
@@ -414,14 +410,13 @@ export SCUFF_MATPROPFILE='/home/philip/Documents/Research/Simulations/Scuff-em/m
 export PYTHONPATH=${PYTHONPATH}:/home/philip/programs/gmsh/api
 export PATH="/home/philip/programs/julia:$PATH"
 
+export TERMINAL="urxvt" 
 ### mu
 export MAILDIR=/home/philip/.mail
 # alias yay="yay -Syu --sudoloop"
-export BROWSER="firefox"
-
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
 #+end_src
-*** bash profile :essential:
+*** bash profile :essential:manjaroi3:
 :PROPERTIES:
  :TANGLE_FILE_NAME: ./bash/.bash_profile 
 :END:
@@ -434,7 +429,7 @@ call_printConfigLocation()
 [[ -f ~/.bashrc ]] && . ~/.bashrc
 
 #### Terminal
-export TERMINAL=konsole
+export TERMINAL="urxvt" 
 #### QT5 Theming
 export QT_QPA_PLATFORMTHEME=qt5ct
 # export QT_QPA_PLATFORMTHEME=gtk2
@@ -442,24 +437,23 @@ export QT_QPA_PLATFORMTHEME=qt5ct
 export PATH="/home/philip/.pyenv/bin:$PATH"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
-export BROWSER=firefox
+export BROWSER="/usr/bin/chromium"
 
 
 ### SSH agent (needed for i3)
 export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
-
 #+end_src
-*** profile
+*** profile :essential:
 :PROPERTIES:
  :TANGLE_FILE_NAME: ./bash/.profile 
 :END:
 call_printConfigLocation()
 #+begin_src bash :shebang #!/bin/bash
-export EDITOR=/usr/bin/nvim
+export EDITOR=/home/philip/.local/bin/ec
 # export QT_QPA_PLATFORMTHEME="qt5ct"
 export QT_AUTO_SCREEN_SCALE_FA  CTOR=0
 export GTK2_RC_FILES="$HOME/.gtkrc-2.0"
-export BROWSER="/bin/firefox"
+export BROWSER="/usr/bin/chromium"
 # pyenv
 export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
@@ -468,18 +462,12 @@ eval "$(pyenv init --path)"
 #+end_src
 
 ** Zsh :manjaroi3:
-*** zshenv
+*** zshenv :manjaroi3:
 :PROPERTIES:
  :TANGLE_FILE_NAME: ./zsh/.zshenv 
 :END:
 call_printConfigLocation()
 #+begin_src bash :shebang #!/bin/bash
-#### Terminal
-export TERMINAL=konsole
-#### Editor
-export EDITOR="/home/philip/.local/bin/emacsclient -t -a=\"\""
-#####   pyenv
-export BROWSER=firefox
 
 #### biber
 export PATH="$PATH:/usr/bin/vendor_perl"
@@ -491,7 +479,7 @@ export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init --path)"
 #+end_src
-*** zshrc
+*** zshrc :manjaroi3:
 :PROPERTIES:
  :TANGLE_FILE_NAME: ./zsh/.zshrc 
 :END:
@@ -584,7 +572,7 @@ plugins=(git
 
 source $ZSH/oh-my-zsh.sh
 #+end_src
-**** My personal additions
+**** My personal additions :manjaroi3:
 #+begin_src bash :shebang #!/bin/bash
 ##### STUFF I ADDED
 export FZF_DEFAULT_COMMAND='fd --type f'
@@ -622,12 +610,88 @@ alias vim="nvim"
 cowfortune
 #+end_src
 
-*** zprofile
+***** Aliases
+#+begin_src bash :shebang #!/bin/bash
+alias cp="cp -i"                          # confirm before overwriting something
+alias df='df -h'                          # human-readable sizes
+alias free='free -m'                      # show sizes in MB
+alias np='nano -w PKGBUILD'
+alias more=less
+### other
+alias rsync="rsync -rP"                 # Always run rsync with progress and recursive
+alias gmsh="gmsh -fontsize 12"
+alias pwp="pyenv which python"          # Quick access to current python executable
+alias vim="nvim"
+alias rdesk1="rofi -modi \"Desktop:rofi_desktop.sh\" -show \"Desktop\"" # show rofi as file manager on desktop folder
+ondesk () {
+    target=$(realpath $1)
+    ln -s $target ~/Desktop/
+}
+
+rdesk () {
+    rofi -modi file-browser-extended -show file-browser-extended \
+    -file-browser-cmd "xdg-open"                  \
+    -file-browser-dir "~/Desktop"                 \
+    -file-browser-depth 1                         \
+    -file-browser-open-multi-key "kb-accept-alt"  \
+    -file-browser-open-custom-key "kb-custom-1"  \
+    -file-browser-path-sep "/"                    \
+    -file-browser-up-text ".."                    \
+    -file-browser-up-icon "go-previous"           \
+    -file-browser-oc-search-path                  \
+}
+#+end_src
+
+??
+#+begin_src bash :shebang #!/bin/bash
+
+xhost +local:root > /dev/null 2>&1
+
+complete -cf sudo
+
+#
+# # ex - archive extractor
+# # usage: ex <file>
+ex ()
+{
+  if [ -f $1 ] ; then
+    case $1 in
+      *.tar.bz2)   tar xjf $1   ;;
+      *.tar.gz)    tar xzf $1   ;;
+      *.bz2)       bunzip2 $1   ;;
+      *.rar)       unrar x $1     ;;
+      *.gz)        gunzip $1    ;;
+      *.tar)       tar xf $1    ;;
+      *.tbz2)      tar xjf $1   ;;
+      *.tgz)       tar xzf $1   ;;
+      *.zip)       unzip $1     ;;
+      *.Z)         uncompress $1;;
+      *.7z)        7z x $1      ;;
+      *)           echo "'$1' cannot be extracted via ex()" ;;
+    esac
+  else
+    echo "'$1' is not a valid file"
+  fi
+}
+
+#+end_src
+***** defaults
+#+begin_src bash :shebang #!/bin/bash
+#### Terminal
+export TERMINAL="urxvt" 
+#### Editor
+# export EDITOR="/home/philip/.local/bin/emacsclient -t -a=\"\""
+export EDITOR=/home/philip/.local/bin/ec
+export BROWSER="/usr/bin/chromium"
+#+end_src
+
+*** zprofile :manjaroi3:
 :PROPERTIES:
  :TANGLE_FILE_NAME: ./zsh/.zprofile 
 :END:
 call_printConfigLocation()
 #+begin_src bash
+#####   pyenv
 export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init --path)"
@@ -708,6 +772,7 @@ set -g @plugin 'tmux-plugins/tmux-sensible'
 # Initialize TMUX plugin manager (keep this line at the very bottom of tmux.conf)
 run '~/.tmux/plugins/tpm/tpm'
 #+end_src
+
 ** screen :essential:manjaroi3:
 :PROPERTIES:
  :TANGLE_FILE_NAME: ./screen/.screenrc
@@ -854,7 +919,6 @@ bind ^] paste [.]
 # screen -t local 0
 # screen -t mail 1 mutt
 # screen -t 40 2 rlogin server
-
 # caption always "%3n %t%? @%u%?%? [%h]%?%=%c"
 # hardstatus alwaysignore
 # hardstatus alwayslastline "%Lw"
@@ -869,7 +933,8 @@ bind ^] paste [.]
 # idle 30 blanker
 
 #+end_src
-* Ranger :full:
+
+* Ranger :full:manjaroi3:
 There are much more config options that i am actually not using (commands,
 rifle, scope). I'll just put the rc here
 ** rc
@@ -1610,6 +1675,16 @@ map S shell bash -c "cd %d; bash"
 map <C-d> shell dragon-drag-and-drop -a -x %p
 
 #+end_src
+** rifle
+:PROPERTIES:
+ :TANGLE_FILE_NAME: ./ranger/.config/ranger/rifle.conf
+:END:
+call_printConfigLocation()
+#+begin_src conf
+else = xdg-open "$1"
+label editor = "$EDITOR" -- "$@"
+label pager  = "$PAGER" -- "$@"
+#+end_src
 * git :full:manjaroi3:
 ** user data :crypt:
 :PROPERTIES:
@@ -1728,485 +1803,6 @@ a6uYs+QXjo97aGWdKU9A+23LdiDzw7PjEpIwVmRCbw==
 :TANGLE_FILE_NAME: ./i3/.i3/config
 :END:
 call_printConfigLocation()
-**** full
-#+begin_src conf
-# This file has been auto-generated by i3-config-wizard(1).
-# It will not be overwritten, so edit it as you like.
-#
-# Should you change your keyboard layout some time, delete
-# this file and re-run i3-config-wizard(1).
-#
-
-# i3 config file (v4)
-#
-# Please see https://i3wm.org/docs/userguide.html for a complete reference!
-
-set $mod Mod4
-
-# Theme colors
-
-set $bg-color 	         #2f343f
-set $inactive-bg-color   #2f343f
-set $text-color          #f3f4f5
-set $inactive-text-color #676E7D
-set $urgent-bg-color     #E53935
-
-# window colors
-#                       border              background         text                 indicator
-# client.focused          $bg-color           $bg-color          $text-color          #00ff00
-# client.unfocused        $inactive-bg-color $inactive-bg-color $inactive-text-color #00ff00
-# client.focused_inactive $inactive-bg-color $inactive-bg-color $inactive-text-color #00ff00
-# client.urgent           $urgent-bg-color    $urgent-bg-color   $text-color          #00ff00
-
-# class                 border  backgr. text    indicator child_border
-client.focused          #4c7899 #81A1C1 #2E3440 #2e9ef4   #81A1C1
-client.focused_inactive #333333 #5d6678 #ffffff #484e50   #5f676a
-client.unfocused        #333333 #2E3440 #888888 #292d2e   #2E3440
-# Font for window titles. Will also be used by the bar unless a different font
-# is used in the bar {} block below.
-font pango:Noto Sans 9
-# This font is widely installed, provides lots of unicode glyphs, right-to-left
-# text rendering and scalability on retina/hidpi displays (thanks to pango).
-#font pango:DejaVu Sans Mono 8
-
-# Use Mouse+$mod to drag floating windows
-floating_modifier $mod
-
-
-# The combination of xss-lock, nm-applet and pactl is a popular choice, so
-# they are included here as an example. Modify as you see fit.
-
-# xss-lock grabs a logind suspend inhibit lock and will use i3lock to lock the
-# screen before suspend. Use loginctl lock-session to lock your screen.
-exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
-
-# NetworkManager is the most popular way to manage wireless networks on Linux,
-# and nm-applet is a desktop environment-independent system tray GUI for it.
-exec --no-startup-id nm-applet
-exec --no-startup-id conky -c ~/.config/conky
-exec --no-startup-id conky -c ~/.config/conky_shortcuts
-
-# Use pactl to adjust volume in PulseAudio.
-set $refresh_i3status killall -SIGUSR1 i3status
-bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +10% && $refresh_i3status
-bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -10% && $refresh_i3status
-bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ toggle && $refresh_i3status
-bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOURCE@ toggle && $refresh_i3status
-#
-# Sreen brightness controls
-bindsym XF86MonBrightnessUp exec xbacklight -inc 10 # increase screen brightness
-bindsym XF86MonBrightnessDown exec xbacklight -dec 10 # decrease screen brightness
-
-# Use Mouse+$mod to drag floating windows to their wanted position
-floating_modifier $mod
-
-# start a terminal
-# bindsym $mod+Return exec i3-sensible-terminal
-bindsym $mod+Return exec --no-startup-id konsole
-
-# kill focused window
-bindsym $mod+Shift+q kill
-
-# start dmenu (a program launcher)
-bindsym $mod+Shift+d exec dmenu_run
-bindsym $mod+d exec --no-startup-id /home/philip/.local/bin/rofi_launcher
-# bindsym $mod_next+Return exec --no-startup-id "rofi -show-icons -modi windowcd,window,drun -show drun"
-bindsym $mod+Tab exec --no-startup-id "rofi -show-icons -modi windowcd#window#drun -show window -theme arthur"
- # There also is the (new) i3-dmenu-desktop which only displays applications
-# shipping a .desktop file. It is a wrapper around dmenu, so you need that
-# installed.
-# bindsym $mod+d exec --no-startup-id i3-dmenu-desktop
-
-# change focus
-# bindsym $mod+j focus left
-# bindsym $mod+k focus down
-# bindsym $mod+l focus up
-# bindsym $mod+semicolon focus right
-# hjkl focus
-bindsym $mod+h focus left
-bindsym $mod+j focus down
-bindsym $mod+k focus up
-bindsym $mod+l focus right
-
-
-# alternatively, you can use the cursor keys:
-bindsym $mod+Left focus left
-bindsym $mod+Down focus down
-bindsym $mod+Up focus up
-bindsym $mod+Right focus right
-
-# move focused window
-# bindsym $mod+Shift+j move left
-# bindsym $mod+Shift+k move down
-# bindsym $mod+Shift+l move up
-# bindsym $mod+Shift+semicolon move right
-# hjkl move
-bindsym $mod+Shift+h move left 100px
-bindsym $mod+Shift+j move down 100px
-bindsym $mod+Shift+k move up 100px
-bindsym $mod+Shift+l move right 100px
-
-# alternatively, you can use the cursor keys:
-bindsym $mod+Shift+Left move left
-bindsym $mod+Shift+Down move down
-bindsym $mod+Shift+Up move up
-bindsym $mod+Shift+Right move right
-
-# split in horizontal orientation
-bindsym $mod+semicolon split h
-
-# split in vertical orientation
-bindsym $mod+v split v
-
-# enter fullscreen mode for the focused container
-bindsym $mod+f fullscreen toggle
-
-# change container layout (stacked, tabbed, toggle split)
-bindsym $mod+s layout stacking
-bindsym $mod+w layout tabbed
-bindsym $mod+z layout toggle split
-
-# toggle tiling / floating
-bindsym $mod+Shift+space floating toggle
-
-# change focus between tiling / floating windows
-bindsym $mod+space focus mode_toggle
-
-# focus the parent container
-bindsym $mod+a focus parent
-
-# focus the child container
-#bindsym $mod+d focus child
-
-# Define names for default workspaces for which we configure key bindings later on.
-# We use variables to avoid repeating the names in multiple places.
-set $ws1 "1: "
-set $ws2 "2: "
-set $ws3 "3: "
-set $ws4 "4: "
-set $ws5 "5"
-set $ws6 "6"
-set $ws7 "7"
-set $ws8 "8"
-set $ws9 "9:"
-set $ws10 "10:  "
-
-# switch to workspace
-bindsym $mod+1 workspace number $ws1
-bindsym $mod+2 workspace number $ws2
-bindsym $mod+3 workspace number $ws3
-bindsym $mod+4 workspace number $ws4
-bindsym $mod+5 workspace number $ws5
-bindsym $mod+6 workspace number $ws6
-bindsym $mod+7 workspace number $ws7
-bindsym $mod+8 workspace number $ws8
-bindsym $mod+9 workspace number $ws9
-bindsym $mod+0 workspace number $ws10
-
-# move focused container to workspace
-bindsym $mod+Shift+1 move container to workspace number $ws1
-bindsym $mod+Shift+2 move container to workspace number $ws2
-bindsym $mod+Shift+3 move container to workspace number $ws3
-bindsym $mod+Shift+4 move container to workspace number $ws4
-bindsym $mod+Shift+5 move container to workspace number $ws5
-bindsym $mod+Shift+6 move container to workspace number $ws6
-bindsym $mod+Shift+7 move container to workspace number $ws7
-bindsym $mod+Shift+8 move container to workspace number $ws8
-bindsym $mod+Shift+9 move container to workspace number $ws9
-bindsym $mod+Shift+0 move container to workspace number $ws10
-
-# move workspace to other screen
-bindsym $mod+o move workspace to output right
-bindsym $mod+Shift+o move workspace to output up
-
-# assign windows to workspaces
-assign [class=Emacs] $ws1
-assign [class=Navigator|firefox] $ws2
-assign [class="Tor Browser"] $ws2
-assign [class=konsole|Terminator] $ws3
-assign [class=Spotify|Vlc] $ws3
-assign [class=Gimp*|Inkscape|Scribus] $ws4
-assign [class=matplotlib] $ws8
-#
-# reload the configuration file
-bindsym $mod+Shift+c reload
-# restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
-bindsym $mod+Shift+r restart
-# exit i3 (logs you out of your X session)
-bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -B 'Yes, exit i3' 'i3-msg exit'"
-
-# resize window (you can also use the mouse for that)
-mode "resize" {
-        # These bindings trigger as soon as you enter the resize mode
-
-        # Pressing left will shrink the window’s width.
-        # Pressing right will grow the window’s width.
-        # Pressing up will shrink the window’s height.
-        # Pressing down will grow the window’s height.
-        bindsym j resize shrink width 10 px or 10 ppt
-        bindsym k resize grow height 10 px or 10 ppt
-        bindsym l resize shrink height 10 px or 10 ppt
-        bindsym semicolon resize grow width 10 px or 10 ppt
-
-        # same bindings, but for the arrow keys
-        bindsym Left resize shrink width 10 px or 10 ppt
-        bindsym Down resize grow height 10 px or 10 ppt
-        bindsym Up resize shrink height 10 px or 10 ppt
-        bindsym Right resize grow width 10 px or 10 ppt
-
-        # back to normal: Enter or Escape or $mod+r
-        bindsym Return mode "default"
-        bindsym Escape mode "default"
-        bindsym $mod+r mode "default"
-}
-
-bindsym $mod+r mode "resize"
-
-# Open specific applications in floating mode
-for_window [class=".*"] title_format " %title"
-for_window [class="(?i)System-config-printer.py"] floating enable border normal
-for_window [class="(?i)arandr"] floating enable
-for_window [class="yakuake"] floating enable
-for_window [class="matplotlib"] floating enable
-for_window [title="Figure *"] floating enable
-for_window [class="kdeconnect.damon"] floating enable
-for_window [class="kcalc"] floating enable border pixel 1
-for_window [class="fiji-Main"] floating enable border pixel 1
-for_window [class="sun-awt-X11-XFramePeer"] floating enable border pixel 1
-for_window [class="Lxappearance"] floating enable sticky enable border normal
-for_window [class="Manjaro Settings Manager"] floating enable border normal
-for_window [class="Blueman-manager"] floating enable border normal
-for_window [class="Manjaro-hello"] floating enable
-for_window [class="Qtconfig-qt4"] floating enable sticky enable border normal
-for_window [class="Shutter"] floating disable
-for_window [class="Simple-scan"] floating enable border normal
-for_window [class="Timeset-gui"] floating enable border normal
-for_window [class="octopi"] floating enable
-for_window [class="qt5ct"] floating enable sticky enable border normal
-for_window [class="spectacle"] floating disable
-for_window [title="File Transfer*"] floating enable
-for_window [title="alsamixer"] floating enable border pixel 1
-for_window [class="(?i)^timeshift-gtk$"] floating disable
-
-
-
-
-# Start i3bar to display a workspace bar (plus the system information i3status
-# finds out, if available)
-
-bar {
-        i3bar_command i3bar
-        # status_command i3status
-        # use py3status
-        tray_output primary
-        status_command py3status -c ~/.config/i3/i3status.conf
-	colors {
-		background $bg-color
-	    	separator #757575
-		#                  border             background         text
-		focused_workspace  $bg-color          $bg-color          $text-color
-		inactive_workspace $inactive-bg-color $inactive-bg-color $inactive-text-color
-		urgent_workspace   $urgent-bg-color   $urgent-bg-color   $text-color
-	}
-}
-# hide/unhide i3status bar
-bindsym $mod+b bar mode toggle
-
-exec_always --no-startup-id feh --bg-scale /home/philip/Pictures/wallpapers/wallpaper1.jpg /home/philip/Pictures/wallpapers/wallpaper1.jpg
-
-hide_edge_borders both
-
-##### lock stuff
-set $Locker i3lock && sleep 1
-
-set $mode_system System (l) lock, (e) logout, (s) suspend, (h) hibernate, (r) reboot, (Shift+s) shutdown
-mode "$mode_system" {
-    bindsym l exec --no-startup-id $Locker, mode "default"
-    bindsym e exec --no-startup-id i3-msg exit, mode "default"
-    bindsym s exec --no-startup-id $Locker && systemctl suspend, mode "default"
-    bindsym h exec --no-startup-id $Locker && systemctl hibernate, mode "default"
-    bindsym r exec --no-startup-id systemctl reboot, mode "default"
-    bindsym Shift+s exec --no-startup-id systemctl poweroff -i, mode "default"
-
-    # back to normal: Enter or Escape
-    bindsym Return mode "default"
-    bindsym Escape mode "default"
-}
-
-bindsym $mod+p mode "$mode_system"
-
-### launch emacs
-bindsym $mod+e exec --no-startup-id /home/philip/.local/bin/run_emacs_client.sh
-
-### jump to urgent window
-bindsym $mod+x [urgent=latest] focus
-
-# read 1 character and mark the current window with this character
-bindsym $mod+m exec i3-input -F 'mark %s' -l 1 -P 'Mark: '
-
-# read 1 character and go to the window with the character
-bindsym $mod+g exec i3-input -F '[con_mark="%s"] focus' -l 1 -P 'Goto: '
-
-# start authenticitation service (should be started by xstart but is not...)
-exec --no-startup-id /usr/lib/polkit-kde-authentication-agent-1 
-
-# start picom 
-exec --no-startup-id picom -b
-
-# alttab for alt-tab window switching
-exec --no-startup-id alttab -fg "#d58681" -bg "#4a4a4a" -frame "#eb564d" -t 128x150 -i 127x64
-
-# run dunst as notification service
-exec dunst
-
-# add a blueman applet to bar
-exec --no-startup-id blueman-applet
-
-# audio applet icon
-exec --no-startup-id pasystray
-
-# run yakuake drop down terminal
-exec --no-startup-id yakuake
-
-# gaps # only works with i3-gaps  installed
-#
-
-# You can also use any non-zero value if you'd like to have a border
-for_window [class=".*"] border pixel 0
-
-# Configuration command (works at runtime)
-#gaps inner|outer|horizontal|vertical|top|right|bottom|left current|all set|plus|minus|toggle <px>
-# Gaps
-gaps inner 8
-gaps outer -4
-# Only enable gaps on a workspace when there is at least one container
-smart_gaps on
-# Activate smart borders (only when there are effectively no gaps)
-smart_borders no_gaps
-### gaps keybindings from wiki
-###
-set $mode_gaps Gaps: (o)uter, (i)nner, (h)orizontal, (v)ertical, (t)op, (r)ight, (b)ottom, (l)eft
-set $mode_gaps_outer Outer Gaps: +|-|0 (local), Shift + +|-|0 (global)
-set $mode_gaps_inner Inner Gaps: +|-|0 (local), Shift + +|-|0 (global)
-set $mode_gaps_horiz Horizontal Gaps: +|-|0 (local), Shift + +|-|0 (global)
-set $mode_gaps_verti Vertical Gaps: +|-|0 (local), Shift + +|-|0 (global)
-set $mode_gaps_top Top Gaps: +|-|0 (local), Shift + +|-|0 (global)
-set $mode_gaps_right Right Gaps: +|-|0 (local), Shift + +|-|0 (global)
-set $mode_gaps_bottom Bottom Gaps: +|-|0 (local), Shift + +|-|0 (global)
-set $mode_gaps_left Left Gaps: +|-|0 (local), Shift + +|-|0 (global)
-bindsym $mod+Shift+g mode "$mode_gaps"
-
-mode "$mode_gaps" {
-        bindsym o      mode "$mode_gaps_outer"
-        bindsym i      mode "$mode_gaps_inner"
-        bindsym h      mode "$mode_gaps_horiz"
-        bindsym v      mode "$mode_gaps_verti"
-        bindsym t      mode "$mode_gaps_top"
-        bindsym r      mode "$mode_gaps_right"
-        bindsym b      mode "$mode_gaps_bottom"
-        bindsym l      mode "$mode_gaps_left"
-        bindsym Return mode "$mode_gaps"
-        bindsym Escape mode "default"
-}
-
-mode "$mode_gaps_outer" {
-        bindsym plus  gaps outer current plus 5
-        bindsym minus gaps outer current minus 5
-        bindsym 0     gaps outer current set 0
-
-        bindsym Shift+plus  gaps outer all plus 5
-        bindsym Shift+minus gaps outer all minus 5
-        bindsym Shift+0     gaps outer all set 0
-
-        bindsym Return mode "$mode_gaps"
-        bindsym Escape mode "default"
-}
-mode "$mode_gaps_inner" {
-        bindsym plus  gaps inner current plus 5
-        bindsym minus gaps inner current minus 5
-        bindsym 0     gaps inner current set 0
-
-        bindsym Shift+plus  gaps inner all plus 5
-        bindsym Shift+minus gaps inner all minus 5
-        bindsym Shift+0     gaps inner all set 0
-
-        bindsym Return mode "$mode_gaps"
-        bindsym Escape mode "default"
-}
-mode "$mode_gaps_horiz" {
-        bindsym plus  gaps horizontal current plus 5
-        bindsym minus gaps horizontal current minus 5
-        bindsym 0     gaps horizontal current set 0
-
-        bindsym Shift+plus  gaps horizontal all plus 5
-        bindsym Shift+minus gaps horizontal all minus 5
-        bindsym Shift+0     gaps horizontal all set 0
-
-        bindsym Return mode "$mode_gaps"
-        bindsym Escape mode "default"
-}
-mode "$mode_gaps_verti" {
-        bindsym plus  gaps vertical current plus 5
-        bindsym minus gaps vertical current minus 5
-        bindsym 0     gaps vertical current set 0
-
-        bindsym Shift+plus  gaps vertical all plus 5
-        bindsym Shift+minus gaps vertical all minus 5
-        bindsym Shift+0     gaps vertical all set 0
-
-        bindsym Return mode "$mode_gaps"
-        bindsym Escape mode "default"
-}
-mode "$mode_gaps_top" {
-        bindsym plus  gaps top current plus 5
-        bindsym minus gaps top current minus 5
-        bindsym 0     gaps top current set 0
-
-        bindsym Shift+plus  gaps top all plus 5
-        bindsym Shift+minus gaps top all minus 5
-        bindsym Shift+0     gaps top all set 0
-
-        bindsym Return mode "$mode_gaps"
-        bindsym Escape mode "default"
-}
-mode "$mode_gaps_right" {
-        bindsym plus  gaps right current plus 5
-        bindsym minus gaps right current minus 5
-        bindsym 0     gaps right current set 0
-
-        bindsym Shift+plus  gaps right all plus 5
-        bindsym Shift+minus gaps right all minus 5
-        bindsym Shift+0     gaps right all set 0
-
-        bindsym Return mode "$mode_gaps"
-        bindsym Escape mode "default"
-}
-mode "$mode_gaps_bottom" {
-        bindsym plus  gaps bottom current plus 5
-        bindsym minus gaps bottom current minus 5
-        bindsym 0     gaps bottom current set 0
-
-        bindsym Shift+plus  gaps bottom all plus 5
-        bindsym Shift+minus gaps bottom all minus 5
-        bindsym Shift+0     gaps bottom all set 0
-
-        bindsym Return mode "$mode_gaps"
-        bindsym Escape mode "default"
-}
-mode "$mode_gaps_left" {
-        bindsym plus  gaps left current plus 5
-        bindsym minus gaps left current minus 5
-        bindsym 0     gaps left current set 0
-
-        bindsym Shift+plus  gaps left all plus 5
-        bindsym Shift+minus gaps left all minus 5
-        bindsym Shift+0     gaps left all set 0
-
-        bindsym Return mode "$mode_gaps"
-        bindsym Escape mode "default"
-}
-
-#+end_src
 **** manjaro i3 :manjaroi3:
 #+begin_src conf
 # i3 config file (v4)
@@ -2226,9 +1822,9 @@ default_floating_border normal
 hide_edge_borders none
 
 # change borders
-bindsym $mod+u border none
-bindsym $mod+y border pixel 1
-bindsym $mod+n border normal
+bindsym $mod+Shift+u border none
+bindsym $mod+Shift+y border pixel 1
+bindsym $mod+Shift+n border normal
 
 # Font for window titles. Will also be used by the bar unless a different font
 # is used in the bar {} block below.
@@ -2238,8 +1834,8 @@ font xft:URWGothic-Book 11
 floating_modifier $mod
 
 # start a terminal
-bindsym $mod+Return exec terminal
-bindsym $mod+Shift+Return exec terminal -name floating
+bindsym $mod+Return exec urxvt
+bindsym $mod+Shift+Return exec urxvt -name urxvtf
 
 # kill focused window
 bindsym $mod+Shift+q kill
@@ -2276,14 +1872,17 @@ bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOU
 # bindsym XF86MonBrightnessDown exec "xbacklight -dec 10; notify-send 'brightness down'"
 
 # Start Applications
-bindsym $mod+Ctrl+b exec terminal -e 'bmenu'
-bindsym $mod+F2 exec firefox
+bindsym $mod+Ctrl+b exec urxvt -e 'bmenu'
+bindsym $mod+F2 exec chromium
 bindsym $mod+F3 exec thunar
 bindsym $mod+Ctrl+F3 exec ranger
 bindsym $mod+$mod1+F3 exec pcmanfm_pkexe
-bindsym $mod+F4 exec --no-startup-id /home/philip/.local/bin/run_emacs_client.sh
+## Open Emacs scratch buffer as floating window (ec opens with different window class name than emacsclient)
+bindsym $mod+F4 exec --no-startup-id /home/philip/.local/bin/ecf
+for_window [title="Emacsf"] floating enable border pixel 1
+
 bindsym $mod+Shift+F4 exec "emacsclient --eval '(emacs-everywhere)'"
-bindsym $mod+F5 exec terminal -e 'mocp'
+bindsym $mod+F5 exec urxvt -e 'mocp'
 bindsym $mod+t exec --no-startup-id pkill picom
 bindsym $mod+Ctrl+t exec --no-startup-id picom -b
 bindsym $mod+Shift+d --release exec "killall dunst; exec notify-send 'restart dunst'"
@@ -2293,7 +1892,7 @@ bindsym Ctrl+Shift+Print --release exec --no-startup-id i3-scrot -s
 # bindsym $mod+Shift+m exec xdg-open /usr/share/doc/manjaro/i3_help.pdf
 bindsym $mod+Ctrl+x --release exec --no-startup-id xkill
 bindsym $mod+Shift+d exec "~/.emacs_anywhere/bin/run"
-bindsym $mod+Ctrl+i exec terminal -name i3cheat -e /home/philip/.local/bin/i3cheatsheet.sh
+bindsym $mod+Ctrl+i exec urxvt -name i3cheat -e /home/philip/.local/bin/i3cheatsheet.sh
 
                              
 focus_follows_mouse no
@@ -2387,7 +1986,7 @@ set $ws1 1
 set $ws2 "2:"
 set $ws3 3
 set $ws4 "4:"
-set $ws5 "5"
+set $ws5 5
 set $ws6 6
 set $ws7 7
 set $ws8 8
@@ -2453,10 +2052,11 @@ bindsym $mod+Shift+m exec i3l swap container with previous
 # assign [class="Pcmanfm"] $ws3
 # assign [class="Skype"] $ws5
 assign [class="Emacs" title=" *mu4e-main* – Doom Emacs"] $ws5 
-assign [class=Emacs] $ws1
+assign [class=Emacs title="^(?!Emacsf).*$"] $ws1
 assign [class=Navigator|firefox] $ws2
+assign [class=Navigator|chromium] $ws2
 # assign [class="Pcmanfm"] $ws3
-assign [class=urxvt] $ws3
+assign [class="^URxvt" instance="^(?!urxvtf).*$"] $ws3
 # assign [class=Spotify|Vlc] $ws5
 assign [class=Gimp*|Inkscape|Scribus] $ws4
 assign [class=matplotlib] $ws8
@@ -2494,7 +2094,7 @@ for_window [class="Xfburn"] floating enable
 for_window [class="yakuake"] floating enable
 for_window [class="tilda"] floating enable
 for_window [title="i3cheatsheet.sh"] floating enable
-for_window [class="URxvt" instance="floating"] floating enable
+for_window [class="URxvt" instance="urxvtf"] floating enable
 for_window [class="Shutter"] floating disable
 
 
@@ -2543,7 +2143,7 @@ bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcu
 bindsym $mod+0 mode "$mode_system"
 set $mode_system (l)ock, (e)xit, switch_(u)ser, (s)uspend, (h)ibernate, (r)eboot, (Shift+s)hutdown
 mode "$mode_system" {
-    bindsym l exec --no-startup-id i3exit lock, mode "default"
+    bindsym l exec --no-startup-id "i3lock --blur 10" , mode "default"
     bindsym s exec --no-startup-id i3exit suspend, mode "default"
     bindsym u exec --no-startup-id i3exit switch_user, mode "default"
     bindsym e exec --no-startup-id i3exit logout, mode "default"
@@ -2581,7 +2181,7 @@ mode "resize" {
 }
 
 # Lock screen
-bindsym $mod+9 exec --no-startup-id blurlock
+bindsym $mod+9 exec --no-startup-id "i3lock --blur 10"
 
 # Autostart applications
 exec --no-startup-id /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
@@ -2597,10 +2197,11 @@ exec --no-startup-id blueman-applet
 exec_always --no-startup-id sbxkb
 exec --no-startup-id start_conky_maia
 # exec --no-startup-id start_conky_green
-exec --no-startup-id xautolock -time 10 -locker blurlock
+exec --no-startup-id xautolock -time 10 -locker "i3lock --blur 10"
+
 exec_always --no-startup-id ff-theme-util
 exec_always --no-startup-id fix_xcursor
-exec_always --no-startup-id "setxkbmap eu"
+exec_always --no-startup-id "setxkbmap eu -option caps:none"
 exec_always --no-startup-id "rclone mount --daemon gdrive: /home/philip/Documents/gdrive"
 exec_always --no-startup-id "rclone mount --daemon \"mailbox drive:/Userstore/Philip Heringlake/\" \"/home/philip/Documents/Mailbox Drive\" "
                             # ;exec notify-send 'mount google drive'
@@ -3637,7 +3238,7 @@ configuration {
 ktheme: "arthur";
 kb-remove-to-eol: "";
 kb-accept-entry: "Control+m,Return,KP_Enter";
-kb-row-up: "Up,Control+k,Control+p,ISO_Left_Tab";
+kb-row-up: "Up,Control+k,Control+p";
 kb-row-down: "Down,Control+j,Control+n";
 }
 #+end_src
@@ -4716,7 +4317,7 @@ the color scheme.
 *** master
 This part is tangled in all configurations
 #+name: xmobar-master
-#+begin_src haskell :noweb yes :tangle nil
+#+begin_src haskell :noweb yes :tangle no
 -- Xmobar (http://projects.haskell.org/xmobar/)
 -- Adapted from dtos
 -- Dependencies: 
@@ -4787,13 +4388,13 @@ Config { font            = "xft:Ubuntu:weight=bold:pixelsize=11:antialias=true:h
 :bgcolor: "#282c34"
 :END:
 #+name: xmobar-bgfgcolor
-#+begin_src haskell :tangle nil
+#+begin_src haskell :tangle no
 , bgColor      = "#282c34"
 , fgColor      = "#ff6c6b"
 #+end_src
 
 #+NAME: xmobar-template
-#+begin_src haskell :tangle nil
+#+begin_src haskell :tangle no
        , template = " <action=`dm-run`><icon=haskell_20.xpm/> </action>   <fc=#666666>|</fc> %UnsafeStdinReader% }{ <box type=Bottom width=2 mb=2 color=#51afef><fc=#51afef>%penguin%  %kernel%</fc></box>    <box type=Bottom width=2 mb=2 color=#ecbe7b><fc=#ecbe7b><action=`urxvt -e htop`>%cpu%</action></fc></box>    <box type=Bottom width=2 mb=2 color=#ff6c6b><fc=#ff6c6b><action=`urxvt -e htop`>%memory%</action></fc></box>    <box type=Bottom width=2 mb=2 color=#a9a1e1><fc=#a9a1e1>%disku%</fc></box>    <box type=Bottom width=2 mb=2 color=#98be65><fc=#98be65>%uparrow%  %uptime%</fc></box>    <box type=Bottom width=2 mb=2 color=#c678dd><fc=#c678dd>%bell%  <action=`urxvt -e sudo pacman -Syu`>%pacupdate%</action></fc></box>   <box type=Bottom width=2 mb=2 color=#da8548><fc=#da8548>%baticon%  %battery%</fc></box>    <box type=Bottom width=2 mb=2 color=#46d9ff><fc=#46d9ff><action=`emacsclient -c -a 'emacs' --eval '(doom/window-maximize-buffer(dt/year-calendar))'`>%date%</action></fc></box> %trayerpad%"
 #+end_src
 #+begin_src haskell :noweb yes
@@ -4805,13 +4406,13 @@ Config { font            = "xft:Ubuntu:weight=bold:pixelsize=11:antialias=true:h
 :TANGLE_FILE_NAME: ./xmobar/.config/dracula-xmobar
 :END:
 #+name: xmobar-bgfgcolor
-#+begin_src haskell :tangle nil
+#+begin_src haskell :tangle no
 , bgColor      = "#282a36"
 , fgColor      = "#f8f8f2"
 #+end_src
 
 #+NAME: xmobar-template
-#+begin_src haskell :tangle nil
+#+begin_src haskell :tangle no
 , template = " <action=`dm-run`><icon=haskell_20.xpm/> </action>   <fc=#666666>|</fc> %UnsafeStdinReader% }{ <box type=Bottom width=2 mb=2 color=#bd93f9><fc=#bd93f9>%penguin%  %kernel%</fc></box>    <box type=Bottom width=2 mb=2 color=#f1fa8c><fc=#f1fa8c><action=`urxvt -e htop`>%cpu%</action></fc></box>    <box type=Bottom width=2 mb=2 color=#ff5555><fc=#ff5555><action=`urxvt -e htop`>%memory%</action></fc></box>    <box type=Bottom width=2 mb=2 color=#5af78e><fc=#5af78e>%disku%</fc></box>    <box type=Bottom width=2 mb=2 color=#ff79c6><fc=#ff79c6>%uparrow%  %uptime%</fc></box>    <box type=Bottom width=2 mb=2 color=#8be9fd><fc=#8be9fd>%bell%  <action=`urxvt -e sudo pacman -Syu`>%pacupdate%</action></fc></box>   <box type=Bottom width=2 mb=2 color=#ff6e67><fc=#ff6e67>%baticon%  %battery%</fc></box>    <box type=Bottom width=2 mb=2 color=#caa9fa><fc=#caa9fa><action=`emacsclient -c -a 'emacs' --eval '(doom/window-maximize-buffer(dt/year-calendar))'`>%date%</action></fc></box> %trayerpad%"
 #+end_src
 #+begin_src haskell :noweb yes
@@ -4823,13 +4424,13 @@ Config { font            = "xft:Ubuntu:weight=bold:pixelsize=11:antialias=true:h
 :TANGLE_FILE_NAME: ./xmobar/.config/gruvbox-dark-xmobar
 :END:
 #+name: xmobar-bgfgcolor
-#+begin_src haskell :tangle nil
+#+begin_src haskell :tangle no
 , bgColor      = "#282828"
 , fgColor      = "#ebdbb2"
 #+end_src
 
 #+NAME: xmobar-template
-#+begin_src haskell :tangle nil
+#+begin_src haskell :tangle no
 , template = " <action=`dm-run`><icon=haskell_20.xpm/> </action>   <fc=#666666>|</fc> %UnsafeStdinReader% }{ <box type=Bottom width=2 mb=2 color=#d3869b><fc=#d3869b>%penguin%  %kernel%</fc></box>    <box type=Bottom width=2 mb=2 color=#b8bb26><fc=#b8bb26><action=`urxvt -e htop`>%cpu%</action></fc></box>    <box type=Bottom width=2 mb=2 color=#458588><fc=#458588><action=`urxvt -e htop`>%memory%</action></fc></box>    <box type=Bottom width=2 mb=2 color=#d79921><fc=#d79921>%disku%</fc></box>    <box type=Bottom width=2 mb=2 color=#b16286><fc=#b16286>%uparrow%  %uptime%</fc></box>    <box type=Bottom width=2 mb=2 color=#689d6a><fc=#689d6a>%bell%  <action=`urxvt -e sudo pacman -Syu`>%pacupdate%</action></fc></box>   <box type=Bottom width=2 mb=2 color=#fb4934><fc=#fb4934>%baticon%  %battery%</fc></box>    <box type=Bottom width=2 mb=2 color=#83a598><fc=#83a598><action=`emacsclient -c -a 'emacs' --eval '(doom/window-maximize-buffer(dt/year-calendar))'`>%date%</action></fc></box> %trayerpad%"
 #+end_src
 #+begin_src haskell :noweb yes
@@ -4841,13 +4442,13 @@ Config { font            = "xft:Ubuntu:weight=bold:pixelsize=11:antialias=true:h
 :TANGLE_FILE_NAME: ./xmobar/.config/monokai-pro-xmobar
 :END:
 #+name: xmobar-bgfgcolor
-#+begin_src haskell :tangle nil
+#+begin_src haskell :tangle no
 , bgColor      = "#2D2A2E"
 , fgColor      = "#FCFCFA"
 #+end_src
 
 #+NAME: xmobar-template
-#+begin_src haskell :tangle nil
+#+begin_src haskell :tangle no
 , template = " <action=`dm-run`><icon=haskell_20.xpm/> </action>   <fc=#666666>|</fc> %UnsafeStdinReader% }{ <box type=Bottom width=2 mb=2 color=#FF6188><fc=#FF6188>%penguin%  %kernel%</fc></box>    <box type=Bottom width=2 mb=2 color=#A9DC76><fc=#A9DC76><action=`urxvt -e htop`>%cpu%</action></fc></box>    <box type=Bottom width=2 mb=2 color=#FC9867><fc=#FC9867><action=`urxvt -e htop`>%memory%</action></fc></box>    <box type=Bottom width=2 mb=2 color=#FFD866><fc=#FFD866>%disku%</fc></box>    <box type=Bottom width=2 mb=2 color=#AB9DF2><fc=#AB9DF2>%uparrow%  %uptime%</fc></box>    <box type=Bottom width=2 mb=2 color=#78DCE8><fc=#78DCE8>%bell%  <action=`urxvt -e sudo pacman -Syu`>%pacupdate%</action></fc></box>   <box type=Bottom width=2 mb=2 color=#FF6188><fc=#FF6188>%baticon%  %battery%</fc></box>    <box type=Bottom width=2 mb=2 color=#A9DC76><fc=#A9DC76><action=`emacsclient -c -a 'emacs' --eval '(doom/window-maximize-buffer(dt/year-calendar))'`>%date%</action></fc></box> %trayerpad%"
 #+end_src
 #+begin_src haskell :noweb yes
@@ -4858,13 +4459,13 @@ Config { font            = "xft:Ubuntu:weight=bold:pixelsize=11:antialias=true:h
 :TANGLE_FILE_NAME: ./xmobar/.config/nord-xmobar
 :END:
 #+name: xmobar-bgfgcolor
-#+begin_src haskell :tangle nil
+#+begin_src haskell :tangle no
 , bgColor      = "#2E3440"
 , fgColor      = "#D8DEE9"
 #+end_src
 
 #+NAME: xmobar-template
-#+begin_src haskell :tangle nil
+#+begin_src haskell :tangle no
 , template = " <action=`dm-run`><icon=haskell_20.xpm/> </action>   <fc=#666666>|</fc> %UnsafeStdinReader% }{ <box type=Bottom width=2 mb=2 color=#8FBCBB><fc=#8FBCBB>%penguin%  %kernel%</fc></box>    <box type=Bottom width=2 mb=2 color=#A3BE8C><fc=#A3BE8C><action=`urxvt -e htop`>%cpu%</action></fc></box>    <box type=Bottom width=2 mb=2 color=#81A1C1><fc=#81A1C1><action=`urxvt -e htop`>%memory%</action></fc></box>    <box type=Bottom width=2 mb=2 color=#EBCB8B><fc=#EBCB8B>%disku%</fc></box>    <box type=Bottom width=2 mb=2 color=#B48EAD><fc=#B48EAD>%uparrow%  %uptime%</fc></box>    <box type=Bottom width=2 mb=2 color=#88C0D0><fc=#88C0D0>%bell%  <action=`urxvt -e sudo pacman -Syu`>%pacupdate%</action></fc></box>   <box type=Bottom width=2 mb=2 color=#BF616A><fc=#BF616A>%baticon%  %battery%</fc></box>    <box type=Bottom width=2 mb=2 color=#A3BE8C><fc=#A3BE8C><action=`emacsclient -c -a 'emacs' --eval '(doom/window-maximize-buffer(dt/year-calendar))'`>%date%</action></fc></box> %trayerpad%"
 #+end_src
 #+begin_src haskell :noweb yes
@@ -4876,13 +4477,13 @@ Config { font            = "xft:Ubuntu:weight=bold:pixelsize=11:antialias=true:h
 :TANGLE_FILE_NAME: ./xmobar/.config/oceanic-next-xmobar
 :END:
 #+name: xmobar-bgfgcolor
-#+begin_src haskell :tangle nil
+#+begin_src haskell :tangle no
        , bgColor      = "#1b2b34"
        , fgColor      = "#ffffff"
 #+end_src
 
 #+NAME: xmobar-template
-#+begin_src haskell :tangle nil
+#+begin_src haskell :tangle no
        , template = " <action=`dm-run`><icon=haskell_20.xpm/> </action>   <fc=#666666>|</fc> %UnsafeStdinReader% }{ <box type=Bottom width=2 mb=2 color=#EC5f67><fc=#EC5f67>%penguin%  %kernel%</fc></box>    <box type=Bottom width=2 mb=2 color=#99C794><fc=#99C794><action=`urxvt -e htop`>%cpu%</action></fc></box>    <box type=Bottom width=2 mb=2 color=#FAC863><fc=#FAC963><action=`urxvt -e htop`>%memory%</action></fc></box>    <box type=Bottom width=2 mb=2 color=#6699cc><fc=#6699cc>%disku%</fc></box>    <box type=Bottom width=2 mb=2 color=#c594c5><fc=#c594c5>%uparrow%  %uptime%</fc></box>    <box type=Bottom width=2 mb=2 color=#5fb3b3><fc=#5fb3b3>%bell%  <action=`urxvt -e sudo pacman -Syu`>%pacupdate%</action></fc></box>   <box type=Bottom width=2 mb=2 color=#EC5f67><fc=#EC5f67>%baticon%  %battery%</fc></box>    <box type=Bottom width=2 mb=2 color=#99C794><fc=#99C794><action=`emacsclient -c -a 'emacs' --eval '(doom/window-maximize-buffer(dt/year-calendar))'`>%date%</action></fc></box> %trayerpad%"
 #+end_src
 #+begin_src haskell :noweb yes
@@ -4894,13 +4495,13 @@ Config { font            = "xft:Ubuntu:weight=bold:pixelsize=11:antialias=true:h
 :TANGLE_FILE_NAME: ./xmobar/.config/palenight-xmobar
 :END:
 #+name: xmobar-bgfgcolor
-#+begin_src haskell :tangle nil
+#+begin_src haskell :tangle no
        , bgColor      = "#292d3e"
        , fgColor      = "#f07178"
 #+end_src
 
 #+NAME: xmobar-template
-#+begin_src haskell :tangle nil
+#+begin_src haskell :tangle no
        , template = " <action=`dm-run`><icon=haskell_20.xpm/> </action>   <fc=#666666>|</fc> %UnsafeStdinReader% }{ <box type=Bottom width=2 mb=2 color=#82aaff><fc=#82aaff>%penguin%  %kernel%</fc></box>    <box type=Bottom width=2 mb=2 color=#ffcb6b><fc=#ffcb6b><action=`urxvt -e htop`>%cpu%</action></fc></box>    <box type=Bottom width=2 mb=2 color=#f07178><fc=#f07178><action=`urxvt -e htop`>%memory%</action></fc></box>    <box type=Bottom width=2 mb=2 color=#e1acff><fc=#e1acff>%disku%</fc></box>    <box type=Bottom width=2 mb=2 color=#c3e88d><fc=#c3e88d>%uparrow%  %uptime%</fc></box>    <box type=Bottom width=2 mb=2 color=#c792ea><fc=#c792ea>%bell%  <action=`urxvt -e sudo pacman -Syu`>%pacupdate%</action></fc></box>   <box type=Bottom width=2 mb=2 color=#ffe585><fc=#ffe585>%baticon%  %battery%</fc></box>    <box type=Bottom width=2 mb=2 color=#a3f7ff><fc=#a3f7ff><action=`emacsclient -c -a 'emacs' --eval '(doom/window-maximize-buffer(dt/year-calendar))'`>%date%</action></fc></box> %trayerpad%"
 #+end_src
 #+begin_src haskell :noweb yes
@@ -4912,13 +4513,13 @@ Config { font            = "xft:Ubuntu:weight=bold:pixelsize=11:antialias=true:h
 :TANGLE_FILE_NAME: ./xmobar/.config/solarized-dark-xmobar
 :END:
 #+name: xmobar-bgfgcolor
-#+begin_src haskell :tangle nil
+#+begin_src haskell :tangle no
        , bgColor      = "#002b36"
        , fgColor      = "#839496"
 #+end_src
 
 #+NAME: xmobar-template
-#+begin_src haskell :tangle nil
+#+begin_src haskell :tangle no
        , template = " <action=`dm-run`><icon=haskell_20.xpm/> </action>   <fc=#666666>|</fc> %UnsafeStdinReader% }{ <box type=Bottom width=2 mb=2 color=#dc322f><fc=#dc322f>%penguin%  %kernel%</fc></box>    <box type=Bottom width=2 mb=2 color=#859900><fc=#859900><action=`urxvt -e htop`>%cpu%</action></fc></box>    <box type=Bottom width=2 mb=2 color=#268bd2><fc=#268bd2><action=`urxvt -e htop`>%memory%</action></fc></box>    <box type=Bottom width=2 mb=2 color=#b59800><fc=#b59800>%disku%</fc></box>    <box type=Bottom width=2 mb=2 color=#d33682><fc=#d33682>%uparrow%  %uptime%</fc></box>    <box type=Bottom width=2 mb=2 color=#2aa198><fc=#2aa198>%bell%  <action=`urxvt -e sudo pacman -Syu`>%pacupdate%</action></fc></box>   <box type=Bottom width=2 mb=2 color=#dc322f><fc=#dc322f>%baticon%  %battery%</fc></box>    <box type=Bottom width=2 mb=2 color=#286bd2><fc=#286bd2><action=`emacsclient -c -a 'emacs' --eval '(doom/window-maximize-buffer(dt/year-calendar))'`>%date%</action></fc></box> %trayerpad%"
 #+end_src
 #+begin_src haskell :noweb yes
@@ -4930,13 +4531,13 @@ Config { font            = "xft:Ubuntu:weight=bold:pixelsize=11:antialias=true:h
 :TANGLE_FILE_NAME: ./xmobar/.config/solarized-light-xmobar
 :END:
 #+name: xmobar-bgfgcolor
-#+begin_src haskell :tangle nil
+#+begin_src haskell :tangle no
        , bgColor      = "#fdf6e3"
        , fgColor      = "#657b83"
 #+end_src
 
 #+NAME: xmobar-template
-#+begin_src haskell :tangle nil
+#+begin_src haskell :tangle no
        , template = " <action=`dm-run`><icon=haskell_20.xpm/> </action>   <fc=#666666>|</fc> %UnsafeStdinReader% }{ <box type=Bottom width=2 mb=2 color=#dc322f><fc=#dc322f>%penguin%  %kernel%</fc></box>    <box type=Bottom width=2 mb=2 color=#859900><fc=#859900><action=`urxvt -e htop`>%cpu%</action></fc></box>    <box type=Bottom width=2 mb=2 color=#268bd2><fc=#268bd2><action=`urxvt -e htop`>%memory%</action></fc></box>    <box type=Bottom width=2 mb=2 color=#b59800><fc=#b59800>%disku%</fc></box>    <box type=Bottom width=2 mb=2 color=#d33682><fc=#d33682>%uparrow%  %uptime%</fc></box>    <box type=Bottom width=2 mb=2 color=#2aa198><fc=#2aa198>%bell%  <action=`urxvt -e sudo pacman -Syu`>%pacupdate%</action></fc></box>   <box type=Bottom width=2 mb=2 color=#dc322f><fc=#dc322f>%baticon%  %battery%</fc></box>    <box type=Bottom width=2 mb=2 color=#286bd2><fc=#286bd2><action=`emacsclient -c -a 'emacs' --eval '(doom/window-maximize-buffer(dt/year-calendar))'`>%date%</action></fc></box> %trayerpad%"
 #+end_src
 #+begin_src haskell :noweb yes
@@ -4948,13 +4549,13 @@ Config { font            = "xft:Ubuntu:weight=bold:pixelsize=11:antialias=true:h
 :TANGLE_FILE_NAME: ./xmobar/.config/tomorrow-night-xmobar
 :END:
 #+name: xmobar-bgfgcolor
-#+begin_src haskell :tangle nil
+#+begin_src haskell :tangle no
        , bgColor      = "#1d1f21"
        , fgColor      = "#ffffff"
 #+end_src
 
 #+NAME: xmobar-template
-#+begin_src haskell :tangle nil
+#+begin_src haskell :tangle no
        , template = " <action=`dm-run`><icon=haskell_20.xpm/> </action>   <fc=#666666>|</fc> %UnsafeStdinReader% }{ <box type=Bottom width=2 mb=2 color=#cc6666><fc=#cc6666>%penguin%  %kernel%</fc></box>    <box type=Bottom width=2 mb=2 color=#b5bd68><fc=#b5bd68><action=`urxvt -e htop`>%cpu%</action></fc></box>    <box type=Bottom width=2 mb=2 color=#e6c547><fc=#e6c547><action=`urxvt -e htop`>%memory%</action></fc></box>    <box type=Bottom width=2 mb=2 color=#81a2be><fc=#81a2be>%disku%</fc></box>    <box type=Bottom width=2 mb=2 color=#b294bb><fc=#b294bb>%uparrow%  %uptime%</fc></box>    <box type=Bottom width=2 mb=2 color=#70c0ba><fc=#70c0ba>%bell%  <action=`urxvt -e sudo pacman -Syu`>%pacupdate%</action></fc></box>   <box type=Bottom width=2 mb=2 color=#ff3334><fc=#ff3334>%baticon%  %battery%</fc></box>    <box type=Bottom width=2 mb=2 color=#9ec400><fc=#9ec400><action=`emacsclient -c -a 'emacs' --eval '(doom/window-maximize-buffer(dt/year-calendar))'`>%date%</action></fc></box> %trayerpad%"
 #+end_src
 #+begin_src haskell :noweb yes
@@ -5559,7 +5160,7 @@ call_printConfigLocation()
  )
 #+end_src
 * Scripts :full:manjaroi3:
-** Compress PDF :essential:
+** Compress PDF 
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/compressPDF
 :END:
@@ -5706,21 +5307,23 @@ call_printConfigLocation()
 rofi -show-icons -modi windowcd,window,drun -show drun -lines 4 -width 1000 -font "Noto Sans Display 12"
 #+end_src
 
-** emacs client
+** emacs client floating
 :PROPERTIES:
-:TANGLE_FILE_NAME: ./scripts/.local/bin/ec
+:TANGLE_FILE_NAME: ./scripts/.local/bin/ecf
 :END:
 call_printConfigLocation()
 #+begin_src bash :shebang #!/bin/bash
 # run_emacs_client.sh
 # open terminal when called on a file or without graphical ui
 # https://unix.stackexchange.com/questions/263521/running-emacsclient-with-a-script
+
+# When opened as gui, change class name so it can be used as floating window in i3
 if [ $# -ne 0 ]; then
   emacsclient -nw "$@"
 elif [ -n "$DISPLAY" ]; then
-  emacsclient -c -n
+  emacsclient -c -n -e "(switch-to-buffer \"*scratch*\")" --frame-parameters="((name . \"Emacsf\"))"
 else
-  emacsclient -c
+  emacsclient -c -e "(switch-to-buffer \"*scratch*\")" --frame-parameters="((name . \"Emacsf\"))"
 fi
 
 # Checks if there's a frame open
@@ -5732,6 +5335,32 @@ fi
 # fi
 #+end_src
 
+** emacs client
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/ec
+:END:
+call_printConfigLocation()
+#+begin_src bash :shebang #!/bin/bash
+# run_emacs_client.sh
+# open terminal when called on a file or without graphical ui
+# https://unix.stackexchange.com/questions/263521/running-emacsclient-with-a-script
+
+if [ $# -ne 0 ]; then
+  emacsclient -nw "$@"
+elif [ -n "$DISPLAY" ]; then
+  emacsclient -c -n 
+else
+  emacsclient -c 
+fi
+
+# Checks if there's a frame open
+# emacsclient -create-frame --alternate-editor="" --no-wait "$@" &> /dev/null
+# if [ “$?” -eq “1” ]; then
+ # emacsclient -a ‘’ -nqc “$@” &> /dev/null
+# else
+ # emacsclient -nq “$@” &> /dev/null
+# fi
+#+end_src
 ** SC_toggle
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/SC_toggle
@@ -5796,33 +5425,22 @@ rsync --progress -c -a /home/philip/Documents/Research office_lin:/run/media/phi
 rsync --progress -c -a /home/philip/Documents/PhD office_lin:/run/media/philiph/driveD/_BACKUP_LAPTOP
 
 #+end_src
-** backup_phd_data_hqnom :crypt:
+** backup_phd_data_hqnom 
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/backup_phd_data_hqnom
 :END:
 
------BEGIN PGP MESSAGE-----
+#+begin_src bash :shebang #!/bin/bash
+sudo umount -l "/mnt/hqnom"
+mount_hqnom
 
-hQIMA8yc76sS3P8VARAAgEbvdusRSzHbbw6mKy7I+rWCV1YhUdLjKFWMhvkYD2NJ
-VTaFvNrB218gbhu8J6KFqW4Z2tzw4tvBrxs1KEMbVGFVUywIXaUDhWBU2uxVL6RM
-kH1U8qfT4O2j7hm8c+T/X/G8Xui/7mFoJij9aw9NQCXlPcGiLpEuDM6UTUHNaM4r
-JZZMkE5kZZZsRrLmFvukrV+H15m2i66LXSW/VYO6iYjAUIrdLn0kSLfFVpRLSUWz
-YGIzuEtnDZYSP75dS93Cmrto5DjNEqxt47X3g8GB70M02Blu6hgK51I5AZGFBXSA
-p0uAgtg/cd5LshF+4Egoe46N0BvcCzti229Gg3DI49tgb4niIfRSdrx8i/czEKS+
-h3Byp0apqJ/ZJvPw4BdOzioL2DwgX4lv9lajOojOqruCMg8oOF5ma4j35+geAN1x
-I169AdBUSasWUX3Jt77zYECpIQWOTq5Jb5N2nQ3G0ixTZH0clyj/8TeL10PVwvU0
-4xmKfnNYNVV9/Il8mDuGkoRoDr5sZaL9R62bIA7p2TgQTC1ZdOU5KM2Em7JqUFuZ
-VES2+b4PIlnD/TkpuaCd8wW3qXwQgkB3156o/Q31G5Jgr5prlrOunwB9DHzWpSKR
-Z4Wts4hLZOLoSeyigxF65Z6MmC0cznRl1wQgHYaKfiBz6d245fhSredlr4tviNnS
-wIoBThJSSRErg/bvJfooQ4fVnvehs/BBNbhJFGVtlk4Dy5rF54kVrZ+lQhh/yXoG
-p2noM/9qyJF3PbQgJXcnE+P9k6WloaSzSI5n1ADF0I+2IHjneXGJ3LYjd9dLI5k+
-9NwSS9ex75MEqiXyN/C1yUqE9SQH1Z3ipssnj6lMzp2lPI5diSV0TYraXmWe5EaC
-p4VIwMrEXW7r7rFjDREebwgcIe7M8RLXqNUiI5m5DYjmzKWPDS40lQ08Y8pxByml
-Re03/4QGTIp7VKVLPkFUFDXsIRDSyIxiTSojrXd5PqJT5ooZBLJML4xFeV9AsdO6
-h7CjoLisI7mtgRGYtG83qi7EEN4bK4t8pmqyGkWyF1i7Za8QUEqH5nH004wJVKOy
-adrJlm/tDQY4OR/5AH1IqF9k0Txh/8dggkPKGgHEsCC1xWgEZxUPnRyvk1E=
-=DsP3
------END PGP MESSAGE-----
+rsync --progress -rulUtvv /home/philip/Documents/Research/Simulations /mnt/hqnom/Philip
+rsync --progress -rulUtvv /home/philip/Documents/Research/Data /mnt/hqnom/Philip
+rsync --progress -rulUtvv "/home/philip/Documents/Research/Conferences etc" /mnt/hqnom/Philip
+rsync --progress -rulUtvv /home/philip/Documents/Research/PhD-Thesis /mnt/hqnom/Philip
+rsync --progress -rulUtvv /home/philip/Documents/Research/*.mplstyle /mnt/hqnom/Philip
+rsync --progress -rulUtvv /home/philip/Documents/Research/figfun_lib.py /mnt/hqnom/Philip
+#+end_src
 ** backup_phd_stick.sh
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/backup_phd_stick.sh
@@ -5887,6 +5505,15 @@ call_printConfigLocation()
 #+begin_src bash :shebang #!/bin/bash
 #!/bin/bash
 sudo rsync -aAXH --info=progress2 --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} / /run/media/philip/Elements/wholebackup
+#+end_src
+** backup home folder to ssd
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/backup_home_ssd
+:END:
+call_printConfigLocation()
+#+begin_src bash :shebang #!/bin/bash
+today=`date +%Y-%m-%d`
+borg create -s -p /run/media/philip/rollingBackup/borg::$today /home/philip
 #+end_src
 
 ** mount_calcmaitre :crypt:
@@ -6047,16 +5674,31 @@ call_printConfigLocation()
 fusermount -u /home/philip/mounts/minion
 sshfs minion: /home/philip/mounts/minion
 #+end_src
-** mount_office :ncrypt:
+** mount_office :crypt:
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/mount_office
 :END:
-call_printConfigLocation()
-#+begin_src bash :shebang #!/bin/bash
-#!/bin/bash
-sudo umount -l /mnt/neeloffice
-sudo sshfs -o allow_other philip.heringlake@neel@147.173.65.220:/ /mnt/neeloffice -o IdentityFile=/home/philip/.ssh/id_rsa.neel -odebug,sshfs_debug,loglevel=debug
-#+end_src
+-----BEGIN PGP MESSAGE-----
+
+hQIMA8yc76sS3P8VAQ/+LqEUP05yWKk71gs082ZqzUsblVJDWXMi10FUPFjJxtzh
+cktj7WChNqCSv80sBQpjLpCN/oRLHbsZ6N8ShAOAO0VWUKR0+qT5+Mf+xEph0OMI
+4uU1yJPGsih69A4v5CXAAOryr+f9E/subLCn5miqwMrz8GjxxMYkAHjc5IlKc8m6
+k/lWOwe802p1Wxsqe8GAOqZ42rvZNFZmighHNTPvsTZLweWe+fMZtDd+P2xsm4r9
+vU/MhaKyd/6uJbq/NOJ7SG0XUqQoHyiERLJvD4/N9VWBdmumuzaa+LbI0RavZGFy
+8pJtUJQiiS39MoJ4NshjMZ/25VbfYOxQVkYO73iUS3Y53v574pmLQIRpa4CvMsdV
+y8z4jsub98AWOY6Oq2+FO5DsY6uFHuaizn+u2+9vb3Z9UFcPURbIxXgKz09cLbVU
+kPNRnX6imlQ7aJeHad6zViUVq2LT/ELyKkp42K68xV4gyM/U20cYU4Z2CLSO87Fx
+Ny7FwJRw3sPxFTlWcrwJ9PFd6xW/DItjQrjPGI8Rb7KGkcGjE8S5RepQJSiB3/6j
+siifsPxgnli7XuI+E7VSGgxb9EmW5sBs/JqGDZGL2BywepSnrsibgg5+1QanLTcM
+peQpcV7rRC/NEQO+J8m5YCk6DClNrO+U0wDy3V6xoAPgBhv39VXZMocpYjq59RfS
+wEwBIr4g4h/vhQaDhLgzFvVG7+9lKYSltS/YZN4Wa0nslfpSovf9QMzV/A16U75w
+6cB+ROovZLJBKYYl4frt3ne41dVG2CW8UH5zFIJKO+8AzerfsL/4IHZs/vH7+WHO
+6zNhlnqARoTnQMeNgZQl1NsWR0scURVfBdP7awprP2ZKRfkHit3DyoC4j9ipfdZH
+M4AMRBTpJNS0HW5siHNn1FKZQmU9MKi43CyhHNkQPpAEbsrnOjQSsd36nqdi6A8N
+gxvrpR5lb3qlM9BoMElb1HcJDMObD6n1iey2TVJwgW+YpPtdOLVRlfxtHzNdJ8jc
+O7P+b8BTfebNjMQUW130hRiVZ16R6Z3RZ5xpz16q
+=6AMw
+-----END PGP MESSAGE-----
 ** mount_office_lin :crypt:
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/mount_office_lin
@@ -6301,30 +5943,32 @@ fi
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ//S1Cz8hxbXH16Lne0LVq4xZPqE3IXBzOWjfEEOzXeVeGL
-za9vbnyM8wz04REf38hcmmQXuwz41wi2obO0QO/ItxpKE9rzrc4H/IoSsXLYP8nt
-vcF8UPS6IJ7sRldLI65qZhOMOxsx+W/l+wTC7iQ5No1eOcXdWvJnMqChoedp89Mz
-aRZeN4uAMjDJeYsQmv7+/wkJq70OsiPS/xsHs+UU8AXEBwEtgrJAzMZ/42HyzhKF
-qI0adJ84TuFIdhvW/MhrDJt0PckTzphSqPcf2/8fx8jIktClVSLPLOnNbiMqst9y
-eJpb5P3HddPBWrqErFZzaPtDP47rdU41SoIwOv9DtbhZR42LQ3FynOblSUZu6ACy
-SCE69PpLQzLBSej7ZQWsVHfKIZnFAqjhm1D+5ziENnPsUIp6Dw5/AlQUmUBXpqcu
-uZpiZ2kJbKdtihtyzOKEJrYYvYmnqs42c3UUIVKs8cyJTeuAYBnoKI2FsqfOLnrH
-w9o64o0VABJCBMxIDahSXopUZhWc3r/oOYB91fWw4owQtDtuvsqeyYCtWpTkcLQV
-YacB1oswKhzfi0SaPQ/YfFeXpBHAIGCJZJd8AOql32D4ZJDWIsNAw4Ht7q2vTj6a
-H3PKvDS1IYXOYRe1fjDJZOpzhVygHcflikbUsKXNtQU3GuVlAVN1OQPrg1e3Sr7S
-6QGpWxmIA/o0nuZFDsDZP9ie1CXQ4ggtPEq3/0xxweaWLz/VEpdEGVCkRAgHBOlN
-2/uGn+O+eSk+nxLFJYK1GtTVzB79Nm4acT9J+ngDsEBAvYKln4XZjQGCaA+4z5xg
-nOS61q1njG+ux3UNp5ic1jWHwg4/Bn1PDFNQ2pl9XVq87zMMcbel+sYkJZM93mrL
-sWqJuUEA9ayXw6bPjfeTQ5P2y3xet2LBeN+4FloN55k9+wVWlbaZCWFXwcxxGrKW
-JQgJGlLXD7Xir1YCFlpk9vbUhV3OwhDJHYWy0G+pJO2aP6BlWUXOFD1IYoU1ZzIt
-TL3UbdJyk7eKtyYtGOg+iVN1AEPzFWcQLj0vjb4+qzFjgxhGYTMjLtrJMg04j5cT
-tw3Ee5moRPhpdID2d0O3IPbeo+E3YgDw4UC3quYA2rbdVnvUntXTH6+gGHvg7PW1
-GybU7oljkDPxfhgHS19kbAYn/dsp3vZrImY8yGX+8GStxFEWsb/dAa5euwcARjmX
-x7b3YfYP37d1Cm0Qrc2vLfn7P38FZ4QplZN06euW1f41bW4ekP2N9+WehWwyvfPI
-57PjJwbD6AoFew+9iTZcVGbbLb83Pp7UvUx9qv9NJ6Rgs3WcoLmryG15JqIQWj9Y
-ghNgflZF+SrQYctiQfZoK032own2jPTk317E2eqB6vEdBC71Ay8=
-=mZ58
+hQIMA8yc76sS3P8VAQ/9GoIoILWVXT0zwHb1SOP9WUvubwLc80dIq26pFAijbiR+
+RBZQG4WNjJSIxPK1qeKM+g3Ko+jNCCNW8SaPSnYfek7n6kbEJbA4X1TEugMoKqLt
+0nW7oxZCkG+5tmipBmiw7RmYmgnBZ2vnL7f8K5FrlZ50I5OpAm0fq9KB0hEt4VsB
+QNj6o6DJub2GjAcOxxScS58DrjXCzDveR6syJWJF1fRYLWlKUfVLJvmbFTUXXjnT
+XjF1ftxVxg5k2Cx3RAGc8r5dE4FGIW/B5tUB6JvAhdc7cMvgez/Xw3H6Y67EYoUX
+5itCvXq8zMFS3cQ9VlrKD7qYHVGKJPdSU1G0wjxtO4J7SUIBjqv7T5XVKQhdcOuL
+TSRYb4jxYilIBa4ycq5BNjprrpeh3N0Y/J54npV5qqkFT+I3iAB0IioO4R1ez/C7
+y4Tdf5KOcTxti2TBu7Ocr8kQwoiPSCmhgVA3YIQlbrECA1UXgLIkAzR6ZKSSwb9V
+Dv3Ld4KNqVhPrx70VfXmawA61GufzD9Wcf9AK7Jx+S6ZyU5edzyKB/9u9SzdAVom
+7fgbxDWnI9zdxxTGdWvjNcAy2DHDWdklrqPiKAJuq5lzYSu2LHKXh+OKzRVZkpMH
+xB2gvcfjmBVdbCr5KcGfL+HfpgyTamyWCP+eG5DCCAajtK08EOkz4OnisCy1L1LS
+6QHRp2y4ehNAJKfJd7OPu/hmEsaE1vy+oOqtc/w0upSHGfoAfXdBwBL3US36bPtl
+Pe3mMFoSA7ty4PXwd4Jaai/EucWqMOYiJIUPhk5ePtY61fmedEb91uELJ9gS0xnw
+3vbfUpEVZVTpjHTbRWdQ5U4bDbiY/PTz8P5FE73YcGuhAoAiSqGIt2VOIpTy3sgD
+eIvNzxSba+pwowmYMPCUt5jKP/KtWulTs+992vGFsUXh3l63oLyJfj5lVCEd+n0i
+7mKigPcM5fbworqkEb7OfcS3QBu//pUiTP9D69NTpWZ9da1ktkh4fIV8yT22ny8H
+HV1jR3Y0sMa6vREcdPuLOdsTdgjjD72VGB+RrEs65MkM9BRXamXMva+XHVnlnrQn
+WTQM7dLrDSiILmykqLsIdSrDu3hUGfSUC4uUP2lTWQxNemUs4Dz1EJLUM6U+4S+u
+RXqwx3j8x8YKYZjIKrkYPAlN37nVIh5/Pq4uVRp86DkriDS6TnrsG8MQp/q9Vnoa
+JL5GWQYmBWz2I65aB1uF3nQ91KSq0NRpUiCRCiTa/IzZWE4pHKZyMjs/Q9JUFszz
+cJsMQwvd4BoUi9TInFQwFvAkOxYvRQX58dx/MCoaixfKEK1K3vU+6oMxwXe4Q/QK
+zqOQif1jmUU2J5b961uxvayMB1QGx3C866uN3CtZXiHcErzvH6cuyEDC+gUiZrzM
+7cnX3A==
+=VRRX
 -----END PGP MESSAGE-----
+
 ** i3cheatsheet
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/i3cheatsheet.sh
@@ -6364,6 +6008,107 @@ exit 1
 fi
 rclone sync /home/philip/Documents/org "mailbox drive:/Userstore/Philip Heringlake/Documents/Org" -L
 exit
+#+end_src
+** rofi desktop
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/rofi_desktop.sh
+:END:
+#+begin_src bash :shebang #!/bin/bash
+# Various options for the file browser script:
+ROFI_FB_GENERIC_FO="xdg-open" # command used for opening the selection
+ROFI_FB_PREV_LOC_FILE=~/.local/share/rofi/rofi_fb_prevloc
+ROFI_FB_HISTORY_FILE=~/.local/share/rofi/rofi_fb_history
+ROFI_FB_HISTORY_MAXCOUNT=5 # maximum number of history entries
+# Comment the next variable to always start in the last visited directory,
+# otherwise rofi_fb will start in the specified directory:
+ROFI_FB_START_DIR=$HOME/Desktop # starting directory
+# Uncomment the following line to disable history:
+# ROFI_FB_NO_HISTORY=1
+
+# Beginning of the script:
+# Create the directory for the files of the script
+if [ ! -d "$(dirname "${ROFI_FB_PREV_LOC_FILE}")" ]
+then
+    mkdir -p "$(dirname "${ROFI_FB_PREV_LOC_FILE}")"
+fi
+if [ ! -d "$(dirname "${ROFI_FB_HISTORY_FILE}")" ]
+then
+    mkdir -p "$(dirname "${ROFI_FB_HISTORY_FILE}")"
+fi
+
+# Initialize $ROFI_FB_CUR_DIR
+if [ -d "${ROFI_FB_START_DIR}" ]
+then
+    ROFI_FB_CUR_DIR="${ROFI_FB_START_DIR}"
+else
+    ROFI_FB_CUR_DIR="$PWD"
+fi
+
+# Read last location, otherwise we default to $ROFI_FB_START_DIR or $PWD.
+if [ -f "${ROFI_FB_PREV_LOC_FILE}" ]
+then
+    ROFI_FB_CUR_DIR=$(cat "${ROFI_FB_PREV_LOC_FILE}")
+fi
+
+# Handle argument.
+if [ -n "$@" ]
+then
+    if [[ "$@" == /* ]]
+    then
+        ROFI_FB_CUR_DIR="$@"
+    else
+        ROFI_FB_CUR_DIR="${ROFI_FB_CUR_DIR}/$@"
+    fi
+fi
+
+# If argument is no directory.
+if [ ! -d "${ROFI_FB_CUR_DIR}" ]
+then
+    if [ -x "${ROFI_FB_CUR_DIR}" ]
+    then
+        coproc ( "${ROFI_FB_CUR_DIR}" >/dev/null 2>&1 )
+        exec 1>&-
+        exit;
+    elif [ -f "${ROFI_FB_CUR_DIR}" ]
+    then
+        if [[ "${ROFI_FB_NO_HISTORY}" -ne 1 ]]
+        then
+            # Append selected entry to history and remove exceeding entries
+            sed -i "s|${ROFI_FB_CUR_DIR}|##deleted##|g" "${ROFI_FB_HISTORY_FILE}"
+            sed -i '/##deleted##/d' "${ROFI_FB_HISTORY_FILE}"
+            echo "${ROFI_FB_CUR_DIR}" >> "${ROFI_FB_HISTORY_FILE}"
+            if [ "$( wc -l < "${ROFI_FB_HISTORY_FILE}" )" -gt "${ROFI_FB_HISTORY_MAXCOUNT}" ]
+            then
+                sed -i 1d "${ROFI_FB_HISTORY_FILE}"
+            fi
+        fi
+        # Open the selected entry with $ROFI_FB_GENERIC_FO
+        coproc ( "${ROFI_FB_GENERIC_FO}" "${ROFI_FB_CUR_DIR}" >/dev/null 2>&1 )
+        if [ -d "${ROFI_FB_START_DIR}" ]
+        then
+            echo "${ROFI_FB_START_DIR}" > "${ROFI_FB_PREV_LOC_FILE}"
+        fi
+        exit;
+    fi
+    exit;
+fi
+
+# Process current dir.
+if [ -n "${ROFI_FB_CUR_DIR}" ]
+then
+    ROFI_FB_CUR_DIR=$(readlink -e "${ROFI_FB_CUR_DIR}")
+    echo "${ROFI_FB_CUR_DIR}" > "${ROFI_FB_PREV_LOC_FILE}"
+    pushd "${ROFI_FB_CUR_DIR}" >/dev/null
+fi
+
+# Output to rofi
+if [[ "${ROFI_FB_NO_HISTORY}" -ne 1 ]]
+then
+    tac "${ROFI_FB_HISTORY_FILE}" | grep "${ROFI_FB_CUR_DIR}"
+fi
+echo ".."
+ls
+
 #+end_src
 
 * digikam :full:manjaroi3:
@@ -8348,171 +8093,42 @@ QFzvBxvbGZy1FRE/FbTfNwWHzyk7Y9G8IBNLG12+JvhDh5ffyO9pm/5Z
 =5iUd
 -----END PGP MESSAGE-----
 * ssh :full:manjaroi3:
-** config :acrypt:
+** config :crypt:
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./ssh/.ssh/config
 :END:
-call_printConfigLocation()
-#+begin_src conf
-AddKeysToAgent yes
+-----BEGIN PGP MESSAGE-----
 
-Host calcmaitre
-    User    pheringlake
-    Port    22
-    # Hostname    calc-maitre.grenoble.cnrs.fr
-    Hostname 147.173.23.140
-    HostKeyAlgorithms=+ssh-dss
-    ForwardAgent yes
-    ForwardX11 yes
-
-Host cartoline
-    User    pheringlake
-    Port    22
-    identityfile ~/.ssh/id_rsa.neel
-    # Hostname    cartoline.neel.cnrs.fr
-    Hostname 147.173.23.143
-    HostKeyAlgorithms=+ssh-dss
-    ForwardAgent yes
-    ForwardX11 yes
-    ProxyCommand ssh neel -W %h:%p
-
-Host cartolinehq
-    User    hqnom
-    Port    22
-    # Hostname    cartoline.neel.cnrs.fr
-    Hostname 147.173.23.143
-    identityfile ~/.ssh/id_rsa.neel
-    HostKeyAlgorithms=+ssh-dss
-    ForwardAgent yes
-    ForwardX11 yes
-
-Host cartolinehqhop
-    User    hqnom
-    Port    22
-    # Hostname    cartoline.neel.cnrs.fr
-    Hostname 147.173.23.143
-    identityfile ~/.ssh/id_rsa.neel
-    HostKeyAlgorithms=+ssh-dss
-    ForwardAgent yes
-    ForwardX11 yes
-    ProxyCommand ssh neel -W %h:%p
-    
-Host cartolineh
-    User    heringlake
-    Port    22
-    # Hostname    cartoline.neel.cnrs.fr
-    Hostname 147.173.23.143
-    identityfile ~/.ssh/id_rsa.neel
-    HostKeyAlgorithms=+ssh-dss
-    ForwardAgent yes
-    ForwardX11 yes
-
-Host lab_forces
-    User    hqnom@neel
-    Port    22
-    Hostname    147.173.65.217
-    ForwardX11 yes
-
-Host lab_forces_lin
-    User    hqnom
-    Port    2222
-    Hostname    localhost
-    identityfile ~/.ssh/id_rsa.neel
-    ProxyCommand ssh lab_forces -W %h:%p
-    ForwardX11 yes
-
-Host hop_lab_forces_lin
-    User    hqnom
-    Port    2222
-    Hostname    localhost
-    identityfile ~/.ssh/id_rsa.neel
-    ProxyCommand ssh hop_lab_forces -W %h:%p
-    ForwardX11 yes
-
-Host hop_lab_forces
-    User hqnom@neel
-    Port 22
-    Hostname 147.173.65.217
-    ForwardX11 yes
-    ProxyJump neel
-    
-Host hop_rp_lab_67
-    User root
-    Hostname 10.0.0.67
-    identityfile ~/.ssh/id_rsa.neel
-    ProxyJump lab_forces
-
-Host office
-    User    philip.heringlake@neel
-    Port    22
-    Hostname    147.173.65.220
-    ForwardAgent yes
-    ForwardX11 yes
-    
-Host office_lin
-    User    philiph
-    Port    22 
-    Hostname    147.173.65.220
-    ForwardAgent yes
-    ForwardX11 yes
-
-Host github.com-bottom-bracket
-    Hostname github.com
-    User git
-    IdentityFile ~/.ssh/id_rsa
-
-host minion
-    hostname 147.173.23.72
-    user heringlake
-    forwardx11 yes
-    identityfile ~/.ssh/id_rsa.neel
-
-host minionhop
-    hostname 147.173.23.72
-    user heringlake
-    forwardx11 yes
-    identityfile ~/.ssh/id_rsa.neel
-    ProxyCommand ssh neel -W %h:%p
-    
-host neel
-    hostname ssh-quest.neel.cnrs.fr
-    user pheringlake
-    forwardx11 yes
-    identityfile ~/.ssh/id_rsa.neel
-    
-Host rp66
-    Hostname 10.0.0.66
-    User root
-    identityfile ~/.ssh/id_rsa.neel
-
-Host rp67
-    Hostname 10.0.0.67
-    identityfile ~/.ssh/id_rsa.neel
-    User root
-
-Host rp68
-    Hostname 10.0.0.68
-    identityfile ~/.ssh/id_rsa.neel
-    User root
-
-Host rp65
-    Hostname 10.0.0.65
-    identityfile ~/.ssh/id_rsa.neel
-    User root
-
-Host raspi_loc
-    Hostname 192.168.0.30
-    User philip
-    forwardx11 yes
-    identityfile ~/.ssh/id_rsa
-
-Host raspi_rem
-    Hostname muesli.hopto.org
-    Port 25
-    User philip
-    forwardx11 yes
-    identityfile ~/.ssh/id_rsa
-#+end_src
+hQIMA8yc76sS3P8VAQ/+JDjlz1E1JYRf0eZmSDdcdPBbxEo5OwGDluBt/hTOYevZ
+p5Ef/n0WWLthe/QKXEkBin4dFxEgfMGkVr54YCMYgmj8zDEk4Y6Zyn5CcBdiQCxX
+e2d15Dw2anAJ0gtPlio9ciS5agwGrCGT/vImGdFevEushuleFxIoakcPf7nThHAj
+tlI0zT1GR2QyllgUFb3i7yDG2v9atYO22lRkKwx9mpJ7+vULle9Xm3tC+7AApAiH
+I3Omzku3Gn89uSqQRNqqaYMc0sTyUkz7hLwwx+x1NjhgTGOcHHi9i+MbZV0R0qzC
+3qRQpL+oGLkfE5YA2NgQmSOY0FwsJNdXIgGRqIrrBGLe60QDjlp8NspjdpqtQn06
+CBQ1idKuN6CeKYvMoCNC1+zPR7sPPhI4O0JVRB3s37amUs9dH9SlqNx2RxEzih1g
+26dPGHF+UFNVBw8UIY2tpTA+Dex9Xxw3kJdX2spfIFShmMIDbdJ42h6x+iSiY7db
+EhLBuM3as4wNECi3sJD2H8LBxR5HSW1cdNhxr2aE3ten03A5MrYgTFVaMVLhxwbP
+8cUl1k2R5IEdLdTpCckcGlgEyz9bYqPQArCf08MVkNHqQVPsEhf+bYfrCFKCapaE
+PAAWy131vKAgE8lhI9LopGHPZzpTBFauPgJ4a+tKN5WOMugEenSzj9BWOMM2mZ/S
+6QEX3GKyngEpU4ZAg0wcdL35lV95hTxmzoi+VvSU5bGqOHweapYX3wRFjkcEByLz
+gt73g4T3J6Gv9NSRuxfTeMIG47Z4ctPtY+xYL+eGH4KKMjWwxxMpBZh2xsPCwuDY
+xPEyypiHw2JXQubg8dtFc71vJy75LesVJhlzaMArXGOfyUOJFJdKiS5uNUVD0UQK
+j+zCZTPbphZQVJKdfiGNKTG2y7sF3XCKxwHUSx+AGWd5D5o2/tyQ6ADhYar16j4A
+2ePYf6NG+mGl3I+lO4ZbsIaj6b0wj0Vkduu8TCPY/yKAKhaw882XJRYNbjhMm/HL
+NZpP0/qaVxcHI+E74QzGhgp7H4vrHDgE5wl9wkBWDS87w+ahPZBlYMUeWuc5NxKt
+IrzM8A8/2F7ulhjw5rYal9zL8K8t656XG1iusLgkyBDEgDop6s0sznGhrSZcFbrb
+DPoJsSSKE91kp1ZY+IuF8GX+V9S6sNhEMlLQ7KgObkBkdmrcojYMZvYk916D/chC
+rW2eHnEtV/c8mwEFcVBElRHfN4nHyw9G5ZwdOx8wGO0nj3oDmWSo5o0jzaHzRwVz
+X6YzTcfacEAsnFmRLabaOl+7iGA7IviGOjYo3stAnLnLChlA/cVmfSGA+JXpoKp7
+HpIXSxcpcl/FdXQ7Jw3hDoa4MBgFuuibnylUCEjhbHnewD703/t1hdPAG5qBHSUr
+v4QBIsPR0Tgg/sGrquEsrKnhc3EHmnkeqgJFSCFAh/Sktm3aTRpY561eonwLYAz9
+qTUHpJcYV5Z/ZHceH8zEsO9dSwn+XCPMGqpdYuUHMGpYfoPCYF8XmdecbEJ9s/6e
+qjVi120Fwf1UTqspfTs4V9/epUCIeUx45SpWhGcIFTl+M+ysYYvX2mKA5u6g4ubS
+/Qd5bVyrwtqCULeLSWBt2bDC+woHdaAG+yGYp/VjZGNwVpa0ZBzwSwYDH4kVMqCm
+gvPeLAVxNZsAWWblyJI1Lrck+7xFuJus5WC5KMKyFDJdX12SgSao0sXDXGghlnI6
+Hg==
+=pBG2
+-----END PGP MESSAGE-----
      
 ** known_hosts :crypt:
 :PROPERTIES:
@@ -8520,62 +8136,62 @@ Host raspi_rem
 :END:
 -----BEGIN PGP MESSAGE-----
 
-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
-ToFo
-=93Y6
+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
+WLU=
+=JOLq
 -----END PGP MESSAGE-----
 * x :full:manjaroi3:
 ** xinitrc
@@ -8624,7 +8240,7 @@ if [ -d /etc/X11/xinit/xinitrc.d ] ; then
     unset f
 fi
 
-xinput --map-to-output 'Melfas LGDisplay Incell Touch' eDP1
+xinput --map-to-output 'Melfas LGDisplay Incell Touch' eDP-1
 get_session(){
 	local dbus_args=(--sh-syntax --exit-with-session)
 	case $1 in
@@ -8645,7 +8261,7 @@ get_session(){
 		mate) dbus_args+=(mate-session) ;;
 		xfce) dbus_args+=(xfce4-session) ;;
 		openbox) dbus_args+=(openbox-session) ;;
-		*) dbus_args+=($DEFAULT_SESSION) ;;
+		,*) dbus_args+=($DEFAULT_SESSION) ;;
 	esac
 
 	echo "dbus-launch ${dbus_args[*]}"
@@ -8655,7 +8271,11 @@ get_session(){
 exec $(get_session "$1")
 xset r rate 660 25
 
-setxkbmap eu
+export TERMINAL=urxvt
+
+export BROWSER="/usr/bin/chromium"
+setxkbmap eu -option caps:none
+xinput --map-to-output 'Melfas LGDisplay Incell Touch' eDP-1
 #+end_src
 ** xresources :full:manjaroi3:
 *** base
@@ -8665,7 +8285,8 @@ setxkbmap eu
 :END:
 call_printConfigLocation() {{{results(The Non theme configuration goes into ~.Xresources~.)}}}
 
-#+begin_src conf
+
+#+begin_src conf :comments no
 Xft.dpi:       96
 Xft.antialias: true
 Xft.hinting:   true
@@ -8682,55 +8303,50 @@ XTerm*faceSize:          11
 XTerm*reverseVideo:      on
 XTerm*selectToClipboard: true
 
-*background:                      #222D31
-*foreground:                      #d8d8d8
-*fading:                          8
-*fadeColor:                       black
-*cursorColor:                     #1ABB9B
-*pointerColorBackground:          #2B2C2B
-*pointerColorForeground:          #16A085
+,*background:                      #222D31
+,*foreground:                      #d8d8d8
+,*fading:                          8
+,*fadeColor:                       black
+,*cursorColor:                     #1ABB9B
+,*pointerColorBackground:          #2B2C2B
+,*pointerColorForeground:          #16A085
 
 !! black dark/light
-*color0:                          #222D31
-*color8:                          #585858
+,*color0:                          #222D31
+,*color8:                          #585858
 
 !! red dark/light
-*color1:                          #ab4642
-*color9:                          #ab4642
+,*color1:                          #ab4642
+,*color9:                          #ab4642
 
 !! green dark/light
-*color2:                          #7E807E
-*color10:                         #8D8F8D
+,*color2:                          #7E807E
+,*color10:                         #8D8F8D
 
 !! yellow dark/light
-*color3:                          #f7ca88
-*color11:                         #f7ca88
+,*color3:                          #f7ca88
+,*color11:                         #f7ca88
 
 !! blue dark/light
-*color4:                          #7cafc2
-*color12:                         #7cafc2
+,*color4:                          #7cafc2
+,*color12:                         #7cafc2
 
 !! magenta dark/light
-*color5:                          #ba8baf
-*color13:                         #ba8baf
+,*color5:                          #ba8baf
+,*color13:                         #ba8baf
 
 !! cyan dark/light
-*color6:                          #1ABB9B
-*color14:                         #1ABB9B
+,*color6:                          #1ABB9B
+,*color14:                         #1ABB9B
 
 !! white dark/light
-*color7:                          #d8d8d8
-*color15:                         #f8f8f8
+,*color7:                          #d8d8d8
+,*color15:                         #f8f8f8
 
 Xcursor.theme: xcursor-breeze
 Xcursor.size:                     32
 
-URxvt.font:                       9x15,xft:TerminessTTFNerdFontMono
-
-! alternative font settings with 'terminus':
-! URxvt.font:      -xos4-terminus-medium-r-normal--16-160-72-72-c-80-iso10646-1
-! URxvt.bold.font: -xos4-terminus-bold-r-normal--16-160-72-72-c-80-iso10646-1
-!! terminus names see end of file!
+URxvt.font:                       xft:Noto Sans Mono:pixelsize=15
 
 URxvt.depth:                      32
 ! URxvt.background:                 [100]#222D31
@@ -8750,7 +8366,7 @@ URxvt*saveLines:                  5000
 URxvt.iso14755:                   false
 URxvt.keysym.Shift-Control-V:     eval:paste_clipboard
 URxvt.keysym.Shift-Control-C:     eval:selection_to_clipboard
-!Xterm escape codes, word by word movement
+! Xterm escape codes, word by word movement
 URxvt.keysym.Control-Left:        \033[1;5D
 URxvt.keysym.Shift-Control-Left:  \033[1;6D
 URxvt.keysym.Control-Right:       \033[1;5C
@@ -8887,23 +8503,6 @@ URxvt.keysym.Shift-Control-Down:  \033[1;6B
 ! URxvt*tabbar-fg:                  colour
 ! URxvt*url-launcher:               string
 
-! The Terminus font uses the following X-names:
-! -xos4-terminus-medium-r-normal--12-120-72-72-c-60-iso10646-1
-! -xos4-terminus-medium-r-normal--14-140-72-72-c-80-iso10646-1
-! -xos4-terminus-medium-r-normal--16-160-72-72-c-80-iso10646-1
-! -xos4-terminus-medium-r-normal--20-200-72-72-c-100-iso10646-1
-! -xos4-terminus-medium-r-normal--22-220-72-72-c-110-iso10646-1
-! -xos4-terminus-medium-r-normal--24-240-72-72-c-120-iso10646-1
-! -xos4-terminus-medium-r-normal--28-280-72-72-c-140-iso10646-1
-! -xos4-terminus-medium-r-normal--32-320-72-72-c-160-iso10646-1
-! -xos4-terminus-bold-r-normal--12-120-72-72-c-60-iso10646-1
-! -xos4-terminus-bold-r-normal--14-140-72-72-c-80-iso10646-1
-! -xos4-terminus-bold-r-normal--16-160-72-72-c-80-iso10646-1
-! -xos4-terminus-bold-r-normal--20-200-72-72-c-100-iso10646-1
-! -xos4-terminus-bold-r-normal--24-240-72-72-c-120-iso10646-1
-! -xos4-terminus-bold-r-normal--28-280-72-72-c-140-iso10646-1
-! -xos4-terminus-bold-r-normal--32-320-72-72-c-160-iso10646-1
-
 #+end_src
 **** standard theme
 ***** bright
@@ -8911,7 +8510,7 @@ URxvt.keysym.Shift-Control-Down:  \033[1;6B
 :TANGLE_FILE_NAME: ./x/.config/xthemes/tomorrow.light
 :END:
 call_printConfigLocation()
-#+begin_src conf  :mkdirp yes
+#+begin_src conf :comments no :mkdirp yes
 ! special
 *.foreground:   #373b41
 *.background:   #ffffff
@@ -9026,6 +8625,7 @@ MimeType=x-scheme-handler/org-protocol
 # Local Variables:
 # org-use-property-inheritance: t
 # org-crypt-key: "0xB1625FEC99227CDB"
-# auto-save-visited-mode: 0
+# auto-save-visited-mode: nil
+# auto-save-mode: nil
 # after-save-hook: (lambda nil (when (org-html-export-to-html t) (rename-file "linux-config.html" "index.html" t)))
 # End:
