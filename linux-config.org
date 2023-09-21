@@ -120,6 +120,7 @@ useronly=(
     gpg         
     gtk         
     i3          
+    qtile
     latexmk     
     scripts     
     picom
@@ -144,12 +145,14 @@ useronly=(
     ssh          
     gpg         
     i3          
+    qtile
     latexmk     
     scripts     
     zsh
     systemd
     mbsync
     mail
+    picom
 )
 # run the stow command for the passed in directory ($2) in location $1
 stowit() {
@@ -299,6 +302,7 @@ alias rsync="rsync -rP"                 # Always run rsync with progress and rec
 alias gmsh="gmsh -fontsize 12"
 alias pwp="pyenv which python"          # Quick access to current python executable
 alias vim="nvim"
+alias x="startx ~/.xinitrc"   # for quicker start of window managers from terminal
 #+end_src
 
 ??
@@ -622,7 +626,10 @@ alias rsync="rsync -rP"                 # Always run rsync with progress and rec
 alias gmsh="gmsh -fontsize 12"
 alias pwp="pyenv which python"          # Quick access to current python executable
 alias vim="nvim"
+alias x="pyenv shell system && startx ~/.xinitrc"   # for quicker start of window managers from terminal
 alias rdesk1="rofi -modi \"Desktop:rofi_desktop.sh\" -show \"Desktop\"" # show rofi as file manager on desktop folder
+alias browser=chromium
+
 ondesk () {
     target=$(realpath $1)
     ln -s $target ~/Desktop/
@@ -684,7 +691,12 @@ export TERMINAL="urxvt"
 export EDITOR=/home/philip/.local/bin/ec
 export BROWSER="/usr/bin/chromium"
 #+end_src
-
+***** use pywal 
+#+begin_src bash :shebang #!/bin/bash
+(cat ~/.cache/wal/sequences &)
+# To add support for TTYs this line can be optionally added.
+source ~/.cache/wal/colors-tty.sh
+#+end_src
 *** zprofile :manjaroi3:
 :PROPERTIES:
  :TANGLE_FILE_NAME: ./zsh/.zprofile 
@@ -2124,7 +2136,6 @@ bindsym $mod+Shift+Mod1+9 mark "kappa", move scratchpad
 bindsym $mod+Mod1+9 [con_mark="kappa"] scratchpad show 
 bindsym $mod+Mod1+m [con_mark="music"] scratchpad show
 for_window [class="Spotify"] mark "music", move scratchpad
-for_window [class=keepassxc|KeePassXC] mark "epsilon", move scratchpad
   
   
 # switch to workspace with urgent window automatically
@@ -2584,673 +2595,6 @@ tztime local {
 #     HDMI1_workspaces = "1"
 #     hide_if_single_combination = true
 # }
-#+end_src
-** compton
-:PROPERTIES:
-:TANGLE_FILE_NAME: ./compton/.config/.compton.conf
-:END:
-call_printConfigLocation()
-#+begin_src conf
-backend = "xrender";
-vsync = true;
-
-shadow = true;
-shadow-radius = 10;
-shadow-offset-x = -5;
-shadow-offset-y = 0;
-shadow-opacity = 0.97;
-shadow-red = 0.11;
-shadow-green = 0.12;
-shadow-blue = 0.13;
-shadow-exclude = [
-  "name = 'Notification'",
-  "_GTK_FRAME_EXTENTS@:c",
-  "class_g = 'i3-frame'",
-  "_NET_WM_STATE@:32a *= '_NET_WM_STATE_HIDDEN'",
-  "_NET_WM_STATE@:32a *= '_NET_WM_STATE_STICKY'",
-  "!I3_FLOATING_WINDOW@:c"
-];
-shadow-ignore-shaped = true;
-
-blur-background = false;
-blur-background-fixed = true;
-blur-kern = "7x7box";
-blur-background-exclude = [
-  "class_g = 'i3-frame'",
-  "window_type = 'dock'",
-  "window_type = 'desktop'",
-  "_GTK_FRAME_EXTENTS@:c"
-];
-
-# Duplicating the _NET_WM_STATE entries because compton cannot deal with atom arrays :-/
-opacity-rule = [
-  "97:class_g = 'Termite' && !_NET_WM_STATE@:32a",
-
-  "0:_NET_WM_STATE@[0]:32a = '_NET_WM_STATE_HIDDEN'",
-  "0:_NET_WM_STATE@[1]:32a = '_NET_WM_STATE_HIDDEN'",
-  "0:_NET_WM_STATE@[2]:32a = '_NET_WM_STATE_HIDDEN'",
-  "0:_NET_WM_STATE@[3]:32a = '_NET_WM_STATE_HIDDEN'",
-  "0:_NET_WM_STATE@[4]:32a = '_NET_WM_STATE_HIDDEN'",
-
-  "90:_NET_WM_STATE@[0]:32a = '_NET_WM_STATE_STICKY'",
-  "90:_NET_WM_STATE@[1]:32a = '_NET_WM_STATE_STICKY'",
-  "90:_NET_WM_STATE@[2]:32a = '_NET_WM_STATE_STICKY'",
-  "90:_NET_WM_STATE@[3]:32a = '_NET_WM_STATE_STICKY'",
-  "90:_NET_WM_STATE@[4]:32a = '_NET_WM_STATE_STICKY'"
-];
-
-fading = false;
-fade-delta = 7;
-fade-in-step = 0.05;
-fade-out-step = 0.05;
-fade-exclude = [];
-
-mark-wmwin-focused = true;
-mark-ovredir-focused = true;
-use-ewmh-active-win = true;
-detect-rounded-corners = true;
-detect-client-opacity = true;
-refresh-rate = 0;
-dbe = false;
-glx-no-stencil = true;
-glx-copy-from-front = false;
-unredir-if-possible = false;
-focus-exclude = [];
-detect-transient = true;
-detect-client-leader = true;
-invert-color-include = [];
-
-wintypes: {
-    tooltip = { fade = true; shadow = false; opacity = 1.00; focus = true; };
-    dock = { shadow = false };
-    dnd = { shadow = false };
-};
-
-#+end_src
-** conky
-*** conkyrc :essential:
-:PROPERTIES:
-:TANGLE_FILE_NAME: ./conky/.conkyrc
-:END:
-call_printConfigLocation()
-#+begin_src conf
-own_window_class conky
-#+end_src
-
-*** general information
-:PROPERTIES:
-:TANGLE_FILE_NAME: ./conky/.config/conky
-:END:
-call_printConfigLocation()
-#+begin_src conf
-conky.config = {
-    alignment = 'top_right',
-    background = true,
-	cpu_avg_samples = 2,
-	net_avg_samples = 2,
-    default_color = 'F9FAF9',
-    color2 = 'D64161',
-    double_buffer = true,
-    font = 'Bitstream Vera Sans:size=8',
-    draw_shades = false,
-    gap_x = 25,
-    gap_y = 13,
-    minimum_width = 200,
-    no_buffers = true,
-    own_window = true,
-    own_window_type = 'override',
-	own_window_argb_visual = true,
-	own_window_argb_value = 120,
-	own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
-    update_interval = 1.0,
-    use_xft = true,
-	out_to_console = false,
-	override_utf9_locale = true,
-}
-conky.text = [[
-${voffset 8}$color2${font Bitstream Vera Sans:size=16}${time %A}$font\
-${voffset -8}$alignr$color${font Bitstream Vera Sans:size=38}${time %e}$font
-$color${voffset -30}$color${font Bitstream Vera Sans:size=18}${time %b}$font\
-${voffset -3} $color${font Bitstream Vera Sans:size=20}${time %Y}$font$color2$hr
-#
-${voffset 20}${goto 40}${color}CPU${font Bitstream Vera Sans:bold:size=8}$alignr$cpu%
-${voffset 5}${goto 40}$font$color2${top name 1}$alignr$color${top cpu 1}%
-${goto 40}$color2${top name 2}$alignr$color${top cpu 2}%
-${goto 40}$color2${top name 3}$alignr$color${top cpu 3}%
-${goto 40}$color2${top name 4}$alignr$color${top cpu 4}%
-${goto 40}$color2${top name 5}$alignr$color${top cpu 5}%
-#
-${voffset 10}${goto 40}${color}RAM${font Bitstream Vera Sans:bold:size=8}$alignr$mem$font
-${goto 40}${voffset 5}$color2${top_mem name 1}$alignr$color${top_mem mem_res 1}
-${goto 40}$color2${top_mem name 2}$alignr$color${top_mem mem_res 2}
-${goto 40}$color2${top_mem name 3}$alignr$color${top_mem mem_res 3}
-${goto 40}$color2${top_mem name 4}$alignr$color${top_mem mem_res 4}
-${goto 40}$color2${top_mem name 5}$alignr$color${top_mem mem_res 5}
-#
-${voffset 10}${goto 40}${color}Swap${font Bitstream Vera Sans:bold:size=8}$alignr${swap}/ ${swapfree}
-${voffset 15}$font$alignr${execi 10000 awk -F= '/TION/ {print $2}' /etc/lsb-release |sed 's/"//g'} \
-${execi 10000 awk -F= '/EASE=/ {printf $2" "} /NAME/ {print $2}' /etc/lsb-release}
-${voffset 10}${color2}${alignr}${execi 1200 whoami}@${nodename}
-${alignr}${color2}${font Bitstream Vera Sans:size=8}uptime: ${color}${uptime_short}
-${voffset 5}${color2}${font Bitstream Vera Sans:size=8}${alignr}kernel: ${color}${kernel}
-]]
-#+end_src
-*** shortcuts
-:PROPERTIES:
-:TANGLE_FILE_NAME: ./conky/.config/conky_shortcuts
-:END:
-call_printConfigLocation()
-#+begin_src conf
-conky.config = {
-    alignment = 'bottom_left',
-    background = true,
-    cpu_avg_samples = 2,
-    default_color = 'D64161',
-    color2 = 'F9FAF9',
-    double_buffer = true,
-    font = 'Bitstream Vera Sans:size=8',
-    draw_shades = false,
-    gap_x = 25,
-    gap_y = 45,
-    minimum_width = 200,
-    no_buffers = true,
-    own_window = true,
-    own_window_type = 'override',
-    own_window_argb_value = 200,
-    own_window_transparent = true,
-    update_interval = 1.0,
-    use_xft = true,
-}
-conky.text = [[
-${color2}mod = ${color}<super>
-# -- ${color2}mod_next = ${color}<super>
-
-${color2}open new terminal - ${color}mod+Enter
-#${color2}open browser - ${color}mod_next+i
-#${color2}open pamac-manager - ${color}mod_next+u
-#${color2}open putty - ${color}mod_next+p
-
-${color2}rofi (launcher) - ${color}mod+d
-${color2}rofi (windows) - ${color}mod+Tab
-${color2}kill focused - ${color}mod+Shift+q
-
-${color2}container layout (tabbed) - ${color}mod+w
-${color2}container layout (horiz) - ${color}mod+q
-${color2}container layout (vert) - ${color}mod+e
-${color2}container layout (stck) - ${color}mod+s
-${color2}split container (horiz) - ${color}mod+;
-${color2}split container (vert) - ${color}mod+v
-${color2}toggle container type - ${color}mod+c
-
-${color2}focus windows - ${color}mod+[hjkl]
-
-${color2}switch to workspace 1-8 - ${color}mod+1-8
-${color2}send to workspace 1-8 - ${color}mod+Alt+1-8
-${color2}navigate workspaces - ${color}mod+Ctrl+arrows
-
-${color2}toggle floating - ${color}mod+Shift+Space
-${color2}toggle sticky - ${color}mod+Cntrl+s
-${color2}window opacity up[dn] - ${color}mod+Alt+[x|z]
-${color2}window dim disable[enable] - ${color}mod+Alt+[a|d]
-
-${color2}exit - ${color}mod+0
-]]
-#+end_src
-** picom
-:PROPERTIES:
-:TANGLE_FILE_NAME: ./picom/.config/picom/picom.conf
-:END:
-call_printConfigLocation() {{{results(The test configuration goes into ~.config/picom/picom.conf~)}}} 
-
-#+begin_src conf :mkdirp yes
-#################################
-#             Shadows           #
-#################################
-
-
-# Enabled client-side shadows on windows. Note desktop windows 
-# (windows with '_NET_WM_WINDOW_TYPE_DESKTOP') never get shadow, 
-# unless explicitly requested using the wintypes option.
-#
-# shadow = false
-shadow = true;
-
-# The blur radius for shadows, in pixels. (defaults to 12)
-# shadow-radius = 12
-shadow-radius = 7;
-
-# The opacity of shadows. (0.0 - 1.0, defaults to 0.75)
-# shadow-opacity = .75
-
-# The left offset for shadows, in pixels. (defaults to -15)
-# shadow-offset-x = -15
-shadow-offset-x = -7;
-
-# The top offset for shadows, in pixels. (defaults to -15)
-# shadow-offset-y = -15
-shadow-offset-y = -7;
-
-# Avoid drawing shadows on dock/panel windows. This option is deprecated,
-# you should use the *wintypes* option in your config file instead.
-#
-# no-dock-shadow = false
-
-# Don't draw shadows on drag-and-drop windows. This option is deprecated, 
-# you should use the *wintypes* option in your config file instead.
-#
-# no-dnd-shadow = false
-
-# Red color value of shadow (0.0 - 1.0, defaults to 0).
-# shadow-red = 0
-
-# Green color value of shadow (0.0 - 1.0, defaults to 0).
-# shadow-green = 0
-
-# Blue color value of shadow (0.0 - 1.0, defaults to 0).
-# shadow-blue = 0
-
-# Do not paint shadows on shaped windows. Note shaped windows 
-# here means windows setting its shape through X Shape extension. 
-# Those using ARGB background is beyond our control. 
-# Deprecated, use 
-#   shadow-exclude = 'bounding_shaped'
-# or 
-#   shadow-exclude = 'bounding_shaped && !rounded_corners'
-# instead.
-#
-# shadow-ignore-shaped = ''
-
-# Specify a list of conditions of windows that should have no shadow.
-#
-# examples:
-#   shadow-exclude = "n:e:Notification";
-#
-# shadow-exclude = []
-shadow-exclude = [
-  "name = 'Notification'",
-  "class_g = 'Conky'",
-  "class_g ?= 'Notify-osd'",
-  "class_g = 'Cairo-clock'",
-  "_GTK_FRAME_EXTENTS@:c"
-];
-
-# Specify a X geometry that describes the region in which shadow should not
-# be painted in, such as a dock window region. Use 
-#    shadow-exclude-reg = "x10+0+0"
-# for example, if the 10 pixels on the bottom of the screen should not have shadows painted on.
-#
-# shadow-exclude-reg = "" 
-
-# Crop shadow of a window fully on a particular Xinerama screen to the screen.
-# xinerama-shadow-crop = false
-
-
-#################################
-#           Fading              #
-#################################
-
-
-# Fade windows in/out when opening/closing and when opacity changes,
-#  unless no-fading-openclose is used.
-# fading = false
-fading = true
-
-# Opacity change between steps while fading in. (0.01 - 1.0, defaults to 0.028)
-# fade-in-step = 0.028
-fade-in-step = 0.03;
-
-# Opacity change between steps while fading out. (0.01 - 1.0, defaults to 0.03)
-# fade-out-step = 0.03
-fade-out-step = 0.03;
-
-# The time between steps in fade step, in milliseconds. (> 0, defaults to 10)
-# fade-delta = 10
-
-# Specify a list of conditions of windows that should not be faded.
-# fade-exclude = []
-
-# Do not fade on window open/close.
-# no-fading-openclose = false
-
-# Do not fade destroyed ARGB windows with WM frame. Workaround of bugs in Openbox, Fluxbox, etc.
-# no-fading-destroyed-argb = false
-
-
-#################################
-#   Transparency / Opacity      #
-#################################
-
-
-# Opacity of inactive windows. (0.1 - 1.0, defaults to 1.0)
-# inactive-opacity = 1
-inactive-opacity = 0.95;
-
-# Opacity of window titlebars and borders. (0.1 - 1.0, disabled by default)
-# frame-opacity = 1.0
-frame-opacity = 0.7;
-
-# Default opacity for dropdown menus and popup menus. (0.0 - 1.0, defaults to 1.0)
-# menu-opacity = 1.0
-
-# Let inactive opacity set by -i override the '_NET_WM_OPACITY' values of windows.
-# inactive-opacity-override = true
-inactive-opacity-override = false;
-
-# Default opacity for active windows. (0.0 - 1.0, defaults to 1.0)
-# active-opacity = 1.0
-
-# Dim inactive windows. (0.0 - 1.0, defaults to 0.0)
-# inactive-dim = 0.0
-
-# Specify a list of conditions of windows that should always be considered focused.
-# focus-exclude = []
-focus-exclude = [ "class_g = 'Cairo-clock'" ];
-
-# Use fixed inactive dim value, instead of adjusting according to window opacity.
-# inactive-dim-fixed = 1.0
-
-# Specify a list of opacity rules, in the format `PERCENT:PATTERN`, 
-# like `50:name *= "Firefox"`. picom-trans is recommended over this. 
-# Note we don't make any guarantee about possible conflicts with other 
-# programs that set '_NET_WM_WINDOW_OPACITY' on frame or client windows.
-# example:
-#    opacity-rule = [ "80:class_g = 'URxvt'" ];
-#
-# opacity-rule = []
-
-
-#################################
-#     Background-Blurring       #
-#################################
-
-
-# Parameters for background blurring, see the *BLUR* section for more information.
-# blur-method = 
-# blur-size = 12
-#
-# blur-deviation = false
-
-# Blur background of semi-transparent / ARGB windows. 
-# Bad in performance, with driver-dependent behavior. 
-# The name of the switch may change without prior notifications.
-#
-# blur-background = false
-
-# Blur background of windows when the window frame is not opaque. 
-# Implies:
-#    blur-background 
-# Bad in performance, with driver-dependent behavior. The name may change.
-#
-# blur-background-frame = false
-
-
-# Use fixed blur strength rather than adjusting according to window opacity.
-# blur-background-fixed = false
-
-
-# Specify the blur convolution kernel, with the following format:
-# example:
-#   blur-kern = "5,5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1";
-#
-# blur-kern = ''
-blur-kern = "3x3box";
-
-
-# Exclude conditions for background blur.
-# blur-background-exclude = []
-blur-background-exclude = [
-  "window_type = 'dock'",
-  "window_type = 'desktop'",
-  "_GTK_FRAME_EXTENTS@:c"
-];
-
-#################################
-#       General Settings        #
-#################################
-
-# Daemonize process. Fork to background after initialization. Causes issues with certain (badly-written) drivers.
-# daemon = false
-
-# Specify the backend to use: `xrender`, `glx`, or `xr_glx_hybrid`.
-# `xrender` is the default one.
-#
-# backend = 'glx'
-backend = "xrender";
-
-# Enable/disable VSync.
-# vsync = false
-vsync = true
-
-# Enable remote control via D-Bus. See the *D-BUS API* section below for more details.
-# dbus = false
-
-# Try to detect WM windows (a non-override-redirect window with no 
-# child that has 'WM_STATE') and mark them as active.
-#
-# mark-wmwin-focused = false
-mark-wmwin-focused = true;
-
-# Mark override-redirect windows that doesn't have a child window with 'WM_STATE' focused.
-# mark-ovredir-focused = false
-mark-ovredir-focused = true;
-
-# Try to detect windows with rounded corners and don't consider them 
-# shaped windows. The accuracy is not very high, unfortunately.
-#
-# detect-rounded-corners = false
-detect-rounded-corners = true;
-
-# Detect '_NET_WM_OPACITY' on client windows, useful for window managers
-# not passing '_NET_WM_OPACITY' of client windows to frame windows.
-#
-# detect-client-opacity = false
-detect-client-opacity = true;
-
-# Specify refresh rate of the screen. If not specified or 0, picom will 
-# try detecting this with X RandR extension.
-#
-# refresh-rate = 60
-refresh-rate = 0
-
-# Limit picom to repaint at most once every 1 / 'refresh_rate' second to 
-# boost performance. This should not be used with 
-#   vsync drm/opengl/opengl-oml
-# as they essentially does sw-opti's job already, 
-# unless you wish to specify a lower refresh rate than the actual value.
-#
-# sw-opti = 
-
-# Use EWMH '_NET_ACTIVE_WINDOW' to determine currently focused window, 
-# rather than listening to 'FocusIn'/'FocusOut' event. Might have more accuracy, 
-# provided that the WM supports it.
-#
-# use-ewmh-active-win = false
-
-# Unredirect all windows if a full-screen opaque window is detected, 
-# to maximize performance for full-screen windows. Known to cause flickering 
-# when redirecting/unredirecting windows.
-#
-# unredir-if-possible = false
-
-# Delay before unredirecting the window, in milliseconds. Defaults to 0.
-# unredir-if-possible-delay = 0
-
-# Conditions of windows that shouldn't be considered full-screen for unredirecting screen.
-# unredir-if-possible-exclude = []
-
-# Use 'WM_TRANSIENT_FOR' to group windows, and consider windows 
-# in the same group focused at the same time.
-#
-# detect-transient = false
-detect-transient = true
-
-# Use 'WM_CLIENT_LEADER' to group windows, and consider windows in the same 
-# group focused at the same time. 'WM_TRANSIENT_FOR' has higher priority if 
-# detect-transient is enabled, too.
-#
-# detect-client-leader = false
-detect-client-leader = true
-
-# Resize damaged region by a specific number of pixels. 
-# A positive value enlarges it while a negative one shrinks it. 
-# If the value is positive, those additional pixels will not be actually painted 
-# to screen, only used in blur calculation, and such. (Due to technical limitations, 
-# with use-damage, those pixels will still be incorrectly painted to screen.) 
-# Primarily used to fix the line corruption issues of blur, 
-# in which case you should use the blur radius value here 
-# (e.g. with a 3x3 kernel, you should use `--resize-damage 1`, 
-# with a 5x5 one you use `--resize-damage 2`, and so on). 
-# May or may not work with *--glx-no-stencil*. Shrinking doesn't function correctly.
-#
-# resize-damage = 1
-
-# Specify a list of conditions of windows that should be painted with inverted color. 
-# Resource-hogging, and is not well tested.
-#
-# invert-color-include = []
-
-# GLX backend: Avoid using stencil buffer, useful if you don't have a stencil buffer. 
-# Might cause incorrect opacity when rendering transparent content (but never 
-# practically happened) and may not work with blur-background. 
-# My tests show a 15% performance boost. Recommended.
-#
-# glx-no-stencil = false
-
-# GLX backend: Avoid rebinding pixmap on window damage. 
-# Probably could improve performance on rapid window content changes, 
-# but is known to break things on some drivers (LLVMpipe, xf86-video-intel, etc.).
-# Recommended if it works.
-#
-# glx-no-rebind-pixmap = false
-
-# Disable the use of damage information. 
-# This cause the whole screen to be redrawn everytime, instead of the part of the screen
-# has actually changed. Potentially degrades the performance, but might fix some artifacts.
-# The opposing option is use-damage
-#
-# no-use-damage = false
-use-damage = true
-
-# Use X Sync fence to sync clients' draw calls, to make sure all draw 
-# calls are finished before picom starts drawing. Needed on nvidia-drivers 
-# with GLX backend for some users.
-#
-# xrender-sync-fence = false
-
-# GLX backend: Use specified GLSL fragment shader for rendering window contents. 
-# See `compton-default-fshader-win.glsl` and `compton-fake-transparency-fshader-win.glsl` 
-# in the source tree for examples.
-#
-# glx-fshader-win = ''
-
-# Force all windows to be painted with blending. Useful if you 
-# have a glx-fshader-win that could turn opaque pixels transparent.
-#
-# force-win-blend = false
-
-# Do not use EWMH to detect fullscreen windows. 
-# Reverts to checking if a window is fullscreen based only on its size and coordinates.
-#
-# no-ewmh-fullscreen = false
-
-# Dimming bright windows so their brightness doesn't exceed this set value. 
-# Brightness of a window is estimated by averaging all pixels in the window, 
-# so this could comes with a performance hit. 
-# Setting this to 1.0 disables this behaviour. Requires --use-damage to be disabled. (default: 1.0)
-#
-# max-brightness = 1.0
-
-# Make transparent windows clip other windows like non-transparent windows do,
-# instead of blending on top of them.
-#
-# transparent-clipping = false
-
-# Set the log level. Possible values are:
-#  "trace", "debug", "info", "warn", "error"
-# in increasing level of importance. Case doesn't matter. 
-# If using the "TRACE" log level, it's better to log into a file 
-# using *--log-file*, since it can generate a huge stream of logs.
-#
-# log-level = "debug"
-log-level = "warn";
-
-# Set the log file.
-# If *--log-file* is never specified, logs will be written to stderr. 
-# Otherwise, logs will to written to the given file, though some of the early 
-# logs might still be written to the stderr. 
-# When setting this option from the config file, it is recommended to use an absolute path.
-#
-# log-file = '/path/to/your/log/file'
-
-# Show all X errors (for debugging)
-# show-all-xerrors = false
-
-# Write process ID to a file.
-# write-pid-path = '/path/to/your/log/file'
-
-# Window type settings
-# 
-# 'WINDOW_TYPE' is one of the 15 window types defined in EWMH standard: 
-#     "unknown", "desktop", "dock", "toolbar", "menu", "utility", 
-#     "splash", "dialog", "normal", "dropdown_menu", "popup_menu", 
-#     "tooltip", "notification", "combo", and "dnd".
-# 
-# Following per window-type options are available: ::
-# 
-#   fade, shadow:::
-#     Controls window-type-specific shadow and fade settings.
-# 
-#   opacity:::
-#     Controls default opacity of the window type.
-# 
-#   focus:::
-#     Controls whether the window of this type is to be always considered focused. 
-#     (By default, all window types except "normal" and "dialog" has this on.)
-# 
-#   full-shadow:::
-#     Controls whether shadow is drawn under the parts of the window that you 
-#     normally won't be able to see. Useful when the window has parts of it 
-#     transparent, and you want shadows in those areas.
-# 
-#   redir-ignore:::
-#     Controls whether this type of windows should cause screen to become 
-#     redirected again after been unredirected. If you have unredir-if-possible
-#     set, and doesn't want certain window to cause unnecessary screen redirection, 
-#     you can set this to `true`.
-#
-wintypes:
-{
-  tooltip = { fade = true; shadow = true; opacity = 0.75; focus = true; full-shadow = false; };
-  dock = { shadow = false; }
-  dnd = { shadow = false; }
-  popup_menu = { opacity = 0.8; }
-  dropdown_menu = { opacity = 0.8; }
-};
-#+end_src
-** rofi :manjaroi3:
-:PROPERTIES:
-:TANGLE_FILE_NAME: ./rofi/.config/rofi/config.rasi
-:END:
-call_printConfigLocation()
-
-#+begin_src c
-configuration {
-ktheme: "arthur";
-kb-remove-to-eol: "";
-kb-accept-entry: "Control+m,Return,KP_Enter";
-kb-row-up: "Up,Control+k,Control+p";
-kb-row-down: "Down,Control+j,Control+n";
-}
-#+end_src
-** qt4 :manjaroi3:
-:PROPERTIES:
-:TANGLE_FILE_NAME: ./qt4/.config/Trolltech.conf
-:END:
-call_printConfigLocation()
-I want to change qt and gtk styles simultaneously
-#+begin_src conf
-[Qt]
-style=GTK+
 #+end_src
 ** xmonad :full:manjaroi3:
 *** recompile after upgrade
@@ -4562,6 +3906,1488 @@ Config { font            = "xft:Ubuntu:weight=bold:pixelsize=11:antialias=true:h
 <<xmobar-master>>
 #+end_src
 
+** qtile :full:manjaroi3:
+*** config
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./qtile/.config/qtile/config.py
+:END:
+call_printConfigLocation() {{{results(The config configuration goes into ~.config/qtile/config.py~.)}}}
+#+begin_src python
+# Adapted 2023 by me
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+import os
+import subprocess
+from pathlib import Path
+import json
+from libqtile import bar, layout, widget, extension, hook
+from libqtile.log_utils import logger
+
+from libqtile.config import (
+    Click,
+    Drag,
+    Group,
+    Key,
+    Match,
+    Screen,
+    KeyChord,
+    DropDown,
+    ScratchPad,
+)
+from libqtile.lazy import lazy
+from libqtile.utils import guess_terminal
+
+from qtile_extras import widget
+from qtile_extras.widget.decorations import RectDecoration
+
+import colors
+
+# Get home path
+home = str(Path.home())
+
+mod = "mod4"
+terminal = guess_terminal("urxvt")
+
+myEmacs = "emacsclient -c -a 'emacs' "  # The space at the end is IMPORTANT!
+
+###############################################################################
+#                                    Colors                                   #
+###############################################################################
+
+#### Either use a fixed theme        
+# colors = colors.DoomOne
+# --------------------------------------------------------
+# Or use Pywal Colors
+# --------------------------------------------------------
+cache=os.path.expanduser('~/.cache/wal/colors')
+def load_colors(cache):
+    colors = []
+    with open(cache, 'r') as file:
+        for i in range(8):
+            colors.append(file.readline().strip())
+    colors.append('#ffffff')
+    lazy.reload()
+    return colors
+colors = load_colors(cache)
+
+###############################################################################
+#                                    Themes                                   #
+###############################################################################
+dmenu_theme=dict(
+    dmenu_prompt=">",
+    dmenu_font="FiraSans",
+    background=colors[0],
+    foreground=colors[1],
+    selected_background=colors[3],
+    selected_foreground=colors[0],
+    dmenu_height=24,  # Only supported by some dmenu forks
+)
+
+# Some settings that I use on almost every layout, which saves us
+# from having to type these out for each individual layout.
+layout_theme = {
+    "border_width": 3,
+    "margin": 5,
+    "border_focus": colors[7],
+    "border_normal": colors[0],
+}
+
+widget_defaults = dict(font="Fira Sans SemiBold", fontsize=14, background=colors[0],padding=3)
+extension_defaults = widget_defaults.copy()
+
+decoration_defaults= dict(radius=10, filled=True, padding_y=0)
+decoration_group = {
+    "decorations": [
+        RectDecoration(colour=colors[3], group=True,**decoration_defaults)
+    ],
+    "padding": 10,
+}
+decoration_group2={
+    "decorations": [
+        RectDecoration(colour=colors[4], group=True,**decoration_defaults)
+    ],
+    "padding": 10,
+}
+
+###############################################################################
+#                               Helper Functions                              #
+###############################################################################
+
+
+chord_names=[]
+def make_name_from_keys(fun):
+    '''Decorator for KeyChord function that creates the name from the keys
+    This will display the Available Keys in the Chord widget'''
+    def make_name(*args,**kwargs):
+        _keys = args[2]
+        if not 'name' in kwargs.keys():
+            kwargs["name"]=""
+        kwargs["name"]+="::" #add double colon to distinguish name from keys (see help creating function)
+        for k in _keys:
+            kwargs['name']+=f" {k.desc}({k.key})"
+        chord_names.append(kwargs['name'])
+        return fun(*args,**kwargs)
+    return make_name
+KeyChord=make_name_from_keys(KeyChord)
+
+###############################################################################
+#                                     Keys                                    #
+###############################################################################
+
+keys = [
+    # A list of available commands that can be bound to keys can be found
+    # at https://docs.qtile.org/en/latest/manual/config/lazy.html
+    # Switch between windows
+    Key([mod], "h", lazy.layout.left(), desc="Move focus to left"),
+    Key([mod], "l", lazy.layout.right(), desc="Move focus to right"),
+    Key([mod], "j", lazy.layout.down(), desc="Move focus down"),
+    Key([mod], "k", lazy.layout.up(), desc="Move focus up"),
+    Key([mod], "space", lazy.layout.next(), desc="Move window focus to other window"),
+    # Move windows between left/right columns or move up/down in current stack.
+    # Moving out of range in Columns layout will create new column.
+    Key(
+        [mod, "shift"], "h", lazy.layout.shuffle_left(), desc="Move window to the left"
+    ),
+    Key(
+        [mod, "shift"],
+        "l",
+        lazy.layout.shuffle_right(),
+        desc="Move window to the right",
+    ),
+    Key([mod, "shift"], "j", lazy.layout.shuffle_down(), desc="Move window down"),
+    Key([mod, "shift"], "k", lazy.layout.shuffle_up(), desc="Move window up"),
+    # Grow windows. If current window is on the edge of screen and direction
+    # will be to screen edge - window would shrink.
+    Key([mod, "control"], "h", lazy.layout.grow_left(), desc="Grow window to the left"),
+    Key(
+        [mod, "control"], "l", lazy.layout.grow_right(), desc="Grow window to the right"
+    ),
+    Key([mod, "control"], "j", lazy.layout.grow_down(), desc="Grow window down"),
+    Key([mod, "control"], "k", lazy.layout.grow_up(), desc="Grow window up"),
+    Key([mod], "n", lazy.layout.normalize(), desc="Reset all window sizes"),
+    # Toggle between split and unsplit sides of stack.
+    # Split = all windows displayed
+    # Unsplit = 1 window displayed, like Max layout, but still with
+    # multiple stack panes
+    Key(
+        [mod, "shift"],
+        "Return",
+        lazy.layout.toggle_split(),
+        desc="Toggle between split and unsplit sides of stack",
+    ),
+    Key([mod], "Return", lazy.spawn(terminal), desc="Launch terminal"),
+    # Toggle between different layouts as defined below
+    Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
+    Key([mod,"shift"], "Tab", lazy.prev_layout(), desc="Toggle between layouts"),
+    Key([mod, "shift"], "q", lazy.window.kill(), desc="Kill focused window"),
+    Key([mod, "control"], "r", lazy.reload_config(), desc="Reload the config"),
+    Key([mod, "control", "shift"], "r", lazy.restart(), desc="Restart qtile"),
+    Key([mod, "control"], "q", lazy.shutdown(), desc="Shutdown Qtile"),
+    Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
+    Key([],"XF86AudioRaiseVolume", lazy.spawn('pactl set-sink-volume @DEFAULT_SINK@ +10%')),
+    Key([],"XF86AudioLowerVolume", lazy.spawn('pactl set-sink-volume @DEFAULT_SINK@ -10%')),
+    Key([],"XF86AudioMute", lazy.spawn('pactl set-sink-mute @DEFAULT_SINK@ toggle')),
+    Key([],"XF86AudioMicMute", lazy.spawn('pactl set-source-mute @DEFAULT_SOURCE@ toggle')),
+    Key(
+        [mod],
+        "d",
+        lazy.run_extension(
+            extension.DmenuRun(
+                dmenu_command="dmenu_recency",**dmenu_theme,
+            )
+        ),desc='Open application with dmenu',
+    ),
+    Key([mod],'w',lazy.spawn("rofi -show-icons -modi windowcd#window#drun -show window -theme arthur"),desc='show windows in dmenu'),
+    Key(
+        [mod, "shift"],
+        "w",
+        lazy.run_extension(
+            extension.WindowList(**dmenu_theme)
+        ),desc='List windows in dmenu',
+    ),
+    Key([mod ], "p", lazy.spawn(home + "/.local/bin/updatewal.sh"), desc="Update Theme and Wallpaper"),
+    Key([mod, "control"], "p", lazy.spawn(home + "/.local/bin/wallpaper_select.sh"), desc="Update Theme and Wallpaper"),
+    Key([mod], "f",
+        lazy.window.toggle_floating(),
+        desc="Toggle floating",
+    ),
+
+    Key([mod ,"shift"], "space",
+        lazy.window.toggle_fullscreen(),
+        desc="Toggle fullscreen",
+    ),
+    Key([mod], 'x', lazy.run_extension(extension.CommandSet(
+    commands={
+        'lock':'slock',
+        'logout':'qtile cmd-obj -o cmd -f shutdown',
+        'reboot':'systemctl reboot',
+        'shutdown':'systemctl poweroff',
+        },
+        ,**dmenu_theme))),
+    KeyChord([mod], "z", [
+        Key([], "g", lazy.layout.grow(),desc="grow"),
+        Key([], "s", lazy.layout.shrink(),desc="shrink"),
+        Key([], "n", lazy.layout.normalize(),desc="normalize"),
+        Key([], "m", lazy.layout.maximize(),desc="maximize")],
+        mode=True,
+        name="Windows mode"
+             ),
+]
+# Emacs programs launched using the key chord CTRL+e followed by 'key'
+# first define list of keys, then add the chord to the keys. Like this I can give the
+# KeyChord a name that contains the key bindings.
+
+keys.append(
+    KeyChord(
+        [mod],
+        "e", [Key([], "e", lazy.spawn(myEmacs), desc="Dashboard"),
+            Key([], "c", lazy.spawn(myEmacs + r"'~/cfg-org/linux-config.org'"), desc="Config"),
+            Key(
+                [],
+                "w",
+                lazy.group["0"].dropdown_toggle("e-scratch"),
+                desc="Scratch",
+            ),
+            Key(
+                [],
+                "b",
+                lazy.spawn(myEmacs + "--eval '(ibuffer)'"),
+                desc="Ibuffer",
+            ),
+            Key(
+                [],
+                "d",
+                lazy.spawn(myEmacs + "--eval '(dired nil)'"),
+                desc="Dired",
+            ),
+            Key(
+                [], "s", lazy.spawn(myEmacs + "--eval '(eshell)'"), desc="Eshell"
+            ),
+            Key([], "v", lazy.spawn(myEmacs + "--eval '(vterm)'"), desc="Vterm"),
+            Key(
+                [],
+                "x",
+                lazy.spawn(myEmacs + "--eval '(emacs-everywhere)'"),
+                desc="Emacs Everywhere",
+            )],
+        name='Emacs mode',
+    ),)
+
+groups = [Group(i) for i in "123456789"]
+
+
+###### add scratchpads
+groups.append(
+    ScratchPad(
+        "0",
+        [  # append single item Scratchpad to list
+            DropDown(
+                "e-scratch",
+                ["/home/philip/.local/bin/ecf"],
+                match=Match(title="emacsf"),
+                height=0.35,
+                width=0.8,
+                x=0.1,
+                y=0.1,
+                on_focus_lost_hide=False,
+                opacity=0.8,
+                warp_pointer=True,
+            ),
+            DropDown(
+                "spotify",
+                ["spotify"],
+                height=0.8,
+                width=0.8,
+                x=0.1,
+                y=0.1,
+                on_focus_lost_hide=True,
+                opacity=0.95,
+                warp_pointer=True,
+            ),
+            DropDown(
+                "pavucontrol",
+                ["pavucontrol"],
+                height=0.6,
+                width=0.6,
+                x=0.2,
+                y=0.2,
+                on_focus_lost_hide=True,
+                opacity=0.80,
+                warp_pointer=True,
+            ),
+            DropDown(
+                "terminal",
+                ["urxvt"],
+                height=0.5,
+                width=0.5,
+                x=0.25,
+                y=0.0,
+                on_focus_lost_hide=False,
+                opacity=0.80,
+                warp_pointer=True,
+            ),
+            DropDown(
+                "WhatsApp",
+                "chromium --app=https://web.whatsapp.com/",
+                match=Match(wm_class="web.whatsapp.com"),
+                height=0.7,
+                width=0.5,
+                x=0.5,
+                y=0.0,
+                on_focus_lost_hide=False,
+                opacity=0.90,
+                warp_pointer=True,
+            ),
+        ],
+    ),
+)
+
+## generate 'switch to group' keybindings
+for i in groups:
+    keys.extend(
+        [
+            # mod1 + letter of group = switch to group
+            Key(
+                [mod],
+                i.name,
+                lazy.group[i.name].toscreen(),
+                desc="Switch to group {}".format(i.name),
+            ),
+            # mod1 + shift + letter of group = switch to & move focused window to group
+            # Key(
+            #     [mod, "shift"],
+            #     i.name,
+            #     lazy.window.togroup(i.name, switch_group=True),
+            #     desc="Switch to & move focused window to group {}".format(i.name),
+            # ),
+            # Or, use below if you prefer not to switch to that group.
+            # # mod1 + shift + letter of group = move focused window to group
+            Key(
+                [mod, "shift"],
+                i.name,
+                lazy.window.togroup(i.name),
+                desc="move focused window to group {}".format(i.name),
+            ),
+        ]
+    )
+
+# open special scratch pad windows with an assigned key combination
+keys.extend(
+    [
+        Key(
+            [mod],
+            "F2",
+            lazy.group["0"].dropdown_toggle("terminal"),
+            desc="Terminal",
+        ),
+        Key(
+            [mod],
+            "F5",
+            lazy.group["0"].dropdown_toggle("WhatsApp"),
+            desc="WhatsApp",
+        ),
+        Key(
+            [mod],
+            "F9",
+            lazy.group["0"].dropdown_toggle("spotify"),
+            desc="Spotify",
+        ),
+        Key(
+            [mod],
+            "F10",
+            lazy.group["0"].dropdown_toggle("e-scratch"),
+            desc="Emacs Scratch",
+        ),
+
+        Key([mod, "control"], "m", lazy.group["0"].dropdown_toggle('pavucontrol'), desc="Sound controls"),
+        KeyChord(
+            [mod],
+            "s",
+            [
+                Key([],
+                    "F2",
+                    lazy.group["0"].dropdown_toggle("terminal"),
+                    desc="Terminal",
+                ),
+                Key([],
+                    "F5",
+                    lazy.group["0"].dropdown_toggle("WhatsApp"),
+                    desc="WhatsApp",
+                ),
+                Key(
+                    [], "F9", lazy.group["0"].dropdown_toggle("spotify"), desc="Spotify"
+                ),
+                Key(
+                    [],
+                    "F10",
+                    lazy.group["0"].dropdown_toggle("e-scratch"),
+                    desc="Emacs Scratch",
+                ),
+
+                Key([], "m", lazy.group["0"].dropdown_toggle('pavucontrol'), desc="Sound controls"),
+            ],name='Scratchpad mode'
+        ),
+        Key(
+            [mod, "shift"],
+            "s",
+            lazy.window.to_group("0"),
+            desc="Current Window to Scratchpad",
+        ),
+    ]
+)
+keys.extend(
+    [
+        Key(
+            [mod],
+            "i",
+            lazy.spawn('/home/philip/.local/bin/make_key_help.py'),
+            desc="Key binding help",
+        ),
+    ]
+)
+
+
+
+layouts = [
+    # Try more layouts by unleashing below layouts.
+    # layout.Stack(num_stacks=2),
+    layout.MonadTall(**layout_theme),
+    layout.MonadWide(**layout_theme),
+    layout.Max(**layout_theme),
+    layout.RatioTile(),
+    layout.Tile(),
+    layout.TreeTab(**layout_theme),
+    # layout.VerticalTile(),
+    layout.Zoomy(**layout_theme),
+    layout.Bsp(**layout_theme),
+    layout.Matrix(**layout_theme),
+    layout.Columns(**layout_theme),
+]
+
+
+screens = [
+    Screen(
+        top=bar.Bar(  # display bar at top
+            [
+                widget.CurrentLayoutIcon(**widget_defaults),
+                widget.GroupBox(**widget_defaults),
+                widget.Prompt(**widget_defaults),
+                widget.WindowName(**widget_defaults),
+                widget.Chord(
+                    # chords_colors={
+                    #     chord_names[0]: (colors[4][0]+'cc', "#000000"),
+                    #     chord_names[1]: (colors[5][0]+'cc', "#000000"),
+                    #     chord_names[2]: (colors[6][0]+'cc', "#000000"),
+                    # },
+                    # name_transform=lambda name: name.upper(),
+                    foreground='#000000',
+                    ,**{**widget_defaults,**decoration_group2},
+                ),
+                widget.Systray(),
+                widget.Clock(format="%d.%m %a %H:%M",decorations=[RectDecoration(colour=colors[5],**decoration_defaults)], **widget_defaults),
+                widget.BatteryIcon(**{**widget_defaults,**decoration_group}), #create new dic in line since both contain padding key
+                widget.Battery(format="{percent:2.0%} {hour:d}:{min:02d}", **{**widget_defaults,**decoration_group}),
+                widget.QuickExit(
+                    default_text="☠", countdown_format="[{}]", fontsize=30, **decoration_group
+                ),
+            ],
+            size=24,
+            # background="#00000000"
+            # border_width=[0, 0, 2, 0],  # Draw top and bottom borders
+            # border_color=["ff00ff", "000000", "ff00ff", "000000"]  # Borders are magenta
+        ),
+    ),
+]
+
+# Drag floating layouts.
+mouse = [
+    Drag(
+        [mod],
+        "Button1",
+        lazy.window.set_position_floating(),
+        start=lazy.window.get_position(),
+    ),
+    Drag(
+        [mod], "Button3", lazy.window.set_size_floating(), start=lazy.window.get_size()
+    ),
+    Click([mod], "Button2", lazy.window.bring_to_front()),
+]
+
+
+floating_layout = layout.Floating(
+    float_rules=[
+        # Run the utility of `xprop` to see the wm class and name of an X client.
+        ,*layout.Floating.default_float_rules,
+        Match(wm_class="confirmreset"),  # gitk
+        Match(wm_class="makebranch"),  # gitk
+        Match(wm_class="maketag"),  # gitk
+        Match(wm_class="ssh-askpass"),  # ssh-askpass
+        Match(title="branchdialog"),  # gitk
+        Match(title="pinentry"),  # GPG key password entry
+        Match(title="Emacsf"),  # emacs scratch buffer (called with ecf script)
+        # Match(wm_instance_class="urxvtf"),  # floating terminal
+        Match(wm_class="matplotlib"),  # matplotlib
+        Match(wm_class="Pavucontrol"),  # Sound
+        Match(wm_class="pinentry-gtk-2"),  # Gtk password 
+        Match(wm_class="blueman-manager"),  # blueman
+    ]
+)
+dgroups_key_binder = None
+dgroups_app_rules = []  # type: list
+follow_mouse_focus = True
+bring_front_click = False
+cursor_warp = False
+auto_fullscreen = True
+focus_on_window_activation = "smart"
+reconfigure_screens = True
+
+# If things like steam games want to auto-minimize themselves when losing
+# focus, should we respect this or not?
+auto_minimize = True
+
+# When using the Wayland backend, this can be used to configure input devices.
+wl_input_rules = None
+
+
+@hook.subscribe.startup_once
+def start_once():
+    home = os.path.expanduser("~")
+    subprocess.call([home + "/.config/qtile/autostart.sh"])
+
+
+wmname = "LG3D"
+#+end_src
+*** colors
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./qtile/.config/qtile/colors.py
+:END:
+#+begin_src python
+# If using transparency, make sure you add (background="#00000000") to 'Screen' line(s).
+# Then, you can use RGBA color codes to add transparency to the colors below.
+# For ex: colors = [["#282c34ee", "#282c34dd"], ...
+
+DoomOne = [
+    ["#282c34", "#282c34"], # bg
+    ["#bbc2cf", "#bbc2cf"], # fg
+    ["#1c1f24", "#1c1f24"], # color01
+    ["#ff6c6b", "#ff6c6b"], # color02
+    ["#98be65", "#98be65"], # color03
+    ["#da8548", "#da8548"], # color04
+    ["#51afef", "#51afef"], # color05
+    ["#c678dd", "#c678dd"], # color06
+    ["#46d9ff", "#46d9ff"]  # color15
+    ]
+
+Dracula  = [
+    ["#282a36", "#282a36"], # bg
+    ["#f8f8f2", "#f8f8f2"], # fg
+    ["#000000", "#000000"], # color01
+    ["#ff5555", "#ff5555"], # color02
+    ["#50fa7b", "#50fa7b"], # color03
+    ["#f1fa8c", "#f1fa8c"], # color04
+    ["#bd93f9", "#bd93f9"], # color05
+    ["#ff79c6", "#ff79c6"], # color06
+    ["#9aedfe", "#9aedfe"]  # color15
+    ]
+
+GruvboxDark  = [
+    ["#282828", "#282828"], # bg
+    ["#ebdbb2", "#ebdbb2"], # fg
+    ["#000000", "#000000"], # color01
+    ["#fb4934", "#fb4934"], # color02
+    ["#98971a", "#98971a"], # color03
+    ["#d79921", "#d79921"], # color04
+    ["#83a598", "#83a598"], # color05
+    ["#d3869b", "#d3869b"], # color06
+    ["#b8bb26", "#b8bb26"], # color11
+    ]
+MonokaiPro = [
+    ["#2D2A2E", "#2D2A2E"], # bg
+    ["#FCFCFA", "#FCFCFA"], # fg
+    ["#403E41", "#403E41"], # color01
+    ["#FF6188", "#FF6188"], # color02
+    ["#A9DC76", "#A9DC76"], # color03
+    ["#FFD866", "#FFD866"], # color04
+    ["#FC9867", "#FC9867"], # color05
+    ["#AB9DF2", "#AB9DF2"], # color06
+    ["#78DCE8", "#78DCE8"]  # color07
+    ]
+
+Nord = [
+    ["#2E3440", "#2E3440"], # bg
+    ["#D8DEE9", "#D8DEE9"], # fg
+    ["#3B4252", "#3B4252"], # color01
+    ["#BF616A", "#BF616A"], # color02
+    ["#A3BE8C", "#A3BE8C"], # color03
+    ["#EBCB8B", "#EBCB8B"], # color04
+    ["#81A1C1", "#81A1C1"], # color05
+    ["#B48EAD", "#B48EAD"], # color06
+    ["#88C0D0", "#88C0D0"]  # color07
+    ]
+
+OceanicNext = [
+    ["#1b2b34", "#1b2b34"], # bg
+    ["#d8dee9", "#d8dee9"], # fg
+    ["#29414f", "#29414f"], # color01
+    ["#ec5f67", "#ec5f67"], # color02
+    ["#99c794", "#99c794"], # color03
+    ["#fac863", "#fac863"], # color04
+    ["#6699cc", "#6699cc"], # color05
+    ["#c594c5", "#c594c5"], # color06
+    ["#5fb3b3", "#5fb3b3"]  # color07
+    ]
+
+Palenight = [
+    ["#292d3e", "#292d3e"], # bg
+    ["#d0d0d0", "#d0d0d0"], # fg
+    ["#434758", "#434758"], # color01
+    ["#f07178", "#f07178"], # color02
+    ["#c3e88d", "#c3e88d"], # color03
+    ["#ffcb6b", "#ffcb6b"], # color04
+    ["#82aaff", "#82aaff"], # color05
+    ["#c792ea", "#c792ea"], # color06
+    ["#89ddff", "#89ddff"]  # color15
+    ]
+
+SolarizedDark = [
+    ["#002b36", "#002b36"], # bg
+    ["#839496", "#839496"], # fg
+    ["#073642", "#073642"], # color01
+    ["#dc322f", "#dc322f"], # color02
+    ["#859900", "#859900"], # color03
+    ["#b58900", "#b58900"], # color04
+    ["#268bd2", "#268bd2"], # color05
+    ["#d33682", "#d33682"], # color06
+    ["#2aa198", "#2aa198"]  # color15
+    ]
+
+SolarizedLight = [
+    ["#fdf6e3", "#fdf6e3"], # bg
+    ["#657b83", "#657b83"], # fg
+    ["#ece5ac", "#ece5ac"], # color01
+    ["#dc322f", "#dc322f"], # color02
+    ["#859900", "#859900"], # color03
+    ["#b58900", "#b58900"], # color04
+    ["#268bd2", "#268bd2"], # color05
+    ["#d33682", "#d33682"], # color06
+    ["#2aa198", "#2aa198"]  # color15
+    ]
+
+TomorrowNight = [
+    ["#1d1f21", "#1d1f21"], # bg
+    ["#c5c8c6", "#c5c8c6"], # fg
+    ["#373b41", "#373b41"], # color01
+    ["#cc6666", "#cc6666"], # color02
+    ["#b5bd68", "#b5bd68"], # color03
+    ["#e6c547", "#e6c547"], # color04
+    ["#81a2be", "#81a2be"], # color05
+    ["#b294bb", "#b294bb"], # color06
+    ["#70c0ba", "#70c0ba"]  # color15
+    ]
+#+end_src
+*** make key help
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./qtile/.local/bin/make_key_help.py
+:END:
+#+begin_src python :shebang #!/usr/bin/env python3
+## This should print the keybindings as output by qtile
+## Adapted from: https://github.com/qtile/qtile/issues/1977#issuecomment-735242527
+from io import StringIO
+import pandas as pd
+from libqtile.ipc import find_sockfile, Client as IPCClient
+from libqtile.command.interface import IPCCommandInterface
+from libqtile.command.client import InteractiveCommandClient
+def Client():
+    return InteractiveCommandClient(IPCCommandInterface(IPCClient(find_sockfile())))
+from libqtile.lazy import lazy
+import subprocess
+
+def get_keys_pd():
+    c = Client()
+    stream = StringIO(c.display_kb())
+    df = pd.read_fwf(stream).drop(0)
+    return df
+
+def make_key_help(df):
+    ''' Take a datafield and create a string that can be passed to rofi'''
+    key_help = ""
+    for _i in range(df.shape[0]):
+        i=_i+1 
+        mods = ""
+        if isinstance(df['Mod'][i],str):
+            df['Mod'][i]=df['Mod'][i].split(', ')
+            for m in df['Mod'][i]:
+                if m == "mod4":
+                    mods += "Super + "
+                else:
+                    mods += m.capitalize() + " + "
+
+        if len(df['KeySym'][i]) > 1:
+            mods += df['KeySym'][i].capitalize()
+        else:
+            mods += df['KeySym'][i]
+
+        desc=''
+        if isinstance(df['Desc'][i],str):
+            desc += df['Desc'][i].split('::')[0] 
+        mode=''
+        if isinstance(df['Mode'][i],str):
+            mode = df['Mode'][i] if not df['Mode'][i] == '<root>' else ''
+            mode = mode.split('::')[0]
+        if mode!='':
+            mode='('+mode+')'
+        key_help += "{:<30} {} {}\n".format(mods, desc, mode)
+    return key_help
+    
+# def __make_key_help():
+#     return _make_key_help(get_keys_pd())
+
+if __name__ == '__main__':
+    key_df = get_keys_pd() 
+    subprocess.run("sh -c 'echo \""
+                + make_key_help(key_df)
+                   + '" | rofi -dmenu -i -mesg "Keyboard shortcuts"\'',shell=True)
+    print(make_key_help(key_df))
+#+end_src
+*** autostart
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./qtile/.config/qtile/autostart.sh
+:END:
+#+begin_src bash :shebang #!/usr/bin/env bash 
+picom &
+ff-theme-util &
+fix_xcursor &
+rclone mount --daemon gdrive: /home/philip/Documents/gdrive &
+rclone mount --daemon "mailbox drive:/Userstore/Philip Heringlake/" "/home/philip/Documents/Mailbox Drive" &
+start_conky_maia &
+sbxkb &
+blueman-applet &
+touchegg &
+nm-applet &
+pasystray &
+xfce4-power-manager &
+clipit &
+/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
+wal -R &
+
+#+end_src
+Programs to run when starting the display environment
+*** qtile_test
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./qtile/.local/bin/qtile_test
+:END:
+#+begin_src bash :shebang #!/bin/bash
+pyenv shell system
+HERE=$(dirname $(readlink -f $0))
+SCREEN_SIZE=${SCREEN_SIZE:-800x600}
+XDISPLAY=${XDISPLAY:-:1}
+LOG_LEVEL=${LOG_LEVEL:-INFO}
+APP=${APP:-$(python -c "from libqtile.utils import guess_terminal; print(guess_terminal())")}
+if [[ -z $PYTHON ]]; then
+    PYTHON=python3
+fi
+
+Xephyr +extension RANDR -screen ${SCREEN_SIZE} ${XDISPLAY} -ac &
+XEPHYR_PID=$!
+(
+  sleep 1
+  env DISPLAY=${XDISPLAY} QTILE_XEPHYR=1 ${PYTHON} /usr/bin/qtile start -l ${LOG_LEVEL} $@ &
+  QTILE_PID=$!
+  env DISPLAY=${XDISPLAY} ${APP} &
+  wait $QTILE_PID
+  kill $XEPHYR_PID
+)
+#+end_src
+** compton
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./compton/.config/.compton.conf
+:END:
+call_printConfigLocation()
+#+begin_src conf
+backend = "xrender";
+vsync = true;
+
+shadow = true;
+shadow-radius = 10;
+shadow-offset-x = -5;
+shadow-offset-y = 0;
+shadow-opacity = 0.97;
+shadow-red = 0.11;
+shadow-green = 0.12;
+shadow-blue = 0.13;
+shadow-exclude = [
+  "name = 'Notification'",
+  "_GTK_FRAME_EXTENTS@:c",
+  "class_g = 'i3-frame'",
+  "_NET_WM_STATE@:32a *= '_NET_WM_STATE_HIDDEN'",
+  "_NET_WM_STATE@:32a *= '_NET_WM_STATE_STICKY'",
+  "!I3_FLOATING_WINDOW@:c"
+];
+shadow-ignore-shaped = true;
+
+blur-background = false;
+blur-background-fixed = true;
+blur-kern = "7x7box";
+blur-background-exclude = [
+  "class_g = 'i3-frame'",
+  "window_type = 'dock'",
+  "window_type = 'desktop'",
+  "_GTK_FRAME_EXTENTS@:c"
+];
+
+# Duplicating the _NET_WM_STATE entries because compton cannot deal with atom arrays :-/
+opacity-rule = [
+  "97:class_g = 'Termite' && !_NET_WM_STATE@:32a",
+
+  "0:_NET_WM_STATE@[0]:32a = '_NET_WM_STATE_HIDDEN'",
+  "0:_NET_WM_STATE@[1]:32a = '_NET_WM_STATE_HIDDEN'",
+  "0:_NET_WM_STATE@[2]:32a = '_NET_WM_STATE_HIDDEN'",
+  "0:_NET_WM_STATE@[3]:32a = '_NET_WM_STATE_HIDDEN'",
+  "0:_NET_WM_STATE@[4]:32a = '_NET_WM_STATE_HIDDEN'",
+
+  "90:_NET_WM_STATE@[0]:32a = '_NET_WM_STATE_STICKY'",
+  "90:_NET_WM_STATE@[1]:32a = '_NET_WM_STATE_STICKY'",
+  "90:_NET_WM_STATE@[2]:32a = '_NET_WM_STATE_STICKY'",
+  "90:_NET_WM_STATE@[3]:32a = '_NET_WM_STATE_STICKY'",
+  "90:_NET_WM_STATE@[4]:32a = '_NET_WM_STATE_STICKY'"
+];
+
+fading = false;
+fade-delta = 7;
+fade-in-step = 0.05;
+fade-out-step = 0.05;
+fade-exclude = [];
+
+mark-wmwin-focused = true;
+mark-ovredir-focused = true;
+use-ewmh-active-win = true;
+detect-rounded-corners = true;
+detect-client-opacity = true;
+refresh-rate = 0;
+dbe = false;
+glx-no-stencil = true;
+glx-copy-from-front = false;
+unredir-if-possible = false;
+focus-exclude = [];
+detect-transient = true;
+detect-client-leader = true;
+invert-color-include = [];
+
+wintypes: {
+    tooltip = { fade = true; shadow = false; opacity = 1.00; focus = true; };
+    dock = { shadow = false };
+    dnd = { shadow = false };
+};
+
+#+end_src
+** conky
+*** conkyrc :essential:manjaroi3:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./conky/.conkyrc
+:END:
+call_printConfigLocation()
+#+begin_src conf
+own_window_class conky
+#+end_src
+
+*** general information :manjaroi3:full:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./conky/.config/conky
+:END:
+call_printConfigLocation()
+#+begin_src conf
+conky.config = {
+    alignment = 'top_right',
+    background = true,
+	cpu_avg_samples = 2,
+	net_avg_samples = 2,
+    default_color = 'F9FAF9',
+    color2 = 'D64161',
+    double_buffer = true,
+    font = 'Bitstream Vera Sans:size=8',
+    draw_shades = false,
+    gap_x = 25,
+    gap_y = 13,
+    minimum_width = 200,
+    no_buffers = true,
+    own_window = true,
+    own_window_type = 'override',
+	own_window_argb_visual = true,
+	own_window_argb_value = 120,
+	own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
+    update_interval = 1.0,
+    use_xft = true,
+	out_to_console = false,
+	override_utf9_locale = true,
+}
+conky.text = [[
+${voffset 8}$color2${font Bitstream Vera Sans:size=16}${time %A}$font\
+${voffset -8}$alignr$color${font Bitstream Vera Sans:size=38}${time %e}$font
+$color${voffset -30}$color${font Bitstream Vera Sans:size=18}${time %b}$font\
+${voffset -3} $color${font Bitstream Vera Sans:size=20}${time %Y}$font$color2$hr
+#
+${voffset 20}${goto 40}${color}CPU${font Bitstream Vera Sans:bold:size=8}$alignr$cpu%
+${voffset 5}${goto 40}$font$color2${top name 1}$alignr$color${top cpu 1}%
+${goto 40}$color2${top name 2}$alignr$color${top cpu 2}%
+${goto 40}$color2${top name 3}$alignr$color${top cpu 3}%
+${goto 40}$color2${top name 4}$alignr$color${top cpu 4}%
+${goto 40}$color2${top name 5}$alignr$color${top cpu 5}%
+#
+${voffset 10}${goto 40}${color}RAM${font Bitstream Vera Sans:bold:size=8}$alignr$mem$font
+${goto 40}${voffset 5}$color2${top_mem name 1}$alignr$color${top_mem mem_res 1}
+${goto 40}$color2${top_mem name 2}$alignr$color${top_mem mem_res 2}
+${goto 40}$color2${top_mem name 3}$alignr$color${top_mem mem_res 3}
+${goto 40}$color2${top_mem name 4}$alignr$color${top_mem mem_res 4}
+${goto 40}$color2${top_mem name 5}$alignr$color${top_mem mem_res 5}
+#
+${voffset 10}${goto 40}${color}Swap${font Bitstream Vera Sans:bold:size=8}$alignr${swap}/ ${swapfree}
+${voffset 15}$font$alignr${execi 10000 awk -F= '/TION/ {print $2}' /etc/lsb-release |sed 's/"//g'} \
+${execi 10000 awk -F= '/EASE=/ {printf $2" "} /NAME/ {print $2}' /etc/lsb-release}
+${voffset 10}${color2}${alignr}${execi 1200 whoami}@${nodename}
+${alignr}${color2}${font Bitstream Vera Sans:size=8}uptime: ${color}${uptime_short}
+${voffset 5}${color2}${font Bitstream Vera Sans:size=8}${alignr}kernel: ${color}${kernel}
+]]
+#+end_src
+*** shortcuts
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./conky/.config/conky_shortcuts
+:END:
+call_printConfigLocation()
+#+begin_src conf
+conky.config = {
+    alignment = 'bottom_left',
+    background = true,
+    cpu_avg_samples = 2,
+    default_color = 'D64161',
+    color2 = 'F9FAF9',
+    double_buffer = true,
+    font = 'Bitstream Vera Sans:size=8',
+    draw_shades = false,
+    gap_x = 25,
+    gap_y = 45,
+    minimum_width = 200,
+    no_buffers = true,
+    own_window = true,
+    own_window_type = 'override',
+    own_window_argb_value = 200,
+    own_window_transparent = true,
+    update_interval = 1.0,
+    use_xft = true,
+}
+conky.text = [[
+${color2}mod = ${color}<super>
+# -- ${color2}mod_next = ${color}<super>
+
+${color2}open new terminal - ${color}mod+Enter
+#${color2}open browser - ${color}mod_next+i
+#${color2}open pamac-manager - ${color}mod_next+u
+#${color2}open putty - ${color}mod_next+p
+
+${color2}rofi (launcher) - ${color}mod+d
+${color2}rofi (windows) - ${color}mod+Tab
+${color2}kill focused - ${color}mod+Shift+q
+
+${color2}container layout (tabbed) - ${color}mod+w
+${color2}container layout (horiz) - ${color}mod+q
+${color2}container layout (vert) - ${color}mod+e
+${color2}container layout (stck) - ${color}mod+s
+${color2}split container (horiz) - ${color}mod+;
+${color2}split container (vert) - ${color}mod+v
+${color2}toggle container type - ${color}mod+c
+
+${color2}focus windows - ${color}mod+[hjkl]
+
+${color2}switch to workspace 1-8 - ${color}mod+1-8
+${color2}send to workspace 1-8 - ${color}mod+Alt+1-8
+${color2}navigate workspaces - ${color}mod+Ctrl+arrows
+
+${color2}toggle floating - ${color}mod+Shift+Space
+${color2}toggle sticky - ${color}mod+Cntrl+s
+${color2}window opacity up[dn] - ${color}mod+Alt+[x|z]
+${color2}window dim disable[enable] - ${color}mod+Alt+[a|d]
+
+${color2}exit - ${color}mod+0
+]]
+#+end_src
+** picom :manjaroi3:full:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./picom/.config/picom/picom.conf
+:END:
+call_printConfigLocation() {{{results(The picom :manjaroi3:full: configuration goes into ~.config/picom/picom.conf~.)}}} 
+
+#+begin_src conf :mkdirp yes
+#################################
+#             Shadows           #
+#################################
+
+
+# Enabled client-side shadows on windows. Note desktop windows
+# (windows with '_NET_WM_WINDOW_TYPE_DESKTOP') never get shadow,
+# unless explicitly requested using the wintypes option.
+#
+shadow = false;
+# shadow = true;
+
+# The blur radius for shadows, in pixels. (defaults to 12)
+# shadow-radius = 12
+shadow-radius = 7;
+
+# The opacity of shadows. (0.0 - 1.0, defaults to 0.75)
+shadow-opacity = .75
+
+# The left offset for shadows, in pixels. (defaults to -15)
+# shadow-offset-x = -15
+shadow-offset-x = -7;
+
+# The top offset for shadows, in pixels. (defaults to -15)
+# shadow-offset-y = -15
+shadow-offset-y = -7;
+
+# Red color value of shadow (0.0 - 1.0, defaults to 0).
+# shadow-red = 0
+
+# Green color value of shadow (0.0 - 1.0, defaults to 0).
+# shadow-green = 0
+
+# Blue color value of shadow (0.0 - 1.0, defaults to 0).
+# shadow-blue = 0
+
+# Hex string color value of shadow (#000000 - #FFFFFF, defaults to #000000). This option will override options set shadow-(red/green/blue)
+# shadow-color = "#000000"
+
+# Specify a list of conditions of windows that should have no shadow.
+#
+# examples:
+#   shadow-exclude = "n:e:Notification";
+#
+# shadow-exclude = []
+shadow-exclude = [
+  "name = 'Notification'",
+  "class_g = 'Conky'",
+  "class_g ?= 'Notify-osd'",
+  "class_g = 'Cairo-clock'",
+  "_GTK_FRAME_EXTENTS@:c"
+];
+
+# Specify a list of conditions of windows that should have no shadow painted over, such as a dock window.
+# clip-shadow-above = []
+
+# Specify a X geometry that describes the region in which shadow should not
+# be painted in, such as a dock window region. Use
+#    shadow-exclude-reg = "x10+0+0"
+# for example, if the 10 pixels on the bottom of the screen should not have shadows painted on.
+#
+# shadow-exclude-reg = ""
+
+# Crop shadow of a window fully on a particular Xinerama screen to the screen.
+# xinerama-shadow-crop = false
+
+
+#################################
+#           Fading              #
+#################################
+
+
+# Fade windows in/out when opening/closing and when opacity changes,
+#  unless no-fading-openclose is used.
+# fading = false
+fading = true;
+
+# Opacity change between steps while fading in. (0.01 - 1.0, defaults to 0.028)
+# fade-in-step = 0.028
+fade-in-step = 0.05;
+
+# Opacity change between steps while fading out. (0.01 - 1.0, defaults to 0.03)
+# fade-out-step = 0.03
+fade-out-step = 0.05;
+
+# The time between steps in fade step, in milliseconds. (> 0, defaults to 10)
+# fade-delta = 10
+
+# Specify a list of conditions of windows that should not be faded.
+# fade-exclude = []
+
+# Do not fade on window open/close.
+# no-fading-openclose = false
+
+# Do not fade destroyed ARGB windows with WM frame. Workaround of bugs in Openbox, Fluxbox, etc.
+# no-fading-destroyed-argb = false
+
+
+#################################
+#   Transparency / Opacity      #
+#################################
+
+
+# Opacity of inactive windows. (0.1 - 1.0, defaults to 1.0)
+# inactive-opacity = 1
+inactive-opacity = 0.9;
+
+# Opacity of window titlebars and borders. (0.1 - 1.0, disabled by default)
+# frame-opacity = 1.0
+frame-opacity = 0.9;
+
+# Let inactive opacity set by -i override the '_NET_WM_WINDOW_OPACITY' values of windows.
+inactive-opacity-override = true
+# inactive-opacity-override = false;
+
+# Default opacity for active windows. (0.0 - 1.0, defaults to 1.0)
+active-opacity = 1.0
+
+# Dim inactive windows. (0.0 - 1.0, defaults to 0.0)
+inactive-dim = 0.0
+
+# Specify a list of conditions of windows that should never be considered focused.
+# focus-exclude = []
+focus-exclude = [ "class_g = 'Cairo-clock'" ];
+
+# Use fixed inactive dim value, instead of adjusting according to window opacity.
+# inactive-dim-fixed = 1.0
+
+# Specify a list of opacity rules, in the format `PERCENT:PATTERN`,
+# like `50:name *= "Firefox"`. picom-trans is recommended over this.
+# Note we don't make any guarantee about possible conflicts with other
+# programs that set '_NET_WM_WINDOW_OPACITY' on frame or client windows.
+# example:
+#    opacity-rule = [ "80:class_g = 'URxvt'" ];
+#
+opacity-rule = [
+            "92:class_g = 'URxvt' && focused",
+            "75:class_g = 'URxvt' && !focused",
+            "95:class_g = 'Emacs' && focused",
+            "75:class_g = 'Emacs' && !focused",
+            ];
+
+
+#################################
+#           Corners             #
+#################################
+
+# Sets the radius of rounded window corners. When > 0, the compositor will
+# round the corners of windows. Does not interact well with
+# `transparent-clipping`.
+corner-radius = 7
+
+# Exclude conditions for rounded corners.
+rounded-corners-exclude = [
+  "window_type = 'dock'",
+  "window_type = 'desktop'"
+];
+
+
+#################################
+#     Background-Blurring       #
+#################################
+
+
+# Parameters for background blurring, see the *BLUR* section for more information.
+blur-method = "dual_kawase"
+blur-size = 12
+#
+# blur-deviation = false
+#
+blur-strength = 4
+
+# Blur background of semi-transparent / ARGB windows.
+# Bad in performance, with driver-dependent behavior.
+# The name of the switch may change without prior notifications.
+#
+# blur-background = false
+
+# Blur background of windows when the window frame is not opaque.
+# Implies:
+#    blur-background
+# Bad in performance, with driver-dependent behavior. The name may change.
+#
+# blur-background-frame = false
+
+
+# Use fixed blur strength rather than adjusting according to window opacity.
+# blur-background-fixed = false
+
+
+# Specify the blur convolution kernel, with the following format:
+# example:
+#   blur-kern = "5,5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1";
+#
+# blur-kern = ""
+blur-kern = "3x3box";
+
+
+# Exclude conditions for background blur.
+# blur-background-exclude = []
+blur-background-exclude = [
+  "window_type = 'dock'",
+  "window_type = 'desktop'",
+  "_GTK_FRAME_EXTENTS@:c"
+];
+
+#################################
+#       General Settings        #
+#################################
+
+# Enable remote control via D-Bus. See the man page for more details.
+# dbus = true
+
+# Daemonize process. Fork to background after initialization. Causes issues with certain (badly-written) drivers.
+# daemon = false
+
+# Specify the backend to use: `xrender`, `glx`, or `xr_glx_hybrid`.
+# `xrender` is the default one.
+#
+backend = "glx"
+# backend = "xrender";
+
+# Enable/disable VSync.
+# vsync = false
+vsync = true;
+
+# Try to detect WM windows (a non-override-redirect window with no
+# child that has 'WM_STATE') and mark them as active.
+#
+# mark-wmwin-focused = false
+mark-wmwin-focused = true;
+
+# Mark override-redirect windows that doesn't have a child window with 'WM_STATE' focused.
+# mark-ovredir-focused = false
+mark-ovredir-focused = true;
+
+# Try to detect windows with rounded corners and don't consider them
+# shaped windows. The accuracy is not very high, unfortunately.
+#
+# detect-rounded-corners = false
+detect-rounded-corners = true;
+
+# Detect '_NET_WM_WINDOW_OPACITY' on client windows, useful for window managers
+# not passing '_NET_WM_WINDOW_OPACITY' of client windows to frame windows.
+#
+# detect-client-opacity = false
+detect-client-opacity = true;
+
+# Use EWMH '_NET_ACTIVE_WINDOW' to determine currently focused window,
+# rather than listening to 'FocusIn'/'FocusOut' event. Might have more accuracy,
+# provided that the WM supports it.
+#
+# use-ewmh-active-win = false
+
+# Unredirect all windows if a full-screen opaque window is detected,
+# to maximize performance for full-screen windows. Known to cause flickering
+# when redirecting/unredirecting windows.
+#
+# unredir-if-possible = false
+
+# Delay before unredirecting the window, in milliseconds. Defaults to 0.
+# unredir-if-possible-delay = 0
+
+# Conditions of windows that shouldn't be considered full-screen for unredirecting screen.
+# unredir-if-possible-exclude = []
+
+# Use 'WM_TRANSIENT_FOR' to group windows, and consider windows
+# in the same group focused at the same time.
+#
+# detect-transient = false
+detect-transient = true;
+
+# Use 'WM_CLIENT_LEADER' to group windows, and consider windows in the same
+# group focused at the same time. This usually means windows from the same application
+# will be considered focused or unfocused at the same time.
+# 'WM_TRANSIENT_FOR' has higher priority if detect-transient is enabled, too.
+#
+# detect-client-leader = false
+
+# Resize damaged region by a specific number of pixels.
+# A positive value enlarges it while a negative one shrinks it.
+# If the value is positive, those additional pixels will not be actually painted
+# to screen, only used in blur calculation, and such. (Due to technical limitations,
+# with use-damage, those pixels will still be incorrectly painted to screen.)
+# Primarily used to fix the line corruption issues of blur,
+# in which case you should use the blur radius value here
+# (e.g. with a 3x3 kernel, you should use `--resize-damage 1`,
+# with a 5x5 one you use `--resize-damage 2`, and so on).
+# May or may not work with *--glx-no-stencil*. Shrinking doesn't function correctly.
+#
+# resize-damage = 1
+
+# Specify a list of conditions of windows that should be painted with inverted color.
+# Resource-hogging, and is not well tested.
+#
+# invert-color-include = []
+
+# GLX backend: Avoid using stencil buffer, useful if you don't have a stencil buffer.
+# Might cause incorrect opacity when rendering transparent content (but never
+# practically happened) and may not work with blur-background.
+# My tests show a 15% performance boost. Recommended.
+#
+glx-no-stencil = true;
+
+# GLX backend: Avoid rebinding pixmap on window damage.
+# Probably could improve performance on rapid window content changes,
+# but is known to break things on some drivers (LLVMpipe, xf86-video-intel, etc.).
+# Recommended if it works.
+#
+# glx-no-rebind-pixmap = false
+
+# Disable the use of damage information.
+# This cause the whole screen to be redrawn every time, instead of the part of the screen
+# has actually changed. Potentially degrades the performance, but might fix some artifacts.
+# The opposing option is use-damage
+#
+# no-use-damage = false
+use-damage = true;
+
+# Use X Sync fence to sync clients' draw calls, to make sure all draw
+# calls are finished before picom starts drawing. Needed on nvidia-drivers
+# with GLX backend for some users.
+#
+# xrender-sync-fence = false
+
+# GLX backend: Use specified GLSL fragment shader for rendering window
+# contents. Read the man page for a detailed explanation of the interface.
+#
+# window-shader-fg = "default"
+
+# Use rules to set per-window shaders. Syntax is SHADER_PATH:PATTERN, similar
+# to opacity-rule. SHADER_PATH can be "default". This overrides window-shader-fg.
+#
+# window-shader-fg-rule = [
+#   "my_shader.frag:window_type != 'dock'"
+# ]
+
+# Force all windows to be painted with blending. Useful if you
+# have a glx-fshader-win that could turn opaque pixels transparent.
+#
+# force-win-blend = false
+
+# Do not use EWMH to detect fullscreen windows.
+# Reverts to checking if a window is fullscreen based only on its size and coordinates.
+#
+# no-ewmh-fullscreen = false
+
+# Dimming bright windows so their brightness doesn't exceed this set value.
+# Brightness of a window is estimated by averaging all pixels in the window,
+# so this could comes with a performance hit.
+# Setting this to 1.0 disables this behaviour. Requires --use-damage to be disabled. (default: 1.0)
+#
+# max-brightness = 1.0
+
+# Make transparent windows clip other windows like non-transparent windows do,
+# instead of blending on top of them.
+#
+# transparent-clipping = false
+
+# Specify a list of conditions of windows that should never have transparent
+# clipping applied. Useful for screenshot tools, where you need to be able to
+# see through transparent parts of the window.
+#
+# transparent-clipping-exclude = []
+
+# Set the log level. Possible values are:
+#  "trace", "debug", "info", "warn", "error"
+# in increasing level of importance. Case doesn't matter.
+# If using the "TRACE" log level, it's better to log into a file
+# using *--log-file*, since it can generate a huge stream of logs.
+#
+# log-level = "debug"
+log-level = "warn";
+
+# Set the log file.
+# If *--log-file* is never specified, logs will be written to stderr.
+# Otherwise, logs will to written to the given file, though some of the early
+# logs might still be written to the stderr.
+# When setting this option from the config file, it is recommended to use an absolute path.
+#
+# log-file = "/path/to/your/log/file"
+
+# Show all X errors (for debugging)
+# show-all-xerrors = false
+
+# Write process ID to a file.
+# write-pid-path = "/path/to/your/log/file"
+
+# Window type settings
+#
+# 'WINDOW_TYPE' is one of the 15 window types defined in EWMH standard:
+#     "unknown", "desktop", "dock", "toolbar", "menu", "utility",
+#     "splash", "dialog", "normal", "dropdown_menu", "popup_menu",
+#     "tooltip", "notification", "combo", and "dnd".
+#
+# Following per window-type options are available: ::
+#
+#   fade, shadow:::
+#     Controls window-type-specific shadow and fade settings.
+#
+#   opacity:::
+#     Controls default opacity of the window type.
+#
+#   focus:::
+#     Controls whether the window of this type is to be always considered focused.
+#     (By default, all window types except "normal" and "dialog" has this on.)
+#
+#   full-shadow:::
+#     Controls whether shadow is drawn under the parts of the window that you
+#     normally won't be able to see. Useful when the window has parts of it
+#     transparent, and you want shadows in those areas.
+#
+#   clip-shadow-above:::
+#     Controls whether shadows that would have been drawn above the window should
+#     be clipped. Useful for dock windows that should have no shadow painted on top.
+#
+#   redir-ignore:::
+#     Controls whether this type of windows should cause screen to become
+#     redirected again after been unredirected. If you have unredir-if-possible
+#     set, and doesn't want certain window to cause unnecessary screen redirection,
+#     you can set this to `true`.
+#
+wintypes:
+{
+  tooltip = { fade = true; shadow = true; opacity = 0.75; focus = true; full-shadow = false; };
+  dock = { shadow = false; clip-shadow-above = true; }
+  dnd = { shadow = false; }
+  popup_menu = { opacity = 0.8; }
+  dropdown_menu = { opacity = 0.8; }
+};
+#+end_src
+** rofi :manjaroi3:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./rofi/.config/rofi/config.rasi
+:END:
+call_printConfigLocation()
+
+#+begin_src c
+configuration {
+ktheme: "arthur";
+kb-remove-to-eol: "";
+kb-accept-entry: "Control+m,Return,KP_Enter";
+kb-row-up: "Up,Control+k,Control+p";
+kb-row-down: "Down,Control+j,Control+n";
+}
+#+end_src
+** qt4 :manjaroi3:
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./qt4/.config/Trolltech.conf
+:END:
+call_printConfigLocation()
+I want to change qt and gtk styles simultaneously
+#+begin_src conf
+[Qt]
+style=GTK+
+#+end_src
 ** dmenu
 *** dmscripts
 Use the existing configuration 
@@ -5757,6 +6583,13 @@ a3EbLkOrzyq4qSNaYvyYXaPZE7FCEf5uGFLa3olMIbSBhiYzJzp2Zk9Iq3cFBE+b
 ZzaUI8PCkhosqrHaAsMBNHK0uF6tKSbpSlWO4w==
 =GmAW
 -----END PGP MESSAGE-----
+** mount_mailbox
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/mount_mailbox
+:END:
+#+begin_src bash :shebang #!/bin/bash
+rclone mount --daemon "mailbox drive:/Userstore/Philip Heringlake/" "/home/philip/Documents/Mailbox Drive" 
+#+end_src
 ** neelvpn
 :PROPERTIES:
 :TANGLE_FILE_NAME: ./scripts/.local/bin/neelvpn
@@ -5943,30 +6776,29 @@ fi
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ/9GoIoILWVXT0zwHb1SOP9WUvubwLc80dIq26pFAijbiR+
-RBZQG4WNjJSIxPK1qeKM+g3Ko+jNCCNW8SaPSnYfek7n6kbEJbA4X1TEugMoKqLt
-0nW7oxZCkG+5tmipBmiw7RmYmgnBZ2vnL7f8K5FrlZ50I5OpAm0fq9KB0hEt4VsB
-QNj6o6DJub2GjAcOxxScS58DrjXCzDveR6syJWJF1fRYLWlKUfVLJvmbFTUXXjnT
-XjF1ftxVxg5k2Cx3RAGc8r5dE4FGIW/B5tUB6JvAhdc7cMvgez/Xw3H6Y67EYoUX
-5itCvXq8zMFS3cQ9VlrKD7qYHVGKJPdSU1G0wjxtO4J7SUIBjqv7T5XVKQhdcOuL
-TSRYb4jxYilIBa4ycq5BNjprrpeh3N0Y/J54npV5qqkFT+I3iAB0IioO4R1ez/C7
-y4Tdf5KOcTxti2TBu7Ocr8kQwoiPSCmhgVA3YIQlbrECA1UXgLIkAzR6ZKSSwb9V
-Dv3Ld4KNqVhPrx70VfXmawA61GufzD9Wcf9AK7Jx+S6ZyU5edzyKB/9u9SzdAVom
-7fgbxDWnI9zdxxTGdWvjNcAy2DHDWdklrqPiKAJuq5lzYSu2LHKXh+OKzRVZkpMH
-xB2gvcfjmBVdbCr5KcGfL+HfpgyTamyWCP+eG5DCCAajtK08EOkz4OnisCy1L1LS
-6QHRp2y4ehNAJKfJd7OPu/hmEsaE1vy+oOqtc/w0upSHGfoAfXdBwBL3US36bPtl
-Pe3mMFoSA7ty4PXwd4Jaai/EucWqMOYiJIUPhk5ePtY61fmedEb91uELJ9gS0xnw
-3vbfUpEVZVTpjHTbRWdQ5U4bDbiY/PTz8P5FE73YcGuhAoAiSqGIt2VOIpTy3sgD
-eIvNzxSba+pwowmYMPCUt5jKP/KtWulTs+992vGFsUXh3l63oLyJfj5lVCEd+n0i
-7mKigPcM5fbworqkEb7OfcS3QBu//pUiTP9D69NTpWZ9da1ktkh4fIV8yT22ny8H
-HV1jR3Y0sMa6vREcdPuLOdsTdgjjD72VGB+RrEs65MkM9BRXamXMva+XHVnlnrQn
-WTQM7dLrDSiILmykqLsIdSrDu3hUGfSUC4uUP2lTWQxNemUs4Dz1EJLUM6U+4S+u
-RXqwx3j8x8YKYZjIKrkYPAlN37nVIh5/Pq4uVRp86DkriDS6TnrsG8MQp/q9Vnoa
-JL5GWQYmBWz2I65aB1uF3nQ91KSq0NRpUiCRCiTa/IzZWE4pHKZyMjs/Q9JUFszz
-cJsMQwvd4BoUi9TInFQwFvAkOxYvRQX58dx/MCoaixfKEK1K3vU+6oMxwXe4Q/QK
-zqOQif1jmUU2J5b961uxvayMB1QGx3C866uN3CtZXiHcErzvH6cuyEDC+gUiZrzM
-7cnX3A==
-=VRRX
+hQIMA8yc76sS3P8VAQ//bvBfjiZVPGEfHdirio4dlggzuFInIItKgwC8gtwbubjR
+ONRfE0jJ8bfM2RHBJ92xpccu+bJRD9TKiM66Q1pSJ/DqN5DZAgl3Il1F7te3+0/9
+etwt6PC6jfUD44ayiQroBEwCrfSSyuW8r0KrL0BDKUqD3uVa1oZeVulynL7EQXjj
+KwmIATb9ujCJvXzg7LPKObsZRgcBoX+0b7HE/6pdXxUgsXnV1FYLQaOEQPABkcS8
+SAAxslB+Vytil0RieUTIoUReDMZW95G7Yyznfc6V5267rJX1rd2wvzf0Mn1DxXKs
+7GAcVKMojCp8J7Vkz4u7ng9OYpVUt/oHEP439Q30kXCRJCGZS0Zp6wt8HQCyNPBk
+hJA+avyO9xr+zSBBB6FwVg6zEeOqnrX9TPs752Zv6Ro7r80UZy3CQActBB9LFXdW
+85fCncqch40QgxIWQEpsW5OX1vaAtq68Ww7D+q/1K0YuInM7/2ZuYgFpkg+xYaO5
+86fHNQe9kF3POQSI4n+9xe5LUTHOdh79zEOmfrMFRyqoMXSAlC8FCM1hMgKHUm8A
+1eQh+ElBr9WfYMIBPYpfgVZ6ajZ4fgWZxgTlcvMBZox4SfmnkeszLVC24eUqm9/4
+bxW+px/QszuSZk2aGRBb8HLL8ZUBjrg4YiW7fRufRgMwLOQeqpwY2ZpSFuuL1/rS
+6QFkheokqK39/v1nZjh7Ekr/Z9inNbwgJEFHAoEOA81JR7Hi5XiE1F1mQSJAcrk2
+eB3pNNcPt+9NTBHjWmviJwGR2TQBRFfUZIllSz82WvfHk0esMYkuagfPjUm6knA3
+kXSvafT+ZTdQorm6OCF96fgl5JtkPmGBrzpV+Zfljon2Nb6AWhcV7CJlOICCRyZu
+ATbwHJkE21AVj3SpBYBhaBacWkKdtPrSnz8jeVad0dWdSM0nNwAhSuOBtsECTZoV
+TqgHaBAfHHUtjEhjfM5K0SMLt8rMaQaxy6JtBEZmgENfIQ5tLghM17JXSUH9ECVb
+3RI2/9WaKh5KFrWLIxYWzdaBpBfJmLQYJwkA0Y++ws6LdwA06qx3Wsnm3xb6hf2p
+RjFlI+FT974sYbhFNsn5tYt6qR0sLW/UG+dPbkLXEeUxOXiHnPRm2Oy+ErMmAf0Z
+HnigJcoSPa8JaxS0E1yZoksGLdaHkJaiBrHXuHwL1ge1y4BbskGi1KaVDPsk9Nkh
+kAelVJBtZaAcGLsrk4gm1pMn/v4Y+efG2fk7KMdLl5XlwZrTFMuoYQZPfKnmZ94e
++/5XYhsgZrQP8tbl9vWc4mSZ5r31BZMg9yFwm9Qec/O+cAfnZYqSYsb/DzRCTqXz
+zhaFLsZNlmfQ7kZ1N9zC/njpG8yqFfnRPFZ5XgDxiH0mCa0PQwkiUboQaw==
+=eQ9B
 -----END PGP MESSAGE-----
 
 ** i3cheatsheet
@@ -6110,7 +6942,95 @@ echo ".."
 ls
 
 #+end_src
+** updatedewal
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/updatewal.sh
+:END:
+Adapt a script from S.Raabe to set the wal theme. I probably don't need
+everything in my config
+#+begin_src bash bash :shebang #!/bin/bash 
+#   ____ _                              _____ _                          
+#  / ___| |__   __ _ _ __   __ _  ___  |_   _| |__   ___ _ __ ___   ___  
+# | |   | '_ \ / _` | '_ \ / _` |/ _ \   | | | '_ \ / _ \ '_ ` _ \ / _ \ 
+# | |___| | | | (_| | | | | (_| |  __/   | | | | | |  __/ | | | | |  __/ 
+#  \____|_| |_|\__,_|_| |_|\__, |\___|   |_| |_| |_|\___|_| |_| |_|\___| 
+#                          |___/                                         
+#  
+# by Stephan Raabe (2023) 
+# ----------------------------------------------------- 
 
+
+# ----------------------------------------------------- 
+# Update Wallpaper with pywal
+# ----------------------------------------------------- 
+wal -q -i ~/Pictures/wallpapers/screen/
+
+# ----------------------------------------------------- 
+# Wait for 1 sec
+# ----------------------------------------------------- 
+sleep 1
+
+# ----------------------------------------------------- 
+# Reload qtile to color bar
+# ----------------------------------------------------- 
+qtile cmd-obj -o cmd -f reload_config
+
+# ----------------------------------------------------- 
+# Get new theme
+# ----------------------------------------------------- 
+source "$HOME/.cache/wal/colors.sh"
+newwall=$(echo $wallpaper | sed "s|$HOME/wallpaper/||g")
+
+# ----------------------------------------------------- 
+# Send notification
+# ----------------------------------------------------- 
+# notify-send "Theme and Wallpaper updated" "With image $newwall"
+
+echo "Done."
+
+#+end_src
+** wallpaper_select
+:PROPERTIES:
+:TANGLE_FILE_NAME: ./scripts/.local/bin/wallpaper_select.sh
+:END:
+#+begin_src bash :shebang #!/bin/bash
+# __        __    _ _                              
+# \ \      / /_ _| | |_ __   __ _ _ __   ___ _ __  
+#  \ \ /\ / / _` | | | '_ \ / _` | '_ \ / _ \ '__| 
+#   \ V  V / (_| | | | |_) | (_| | |_) |  __/ |    
+#    \_/\_/ \__,_|_|_| .__/ \__,_| .__/ \___|_|    
+#                    |_|         |_|               
+#  
+# by Stephan Raabe (2023) 
+# ----------------------------------------------------- 
+
+# Select wallpaper
+selected=$(ls -1 ~/Pictures/wallpapers/screen | grep -e "jpg" -e "png" -e "JPG" -e "jpeg" | rofi -dmenu -p "Wallpapers")
+
+if [ "$selected" ]; then
+
+    echo "Changing theme..."
+    # Update wallpaper with pywal
+    wal -q -i ~/Pictures/wallpapers/screen/$selected
+
+    # Wait for 1 sec
+    sleep 1
+
+    # Reload qtile to color bar
+    qtile cmd-obj -o cmd -f reload_config
+
+    # Get new theme
+    source "$HOME/.cache/wal/colors.sh"
+
+    newwall=$(echo $wallpaper | sed "s|$HOME/wallpaper/||g")
+
+    # Send notification
+    notify-send "Theme and Wallpaper updated" "With image $newwall"
+
+    echo "Done."
+fi
+
+#+end_src
 * digikam :full:manjaroi3:
 ** digikamrc
 :PROPERTIES:
@@ -8021,32 +8941,30 @@ s2owjUs+1rUKCKmRGJcQvIea65X4URtRvlTgb2dsmtncZqUZy4dHBFjm5RQ=
 :END:
 -----BEGIN PGP MESSAGE-----
 
-hQIMA8yc76sS3P8VAQ/+NP6weRjzbkQfg0rdfJIUlaNP9OoPDRaLWCF7DBJ6JIRt
-Cc8Qqu96OykGr0tozXXBqD1L22X19CQp65QjuP81Nh/ah0ANqMlakkSLpH835NH/
-vx0/CX37LW1LPX8Qh8py26Enbo6n6co5ppLpWFPctS6WZosVgVjGnvlNNoA6VroO
-+/u+hLzPvQQ6my05VWcNCB/BGoMt9BD3whkCR60QpK2fDgbDC7fwxj1HlyqMbaP4
-eCsqpdryMuJcb6f/i4ZSHVEEojLoCkXAr7k3r7Cn4SGzZ/gcslO1DRo3am5oMEhk
-m2IYnRjax9Yd6ztc6QmXvTAZTs6zcDbEK+2xPARd9GQNJOtgdfzLYzLMj/PDXrV1
-53bOfcuiWg7NQz7aKTRO75uSN8AbXB/4NXie84dWEI5v1d9Hh3xfbIMUwfgrGe+H
-+iAH7lbAE16fvmaUsH9xN/CrYlXoGtsUJ3wrRwWDFtB6JzVEL52F/pg+blKchj87
-uPzA6cHuP0yElh5psMeQM86wqc/qhiuIJtAb33X04lsfPKp/zq9sn6DDtviN+ymo
-u8bvIMYA7fKqzFESKmTEgIk1j30bo3DO3QC4n7olFe7gbVFYKpbKGQfgWC+Qr4CL
-8A0KMBBq5lmMbAwCC1q+cZwHuwnOXCycO8UxvtKRIU2MLitQkKKg0ObW4W+HnznS
-6QHWpMWroDQCfqOame+fPqPSWs7j7ZKacgLL9scbDn8Fg45BvKvVbx4jaYa7aeSm
-BH+WH+pp8AHg2U3WKXfFDo7tUatR3dMyTOOFOrUg7mPzyKf7VNWWJ9l8+cbu7oPM
-GcpWRedyRRvJ30NTt828MHqjbd5pi4hmdC3vflKai+yUGDdn5ojON1PxVh6VkZv9
-4hpU++wouINeYG5bZ6Al6Bh/vlmyABhVRY+A0L98iJGd7ZKvpM8apjoFqchIAvHr
-zZOdfm14V1zhwU5XUoiHQJeEEqtqWaotre6GDhgEv2OWjCrn/H///9EBOtCEQnEq
-WiW0AhtCZfcP/OhyQu7y8xMuVYYaAICojr+Y5lAqoPwiOthREdoCuu1ZDUXWKqIq
-QW6pjc+sa6FGVse9v/zqISs19rJAS8Ke2TiNcH076poyiTH8WGJid47ck7Lf7enB
-gnMknhzpJ58qLLWIR8ZK1lEXOuhYaFNMWXqxLlQhX2hyNVbZr/fVRRh95O+0osa9
-AXDA77DoGDSRoZOfzhaL3tmHmpKwBWFrpcjpqi68s4twQ4fc0atRZCghuIppKRWv
-Aggnrb6a9go/BAph9wSBgMQxYesz/BQ30yUvmy9wMTmBuMjuJImGohCJAgHxc6Vz
-yWZ3KQq4gY4xMfjdJ7BTC5rFUCzf/krAZ+xHYFD9cpKXjiToSIEGKjCIZH6Skkl7
-oP0VmytkyUzssZ6cWFQ2nm3NgvJ4VNT4/u4QZkz/A4TvOA1FtCJspoEKW5mjKe8+
-H2Pv8Rafz0eHct7/uq2OcZlJvxEKZvTw1i0xU7JYS8JEeyk9LcijMGDAdLS0QF+z
-jbcmtbqrqINJu280RfvViBSmUD/nP45jCvDvKZleO/8=
-=j2Nz
+hQIMA8yc76sS3P8VAQ//ejJOyOnNeNPEHm0e/5tn7LhGnFmQ0OD02Sj5HauEZCya
+ZYMg7BYDPC/k71NCptJG5UfIt4c6INB5/PXM+uJ+/5zkAVCcyIczUW6KydG1ncXj
+TVaZO9GSY1TvznMm5UPD45MMowOI5cF+PgXPwfjsiWWNlPbMDcsoUN4G5v9bX8S3
+iLf08CMtC9X2zf+4SyVo2wYrHOezdnA44NKq+UIaR/Ic+xnf1Fz1ln1ZgWGmz6Fc
+EQRczSY0hlNXfQPCfyyuMwRiLyBZXMpqtEg9f1qaWnvofpGrXU1D79fwxqv7rNQk
+gtCQ7NUryXJgejhJWJoBJPg/rjcV3zV9uuztMBEckRw9M68prnoPfdWukyDstBUZ
+qtz6gYtRZdK3vArLFhkd83Sqel77IAAir8ISRYGtI197esgLDX40J8Xm/bI+dxOf
+GOmRo66mofO/fVWdtNBdFiVg9Jb1F+r3/Duv9FzOxjbc7jQfCg6iDCO+catcx9Hy
+bUw2lop7uR/aMYthk4rczTjUjM3/n7Y0jxUbYIsuy5EbeXPITJrCWJ2RFdz31Wal
+w9bryAN7/vzqt/OMyWnUFdRgaDmEiHezHKsJCxSHkLpI9ISAmeaOtj7jZkFHTg8L
+OAKDGCsafBYlEp/CKJhz/K7z76qT/gKuFtjW5s6QoKzn5wWWz4wFfbhhBX1ZNVnS
+6QGqk/NH62Xs+vpULFvnPduVH16IxBf38lrlV3UBgBm14B6PS5UP+3tUc1vObNSM
+LU9XFWt2t07DsvPyKgcZZOGn8KLo3LaNzwqwjnTlOe0Zi/3YcGkCFdBIeaNzSYyQ
+4tFgvqem+bujIGZni4qQV4lgHErVZjgRQjdIhAtdCn4+1emRzq64ZJLVzFoWpPck
+deGNM2DMV/qph9L7KdofC7n2Uk7Ra32Eig406lrYZW1mRfnsBnXbeeNJOXHd5FVb
+auK+P4kBPR9hg+bq7UPcWb+WdRsT45/XPMjuO0/kDxaThTEcu64pPgSu8QNQf8BR
+SttpuWT4c5bJzgtfMFfT04ZZyHztshiHu/b+PGK+DLYt8PaSaUsQNeF+SRGs/pRA
+aV4M+4xwYun7Kvv9PBZynqVNJhbNLZnWCk4evogBoRvbsR0uG/BwXw2prP8unwp2
+HZD9OcHWr0ghyQqYg/aa/tEk133yttUiBWGoKxvVZfG9V7D2WRCxe2bACBu6d+sW
+sr576UUsJGaSb8tKGpnij1AsyLRclbCNJTVZ1PkLPxAEG1mP1KNU+/B0SDynIG77
+Dcrly/+KZnu1F8NzVGJDLHZNTX4fxinoo1//lHW4Pl7Bkr7iehQm/81baMaYzx/3
+oWl7jy51DwTAmZ/BtJdnQ5ucrzLM/s+Yj63ret39pNx5LUlXmnSYJR298UPW65fZ
+CLWdviM/0HWMZXccDdcHWUrYu/kIYg6cKGX1emuVWw==
+=AhpH
 -----END PGP MESSAGE-----
 
 * nextcloud :full:crypt:manjaroi3:
@@ -8205,13 +9123,11 @@ call_printConfigLocation()
 # ~/.xinitrc
 #
 # Executed by startx (run your window manager from here)
-
 userresources=$HOME/.Xresources
 usermodmap=$HOME/.Xmodmap
 sysresources=/etc/X11/xinit/.Xresources
 sysmodmap=/etc/X11/xinit/.Xmodmap
 
-DEFAULT_SESSION='i3 --shmlog-size 0'
 
 # merge in defaults and keymaps
 
@@ -8240,35 +9156,10 @@ if [ -d /etc/X11/xinit/xinitrc.d ] ; then
     unset f
 fi
 
-xinput --map-to-output 'Melfas LGDisplay Incell Touch' eDP-1
-get_session(){
-	local dbus_args=(--sh-syntax --exit-with-session)
-	case $1 in
-		awesome) dbus_args+=(awesome) ;;
-		bspwm) dbus_args+=(bspwm-session) ;;
-		budgie) dbus_args+=(budgie-desktop) ;;
-		cinnamon) dbus_args+=(cinnamon-session) ;;
-		deepin) dbus_args+=(startdde) ;;
-		enlightenment) dbus_args+=(enlightenment_start) ;;
-		fluxbox) dbus_args+=(startfluxbox) ;;
-		gnome) dbus_args+=(gnome-session) ;;
-		i3|i3wm) dbus_args+=(i3 --shmlog-size 0) ;;
-		xmonad) dbus_args+=(xmonad) ;;
-		jwm) dbus_args+=(jwm) ;;
-		kde) dbus_args+=(startkde) ;;
-		lxde) dbus_args+=(startlxde) ;;
-		lxqt) dbus_args+=(lxqt-session) ;;
-		mate) dbus_args+=(mate-session) ;;
-		xfce) dbus_args+=(xfce4-session) ;;
-		openbox) dbus_args+=(openbox-session) ;;
-		,*) dbus_args+=($DEFAULT_SESSION) ;;
-	esac
 
-	echo "dbus-launch ${dbus_args[*]}"
-}
+DEFAULT_SESSION='i3 --shmlog-size 0'
+session=${1}
 
-
-exec $(get_session "$1")
 xset r rate 660 25
 
 export TERMINAL=urxvt
@@ -8276,6 +9167,18 @@ export TERMINAL=urxvt
 export BROWSER="/usr/bin/chromium"
 setxkbmap eu -option caps:none
 xinput --map-to-output 'Melfas LGDisplay Incell Touch' eDP-1
+xset s on +dpms # blank screen after 10 min
+"$1" > /tmp/startx.log
+$1 > /tmp/startx.log
+session > /tmp/startx.log
+
+case $session in
+	i3|i3wm) exec i3 --shmlog-size 0 ;;
+	xmonad) exec xmonad ;;
+	qtile) exec qtile start ;;
+	openbox) exec openbox-session ;;
+	,*) exec $DEFAULT_SESSION ;;
+esac
 #+end_src
 ** xresources :full:manjaroi3:
 *** base
